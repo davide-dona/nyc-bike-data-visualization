@@ -1,0 +1,130 @@
+@layer components {
+  /* Main container */
+  .date-range-filter-dropdown {
+    @apply flex select-none flex-col gap-5 text-white font-sans;
+  }
+
+  .date-range-filter-dropdown--disabled {
+    @apply opacity-70;
+  }
+
+  .date-range-filter-dropdown--disabled .date-range-filter-dropdown__selector,
+  .date-range-filter-dropdown--disabled .date-range-filter-dropdown__btn,
+  .date-range-filter-dropdown--disabled .date-range-filter-dropdown__apply-btn {
+    cursor: not-allowed;
+  }
+
+  /* Header section */
+  .date-range-filter-dropdown__header {
+    @apply mb-1 flex items-baseline gap-3;
+  }
+
+  .date-range-filter-dropdown__eyebrow {
+    @apply inline-flex gap-1.5 font-mono text-[10px] uppercase tracking-eyebrow text-white/55;
+    line-height: 1;
+  }
+
+  .date-range-filter-dropdown__eyebrow-icon {
+    @apply inline-flex justify-center w-3.5 h-3.5 text-[10px] text-current;
+    line-height: 1;
+    flex-shrink: 0;
+    opacity: 0.7;
+  }
+
+  .date-range-filter-dropdown__eyebrow-icon::before {
+    display: block;
+    line-height: 1;
+  }
+
+  .date-range-filter-dropdown__value {
+    @apply font-mono text-[12px] font-medium text-white tabular-nums;
+    letter-spacing: 0.02em;
+  }
+
+  /* Group wrapper */
+  .date-range-filter-dropdown__group {
+    @apply flex items-start gap-2 ml-auto;
+  }
+
+  .date-range-filter-dropdown__label-wrap {
+    @apply relative flex items-center pt-px;
+    flex-shrink: 0;
+  }
+
+  .date-range-filter-dropdown__label {
+    @apply inline-flex items-center font-mono text-[10px] uppercase tracking-eyebrow text-white/55 whitespace-nowrap;
+    line-height: 1;
+  }
+
+  /* Inputs wrapper */
+  .date-range-filter-dropdown__inputs {
+    @apply flex flex-col gap-1;
+    width: 30vw;
+  }
+
+  /* Selector buttons container */
+  .date-range-filter-dropdown__selector {
+    @apply flex flex-wrap gap-px border border-rule-invert p-px bg-rule-invert;
+  }
+
+  /* Individual button */
+  .date-range-filter-dropdown__btn {
+    @apply inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-eyebrow px-2 py-1
+           text-white/60 bg-transparent transition-colors duration-150
+           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60
+           cursor-pointer;
+    line-height: 1;
+  }
+
+  .date-range-filter-dropdown__btn:hover {
+    @apply text-white;
+  }
+
+  .date-range-filter-dropdown__btn.active {
+    @apply bg-white/15 text-white;
+  }
+
+  .date-range-filter-dropdown__btn:disabled {
+    @apply cursor-not-allowed text-white/40;
+  }
+
+  /* Individual button */
+  .date-range-filter-dropdown__btn {
+    @apply inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-eyebrow px-2.5 py-1
+           text-white/60 bg-transparent transition-colors duration-150
+           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60
+           cursor-pointer;
+    line-height: 1;
+  }
+
+  .date-range-filter-dropdown__btn:hover {
+    @apply text-white;
+  }
+
+  .date-range-filter-dropdown__btn.active {
+    @apply bg-white/15 text-white;
+  }
+
+  .date-range-filter-dropdown__btn:disabled {
+    @apply cursor-not-allowed text-white/40;
+  }
+
+  /* Responsive */
+  @media (max-width: 640px) {
+    .date-range-filter-dropdown__group {
+      @apply w-full ml-0 flex-col gap-2;
+    }
+
+    .date-range-filter-dropdown__inputs {
+      width: 100%;
+    }
+
+    .date-range-filter-dropdown__selector {
+      width: 100%;
+    }
+
+    .date-range-filter-dropdown__btn {
+      @apply flex-1 justify-center px-2 py-1;
+    }
+  }
+}

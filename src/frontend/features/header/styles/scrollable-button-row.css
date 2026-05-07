@@ -1,0 +1,53 @@
+@layer components {
+  .scrollable-button-row {
+    @apply relative flex w-full min-w-0 items-stretch;
+  }
+
+  .scrollable-button-row__scroller {
+    @apply flex min-w-0 flex-1 flex-nowrap gap-px border border-rule-invert p-px bg-rule-invert overflow-x-auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    scroll-behavior: smooth;
+  }
+
+  .scrollable-button-row__scroller::-webkit-scrollbar {
+    display: none;
+  }
+
+  .scrollable-button-row__arrow {
+    @apply absolute top-1/2 z-10 inline-flex h-3.5 w-3.5 -translate-y-1/2 items-center justify-center text-white/75 transition-all duration-150;
+    opacity: 0;
+    pointer-events: none;
+    font-size: 11px;
+  }
+
+  .scrollable-button-row__arrow.is-visible {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .scrollable-button-row__arrow:hover:not(:disabled) {
+    @apply text-white;
+  }
+
+  .scrollable-button-row__arrow:disabled {
+    @apply cursor-not-allowed text-white/30;
+  }
+
+  .scrollable-button-row__arrow--left {
+    left: 1px;
+  }
+
+  .scrollable-button-row__arrow--right {
+    right: 1px;
+  }
+
+  .scrollable-button-row__arrow--right i,
+  .scrollable-button-row__arrow--left i {
+    @apply px-1;
+  }
+
+  .scrollable-button-row--disabled .scrollable-button-row__arrow {
+    @apply cursor-not-allowed;
+  }
+}

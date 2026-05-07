@@ -1,6 +1,6 @@
 @layer components {
     .rider-filter {
-        @apply flex flex-col items-start gap-5;
+        @apply flex flex-col items-end gap-3;
     }
 
     .rider-filter--disabled {
