@@ -1,7 +1,7 @@
 import { useCallback, useRef, useState } from "react";
 import { NavLink } from "react-router-dom";
 import { useLocation } from "react-router-dom";
-import DateRangeFilter from "./components/DateRangeFilter.jsx";
+import DateWindowPicker from "./components/DateWindowPicker.jsx";
 import useHeaderFilters from "./hooks/useHeaderFilters.js";
 import RiderBikeFilter from "./components/RiderBikeFilter.jsx";
 import { useDatasetDateRange } from "./hooks/useDatasetDateRange.js";
@@ -118,22 +118,23 @@ function AppHeader({ onFiltersChange, forceDisableFilters = false }) {
                 </nav>
             </div>
             <div className="app-header__filters">
-                <DateRangeFilter
-                    value={dateRange}
-                    onCommit={handleDateRangeCommit}
-                    disabled={areDateFiltersDisabled}
-                />
-                <div
-                    className={`app-header__filter-lockzone${shouldShowLockHint ? " is-locked" : ""}`}
-                    onMouseEnter={updateLockHintPosition}
-                    onMouseMove={updateLockHintPosition}
-                    onMouseLeave={hideLockHint}
-                >
-                    <RiderBikeFilter
-                        value={currentUserFilters}
-                        onChange={handleUserFilterChange}
-                        disabled={areUserFiltersDisabled}
+                <div className="app-header__filters-group">
+                    <DateWindowPicker
+                        value={dateRange}
+                        onCommit={handleDateRangeCommit}
+                        disabled={areDateFiltersDisabled}
                     />
+                    <div
+                        className={`app-header__filter-lockzone${shouldShowLockHint ? " is-locked" : ""}`}
+                        onMouseEnter={updateLockHintPosition}
+                        onMouseMove={updateLockHintPosition}
+                        onMouseLeave={hideLockHint}
+                    >
+                        <RiderBikeFilter
+                            value={currentUserFilters}
+                            onChange={handleUserFilterChange}
+                            disabled={areUserFiltersDisabled}
+                        />
                     {shouldShowLockHint && (
                         <p
                             ref={lockHintRef}
@@ -150,6 +151,7 @@ function AppHeader({ onFiltersChange, forceDisableFilters = false }) {
                             unlock them.
                         </p>
                     )}
+                    </div>
                 </div>
             </div>
         </header>

@@ -1,3 +1,5 @@
+import ScrollableButtonRow from './ScrollableButtonRow.jsx';
+
 export const FILTERS = {
   user_type: { label: 'User Type', options: ['member', 'casual'] },
   bike_type: { label: 'Bike Type', options: ['classic_bike', 'electric_bike'] },
@@ -46,7 +48,7 @@ export default function RiderBikeFilter({ value = {}, onChange, disabled = false
               </span>
             </span>
           </div>
-          <div className="rider-filter-selector">
+          <ScrollableButtonRow disabled={disabled}>
             <button
               className={`rider-filter-btn${!value[key] ? ' active' : ''}`}
               disabled={disabled}
@@ -66,7 +68,7 @@ export default function RiderBikeFilter({ value = {}, onChange, disabled = false
                 {formatLabel(opt)}
               </button>
             ))}
-          </div>
+          </ScrollableButtonRow>
         </div>
       ))}
     </div>
