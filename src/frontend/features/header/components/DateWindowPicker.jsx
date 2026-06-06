@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import useDateRangeBounds from '../hooks/useDateBounds.js'
 import { MONTH_LABELS } from '../../../utils/config.jsx'
+import { MONTH_ORDER } from '../../../utils/config.jsx'
 
 import '../styles/date-window-picker.css'
 
@@ -308,14 +309,14 @@ export default function DateWindowPicker({ value, onCommit, disabled = false }) 
                     <div className="dw-label">FROM</div>
                     <button ref={startAnchorRef} className="dw-input dw-input--thin" onClick={() => openForField('start')} aria-haspopup="dialog" disabled={isLoading}>
                         <span className="dw-icon"><CalendarIcon/></span>
-                        <span className="dw-text">{start ? `${MONTH_LABELS[start.month]} ${start.year}` : 'Select start'}</span>
+                        <span className="dw-text">{start ? `${MONTH_ORDER[start.month]} ${start.year}` : 'Select start'}</span>
                     </button>
                 </div>
                 <div className="dw-row">
                     <div className="dw-label">TO</div>
                     <button ref={endAnchorRef} className="dw-input dw-input--thin" onClick={() => openForField('end')} aria-haspopup="dialog" disabled={isLoading}>
                         <span className="dw-icon"><CalendarIcon/></span>
-                        <span className="dw-text">{end ? `${MONTH_LABELS[end.month]} ${end.year}` : 'Select end'}</span>
+                        <span className="dw-text">{end ? `${MONTH_ORDER[end.month]} ${end.year}` : 'Select end'}</span>
                     </button>
                 </div>
             </div>

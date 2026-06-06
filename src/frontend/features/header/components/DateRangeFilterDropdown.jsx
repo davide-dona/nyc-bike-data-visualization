@@ -3,6 +3,8 @@ import useDateRangeBounds from '../hooks/useDateBounds.js'
 import useDateRangeCommit from '../hooks/useDateRangeCommit.js'
 import ScrollableButtonRow from './ScrollableButtonRow.jsx'
 import { MONTH_LABELS } from '../../../utils/config.jsx'
+import { MONTH_ORDER } from '../../../utils/config.jsx'
+
 
 /**
  * Placeholder card shown while the dataset date range is loading or when it cannot be resolved.
@@ -159,7 +161,7 @@ export default function DateRangeFilterDropdown({ value, onCommit, disabled = fa
         if (startYear === null || startMonth === null || endYear === null || endMonth === null) {
             return 'Select dates'
         }
-        return `${MONTH_LABELS[startMonth]} ${startYear} — ${MONTH_LABELS[endMonth]} ${endYear}`
+        return `${MONTH_ORDER[startMonth]} ${startYear} — ${MONTH_ORDER[endMonth]} ${endYear}`
     }, [startYear, startMonth, endYear, endMonth])
 
     // Check loading and error states
@@ -206,7 +208,7 @@ export default function DateRangeFilterDropdown({ value, onCommit, disabled = fa
                                 disabled={disabled || (startYear === endYear && endMonth !== null && idx > endMonth)}
                                 className={`date-range-filter-dropdown__btn${startMonth === idx ? ' active' : ''}`}
                             >
-                                {MONTH_LABELS[idx]}
+                                {MONTH_ORDER[idx]}
                             </button>
                         ))}
                     </ScrollableButtonRow>
@@ -245,7 +247,7 @@ export default function DateRangeFilterDropdown({ value, onCommit, disabled = fa
                                 disabled={disabled || (endYear === startYear && startMonth !== null && idx < startMonth)}
                                 className={`date-range-filter-dropdown__btn${endMonth === idx ? ' active' : ''}`}
                             >
-                                {MONTH_LABELS[idx]}
+                                {MONTH_ORDER[idx]}
                             </button>
                         ))}
                     </ScrollableButtonRow>

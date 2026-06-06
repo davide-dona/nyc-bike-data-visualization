@@ -15,20 +15,23 @@ import {
  *   - station_health: number (0 to 1, where 1 is fully healthy)
  * @returns
  */
-export function createStationAvailabilityLayer({ stations }) {
+export function createStationAvailabilityLayer({ stations, selectedStationIds = [], onStationPick }) {
+    const selectedIds = new Set(selectedStationIds)
     return new ScatterplotLayer({
         id: 'station-availability-layer',
         data: stations,
         getPosition: (d) => [d.longitude, d.latitude],
         getRadius: (d) => Math.sqrt(d.capacity) * 8, // larger stations appear bigger
-        getFillColor: (d) => getStationColor(d.station_health),
-        getLineColor: [255, 255, 255],
+        getFillColor: (d) => selectedIds.has(d.id) ? [249, 115, 22, 240] : getStationColor(d.station_health),
+        getLineColor: (d) => selectedIds.has(d.id) ? [255, 255, 255] : [255, 255, 255],
+        getLineWidth: (d) => selectedIds.has(d.id) ? 3 : 1,
         lineWidthMinPixels: 1,
         stroked: true,
         filled: true,
         radiusMinPixels: 4,
         radiusMaxPixels: 30,
         pickable: true,
+        onClick: onStationPick,
     })
 }
 

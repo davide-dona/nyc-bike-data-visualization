@@ -5,6 +5,7 @@ import { useBuildLayers } from './hooks/useBuildLayers.js'
 import MapController from './components/MapController.jsx'
 import MapLegend from './components/MapLegend.jsx'
 import LayerSelector from './components/LayerSelector.jsx'
+import InfrastructureStationSidebar from './components/InfrastructureStationSidebar.jsx'
 import StatusMessage from '../../components/StatusMessage.jsx'
 import Tooltip from './components/Tooltip.jsx'
 import VisualizationGuide from '../../components/VisualizationGuide.jsx'
@@ -188,15 +189,31 @@ function MapPage({ filters }) {
         layers,
         loading,
         error,
+        clearInfrastructureSelection,
         refetch,
         resetSelectedStationIds,
         hasTripFlowSelection,
+        selectedInfrastructureStations,
     } = useBuildLayers({ filters, currentTime, activeLayer, showBikeRoutes })
     const shouldShowMapUi = !error
     const shouldShowMapLegend = !loading && !error
     const hasLayersData = layers.length > 0 && layers.some(layer => Array.isArray(layer.data) && layer.data.length > 0)
     const shouldShowStatusOverlay = showInitialLoadingOverlay || loading || error || !hasLayersData
     const guide = MAP_LAYER_GUIDES[activeLayer] ?? MAP_LAYER_GUIDES.station_usage
+
+    const handleMapClick = useCallback((info) => {
+        if (activeLayer !== 'infrastructure') return
+
+        const pickedObject = info?.object
+        const layerId = info?.layer?.id ?? ''
+        const isStationPick = layerId.startsWith('station-availability-layer') && pickedObject?.id
+
+        if (isStationPick) return
+
+        if (!pickedObject) {
+            clearInfrastructureSelection()
+        }
+    }, [activeLayer, clearInfrastructureSelection])
 
     return (
         <section className="page-card">
@@ -225,6 +242,7 @@ function MapPage({ filters }) {
                         controller={controller}
                         layers={layers}
                         onHover={handleHover}
+                        onClick={handleMapClick}
                         getCursor={getCursor}
                         getTooltip={({ object }) => Tooltip({ object, activeLayer })}
                     />
@@ -261,6 +279,11 @@ function MapPage({ filters }) {
                             showBikeRoutes={showBikeRoutes}
                         />
                     )}
+                    <InfrastructureStationSidebar
+                        selectedStations={selectedInfrastructureStations}
+                        filters={filters}
+                        onClose={clearInfrastructureSelection}
+                    />
                     {shouldShowStatusOverlay && (
                         <StatusMessage
                             loading={showInitialLoadingOverlay || loading}
