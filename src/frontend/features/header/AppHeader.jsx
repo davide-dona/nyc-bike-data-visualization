@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { NavLink } from "react-router-dom";
 import { useLocation } from "react-router-dom";
 import DateWindowPicker from "./components/DateWindowPicker.jsx";
@@ -34,10 +34,23 @@ function AppHeader({ onFiltersChange, forceDisableFilters = false }) {
     const [lockHintPosition, setLockHintPosition] = useState({ x: 0, y: 0 });
     const lockHintRef = useRef(null);
     const { dateRange: datasetRange } = useDatasetDateRange();
+    const hasSeededDateRangeRef = useRef(false);
     const kicker =
         datasetRange?.min_date && datasetRange?.max_date
             ? `NYC / ${datasetRange.min_date.slice(0, 4)}–${datasetRange.max_date.slice(0, 4)}`
             : "NYC";
+
+    useEffect(() => {
+        if (hasSeededDateRangeRef.current) return;
+        if (!datasetRange?.min_date || !datasetRange?.max_date) return;
+        if (dateRange) return;
+
+        hasSeededDateRangeRef.current = true;
+        handleDateRangeCommit({
+            start_date: datasetRange.min_date,
+            end_date: datasetRange.max_date,
+        });
+    }, [datasetRange, dateRange, handleDateRangeCommit]);
 
     const updateLockHintPosition = useCallback(
         (event) => {
