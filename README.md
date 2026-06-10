@@ -1,51 +1,67 @@
 [![Backend Tests](https://github.com/446f6e6e79/nyc-bike-data-visualization/actions/workflows/backend-tests.yml/badge.svg?branch=main)](https://github.com/446f6e6e79/nyc-bike-data-visualization/actions/workflows/backend-tests.yml)
 [![Frontend Tests](https://github.com/446f6e6e79/nyc-bike-data-visualization/actions/workflows/frontend-tests.yml/badge.svg)](https://github.com/446f6e6e79/nyc-bike-data-visualization/actions/workflows/frontend-tests.yml)
 
+<div align="center">
+
+<img src="docs/media/logo.svg" alt="NYC Bike Data Visualization" width="120" />
+
 # NYC Bike Data Visualization
 
-A comprehensive data visualization solution developed for advanced coursework at the University of Trento, Master's Degree in Computer Science.
+Interactive exploration of New York City's Citi Bike trip data.
 
-**Course:** Data Visualization Lab  
-**Professors:** Prof. Monica Moroni, Prof. Shahryar Noei  
-**Authors:** Davide Donà, Andrea Blushi, Lorenzo Di Berardino
+**Data Visualization Lab** · University of Trento, MSc Computer Science<br/>
+Prof. Monica Moroni · Prof. Shahryar Noei<br/>
+Davide Donà · Andrea Blushi · Lorenzo Di Berardino
+
+</div>
 
 ## Overview
 
 This project focuses on the visualization of bike-sharing data from New York City, specifically utilizing the Citi Bike Trip Data. The goal is to create an interactive web application that allows users to explore and analyze the bike-sharing patterns in NYC through various visualizations and insights derived from the dataset.
 
-## Repository Structure
-
-```
-data-visualisation/
-├── README.md                         # Project overview (this file)
-├── DOCKER_SETUP.md                   # Docker setup guide (all workflows)
-├── LOCAL_SETUP.md                    # Local development setup guide
-├── docker-compose.yml                # Docker Compose configuration (full stack, seeds locally)
-├── docker-compose.dev.yml            # Development stack with a pre-seeded database image
-├── dockers/                          # Dockerfiles for all services (db, seeder, backend, frontend)
-├── src/
-│   └── backend                       # Backend server implementation (FastAPI)
-│   └── frontend                      # Frontend application implementation (React)
-│   └── ingestion                     # Data ingestion pipeline (download, process, load into Postgres)
-├── docs/
-│   └── proposal/                     # Project proposal latex files
-│   └── technical-report/             # Technical report latex files
-│   └── report/                       # Final report latex files
-```
-
 ## Getting Started
 
-| Approach | Best for | Guide |
-|---|---|---|
-| Pre-built Docker images | Quickest start, no clone needed | [DOCKER_SETUP.md](DOCKER_SETUP.md#quick-start-with-pre-built-images) |
-| Docker from source | Full control, custom date range | [DOCKER_SETUP.md](DOCKER_SETUP.md#quick-start-from-source) |
-| Local development | Active development without full Docker | [LOCAL_SETUP.md](LOCAL_SETUP.md) |
+The fastest way to run the full application is with the **pre-built release images** — a complete, pre-seeded database and ready-to-run backend and frontend. No clone, no build.
 
-## Application Access
+**1. Download `docker-compose.release.yml` from the [latest release](https://github.com/446f6e6e79/nyc-bike-data-visualization/releases/latest).**
 
-Once the services are up and running:
+**2. Start everything:**
+
+```bash
+docker compose -f docker-compose.release.yml up
+```
+
+That's it. Once the services are up, open:
 
 | Service | URL |
 |---|---|
 | Frontend | http://localhost:5173 |
 | Backend API docs | http://localhost:8000/docs |
+
+> First start pulls ~1.2 GB and uses ~17 GB on disk; bringing up the database can take several minutes — don't interrupt it. See [DOCKER_SETUP.md](DOCKER_SETUP.md#quick-start-with-pre-built-images) for storage notes and custom date ranges.
+
+### Other ways to run it
+
+| Path | Command | Guide |
+|---|---|---|
+| **Dev stack** — pre-seeded DB image, backend & frontend built from source | `docker compose -f docker-compose.dev.yml up --build` | [DOCKER_SETUP.md](DOCKER_SETUP.md#development-with-a-pre-seeded-database) |
+| **Local development** — run backend & frontend directly on your machine | _see guide_ | [LOCAL_SETUP.md](LOCAL_SETUP.md) |
+
+## Components
+
+- [Backend](src/backend/README.md) — FastAPI server, PostgreSQL setup, running tests, API docs
+- [Frontend](src/frontend/README.md) — React + Vite app, development server, running tests
+
+## Repository Structure
+
+```
+nyc-bike-data-visualization/
+├── src/                      # Application source (backend, frontend, ingestion)
+├── postgres/                 # Database schema files and init scripts
+├── dockers/                  # Dockerfiles for all services
+├── docs/                     # Project reports (proposal, technical, final)
+├── docker-compose.yml        # Full stack from source (seeds the DB locally)
+├── docker-compose.dev.yml    # Dev stack (pre-seeded DB image)
+├── DOCKER_SETUP.md           # All Docker workflows
+└── LOCAL_SETUP.md            # Local development setup
+```
