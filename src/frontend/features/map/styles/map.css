@@ -178,6 +178,22 @@
     @apply font-mono text-[11px] uppercase tracking-eyebrow text-white/55;
   }
 
+  .infra-sidebar__highlights {
+    @apply m-0 flex list-none flex-col gap-2 border border-rule-invert/20 bg-white/5 px-3 py-2.5;
+  }
+
+  .infra-sidebar__highlight-row {
+    @apply flex items-baseline justify-between gap-2;
+  }
+
+  .infra-sidebar__highlight-label {
+    @apply font-mono text-[10px] uppercase tracking-eyebrow text-white/55;
+  }
+
+  .infra-sidebar__highlight-value {
+    @apply text-right font-mono text-[11px] font-normal tracking-[0.08em] text-white tabular-nums;
+  }
+
   .infra-sidebar__chart-grid {
     @apply grid grid-cols-1 gap-3;
   }
@@ -186,10 +202,34 @@
     @apply flex flex-col gap-2 border border-rule-invert/20 bg-white/5 px-3 py-3;
   }
 
+  .infra-sidebar__chart-body {
+    @apply flex gap-2;
+  }
+
+  .infra-sidebar__y-axis {
+    @apply flex h-[110px] flex-col justify-between text-right;
+    flex-shrink: 0;
+  }
+
+  .infra-sidebar__y-tick {
+    @apply font-mono text-[9px] leading-none text-white/50 tabular-nums;
+  }
+
+  .infra-sidebar__chart-area {
+    @apply relative min-w-0 flex-1;
+  }
+
+  .infra-sidebar__gridlines {
+    @apply pointer-events-none absolute inset-x-0 top-0 flex h-[110px] flex-col justify-between;
+  }
+
+  .infra-sidebar__gridlines span {
+    @apply block h-px bg-white/15;
+  }
+
   .infra-sidebar__vbars {
-    @apply grid gap-1 items-end;
+    @apply grid gap-1 items-start;
     grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
-    min-height: 150px;
   }
 
   .infra-sidebar__vbar-wrap {
@@ -197,12 +237,12 @@
   }
 
   .infra-sidebar__vbar-track {
-    @apply flex h-[110px] w-[80%] items-end justify-center bg-white/5;
+    @apply flex h-[110px] w-[80%] items-end justify-center;
   }
 
   .infra-sidebar__vbar-fill {
     @apply w-[90%] bg-white/35;
-    min-height: 6px;
+    min-height: 1px;
   }
 
   .infra-sidebar__vbar-label {
