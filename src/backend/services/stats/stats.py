@@ -2,7 +2,18 @@ from datetime import date
 from src.backend.db import get_conn
 from src.backend.models.ride import MemberCasual, RideableType
 from src.backend.models.stats.stats import GroupedStats, Stats, StatsGroupBy
-from src.backend.services.stats.utils import fetch_row, fetch_rows, total_hours
+
+from src.backend.services.stats.utils import HOURS_CTE, date_range_bounds, fetch_rows
+
+# Time dimensions selected by each group_by option. Every dimension exists both in
+# the hours spine and in stats_hourly, so spine and facts can be built generically.
+_GROUP_DIMS: dict[StatsGroupBy, list[str]] = {
+    StatsGroupBy.NONE: [],
+    StatsGroupBy.DATE: ["date"],
+    StatsGroupBy.DAY_OF_WEEK: ["day_of_week"],
+    StatsGroupBy.HOUR: ["hour"],
+    StatsGroupBy.DAY_OF_WEEK_AND_HOUR: ["day_of_week", "hour"],
+}
 
 def get_stats_data(
     start_date: date,
@@ -12,123 +23,89 @@ def get_stats_data(
     bike_type: RideableType | None = None,
     group_by_weather: bool = False,
 ) -> Stats | list[GroupedStats]:
-    """Fetch aggregated stats for rides in the given date range, optionally grouped by time dimensions and/or weather."""
-    
-    user_val = user_type.value if user_type else None
-    bike_val = bike_type.value if bike_type else None
-    # We need to repeat the user_val and bike_val twice for general SQL clause
-    params_filter = (user_val, user_val, bike_val, bike_val)
+    """Fetch aggregated stats for rides in the given date range, optionally grouped by time dimensions and/or weather.
+
+    The query follows the shared spine pattern: a calendar-generated hours CTE is
+    bucketed by the requested dimensions (yielding hours_count per bucket), ride
+    aggregates are computed per bucket, and the two are LEFT JOINed so buckets
+    without rides still appear with zero totals.
+    """
+    spine_start, spine_end = date_range_bounds(start_date, end_date)
+    dims = _GROUP_DIMS[group_by]
+
+    filters = ["sh.date >= %s", "sh.date < %s"]
+    filter_params: list = [spine_start, spine_end]
+    if user_type is not None:
+        filters.append("sh.user_type = %s")
+        filter_params.append(user_type.value)
+    if bike_type is not None:
+        filters.append("sh.bike_type = %s")
+        filter_params.append(bike_type.value)
+
+    if group_by_weather:
+        # Weather buckets need the weather table: each spine hour is labelled with
+        # its weather_code, and rides are joined to weather the same way.
+        spine_cols = [f"h.{d}" for d in dims] + ["w.weather_code"]
+        spine_from = (
+            "FROM hours h JOIN weather_hourly w ON w.date = h.date AND w.hour = h.hour "
+            "WHERE w.weather_code IS NOT NULL"
+        )
+        fact_cols = [f"sh.{d}" for d in dims] + ["w.weather_code"]
+        fact_join = "JOIN weather_hourly w ON w.date = sh.date AND w.hour = sh.hour"
+        filters.append("w.weather_code IS NOT NULL")
+    else:
+        spine_cols = [f"h.{d}" for d in dims]
+        spine_from = "FROM hours h"
+        fact_cols = [f"sh.{d}" for d in dims]
+        fact_join = ""
+
+    out_dims = [c.split(".")[1] for c in spine_cols]
+    spine_group = f"GROUP BY {', '.join(spine_cols)}" if spine_cols else ""
+    fact_group = f"GROUP BY {', '.join(fact_cols)}" if fact_cols else ""
+    join_cond = " AND ".join(f"r.{d} = s.{d}" for d in out_dims) or "TRUE"
+    out_select = ", ".join(f"s.{d}" for d in out_dims)
+    order_by = f"ORDER BY {out_select}" if out_dims else ""
+
+    sql = f"""
+        WITH {HOURS_CTE},
+        spine AS (
+            SELECT {", ".join([*spine_cols, "COUNT(*) AS hours_count"])}
+            {spine_from}
+            {spine_group}
+        ),
+        rides AS (
+            SELECT {", ".join([*fact_cols,
+                               "SUM(sh.total_rides) AS total_rides",
+                               "SUM(sh.total_duration_seconds) AS total_duration_seconds",
+                               "SUM(sh.total_distance_km) AS total_distance_km"])}
+            FROM stats_hourly sh {fact_join}
+            WHERE {" AND ".join(filters)}
+            {fact_group}
+        )
+        SELECT {", ".join(filter(None, [out_select,
+                                        "COALESCE(r.total_rides, 0) AS total_rides",
+                                        "COALESCE(r.total_duration_seconds, 0) AS total_duration_seconds",
+                                        "COALESCE(r.total_distance_km, 0) AS total_distance_km",
+                                        "s.hours_count"]))}
+        FROM spine s
+        LEFT JOIN rides r ON {join_cond}
+        {order_by}
+    """
+    params = (spine_start, spine_end, *filter_params)
 
     with get_conn() as conn:
         with conn.cursor() as cur:
-            return _query_stats(cur, group_by, start_date, end_date, params_filter, group_by_weather)
-
-def _query_stats(
-    cur,
-    group_by: StatsGroupBy,
-    start_date: date,
-    end_date: date,
-    params_filter: tuple,
-    group_by_weather: bool = False,
-) -> Stats | list[GroupedStats]:
-    base_params = (start_date, end_date, *params_filter)
-    where_sh = (
-        "sh.date BETWEEN %s AND %s "
-        "AND (%s IS NULL OR sh.user_type = %s) "
-        "AND (%s IS NULL OR sh.bike_type = %s)"
-    )
+            cur.execute(sql, params)
+            rows = fetch_rows(cur)
 
     if group_by == StatsGroupBy.NONE and not group_by_weather:
-        cur.execute("""
-            SELECT SUM(total_rides)            AS total_rides,
-                   SUM(total_duration_seconds) AS total_duration_seconds,
-                   SUM(total_distance_km)      AS total_distance_km
-            FROM stats_hourly sh
-            WHERE sh.date BETWEEN %s AND %s
-              AND (%s IS NULL OR sh.user_type = %s)
-              AND (%s IS NULL OR sh.bike_type = %s)
-        """, base_params)
-        return _to_stats(fetch_row(cur), total_hours(start_date, end_date))
+        # Spine and rides each collapse to a single row, so exactly one row exists.
+        return _to_stats(rows[0], int(rows[0]["hours_count"]))
 
-    if group_by == StatsGroupBy.NONE:
-        time_sel = sh_time_sel = time_grp = sh_time_grp = res_sel = time_join = order_base = ""
-    elif group_by == StatsGroupBy.DATE:
-        time_sel    = "date"
-        sh_time_sel = "sh.date"
-        time_grp    = "date"
-        sh_time_grp = "sh.date"
-        res_sel     = "s.date"
-        time_join   = "r.date = s.date"
-        order_base  = "s.date"
-    elif group_by == StatsGroupBy.DAY_OF_WEEK:
-        time_sel    = "day_of_week"
-        sh_time_sel = "sh.day_of_week"
-        time_grp    = "day_of_week"
-        sh_time_grp = "sh.day_of_week"
-        res_sel     = "s.day_of_week"
-        time_join   = "r.day_of_week = s.day_of_week"
-        order_base  = "s.day_of_week"
-    elif group_by == StatsGroupBy.HOUR:
-        time_sel    = "hour"
-        sh_time_sel = "sh.hour"
-        time_grp    = "hour"
-        sh_time_grp = "sh.hour"
-        res_sel     = "s.hour"
-        time_join   = "r.hour = s.hour"
-        order_base  = "s.hour"
-    elif group_by == StatsGroupBy.DAY_OF_WEEK_AND_HOUR:
-        time_sel    = "day_of_week, hour"
-        sh_time_sel = "sh.day_of_week, sh.hour"
-        time_grp    = "day_of_week, hour"
-        sh_time_grp = "sh.day_of_week, sh.hour"
-        res_sel     = "s.day_of_week, s.hour"
-        time_join   = "r.day_of_week = s.day_of_week AND r.hour = s.hour"
-        order_base  = "s.day_of_week, s.hour"
-    else:
-        raise ValueError(f"Unsupported group_by: {group_by}")
-
-    if group_by_weather:
-        w_sel          = "weather_code"
-        w_res          = "s.weather_code"
-        w_join         = "r.weather_code = s.weather_code"
-        w_filter       = "AND weather_code IS NOT NULL"
-        rides_join     = "JOIN weather_hourly w ON w.date = sh.date AND w.hour = sh.hour"
-        sh_w_sel       = "w.weather_code"
-        w_rides_filter = "AND w.weather_code IS NOT NULL"
-    else:
-        w_sel = w_res = w_join = w_filter = rides_join = sh_w_sel = w_rides_filter = ""
-
-    
-
-    cur.execute(f"""
-        WITH spine AS (
-            SELECT {_cols(time_sel, w_sel, "COUNT(*) AS hours_count")}
-            FROM weather_hourly
-            WHERE date BETWEEN %s AND %s {w_filter}
-            GROUP BY {_cols(time_grp, w_sel)}
-        ),
-        rides AS (
-            SELECT {_cols(sh_time_sel, sh_w_sel,
-                         "SUM(sh.total_rides) AS total_rides",
-                         "SUM(sh.total_duration_seconds) AS total_duration_seconds",
-                         "SUM(sh.total_distance_km) AS total_distance_km")}
-            FROM stats_hourly sh {rides_join}
-            WHERE {where_sh} {w_rides_filter}
-            GROUP BY {_cols(sh_time_grp, sh_w_sel)}
-        )
-        SELECT {_cols(res_sel, w_res,
-                     "COALESCE(r.total_rides, 0) AS total_rides",
-                     "COALESCE(r.total_duration_seconds, 0) AS total_duration_seconds",
-                     "COALESCE(r.total_distance_km, 0) AS total_distance_km",
-                     "s.hours_count")}
-        FROM spine s
-        LEFT JOIN rides r ON {_conds(time_join, w_join) or "TRUE"}
-        ORDER BY {_cols(order_base, w_res)}
-    """, (start_date, end_date, *base_params))
-    rows = [_to_grouped_stats(r, int(r["hours_count"])) for r in fetch_rows(cur)]
+    grouped = [_to_grouped_stats(r, int(r["hours_count"])) for r in rows]
     if group_by_weather and group_by != StatsGroupBy.NONE:
-        rows = _fill_weather_gaps(rows, group_by)
-    return rows
+        grouped = _fill_weather_gaps(grouped, group_by)
+    return grouped
 
 def _to_stats(r: dict, hours_count: int) -> Stats:
     total_rides = int(r.get("total_rides") or 0)
@@ -197,11 +174,3 @@ def _zero_stats() -> dict:
         total_duration_seconds=0.0, total_distance_km=0.0,
         average_speed_kmh=0.0,
     )
-
-def _cols(*parts):
-    """Helper to combine SQL select/group/order parts, skipping any that are empty."""
-    return ", ".join(p for p in parts if p)
-
-def _conds(*conditions):
-    """Helper to combine SQL join conditions, skipping any that are empty."""
-    return " AND ".join(condition for condition in conditions if condition)

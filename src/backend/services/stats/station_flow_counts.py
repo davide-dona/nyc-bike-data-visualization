@@ -1,10 +1,7 @@
-import datetime
-from fastapi import HTTPException
-
 from src.backend.db import get_conn
 from src.backend.models.ride import MemberCasual, RideableType
 from src.backend.models.stats.station_flow_counts import GroupedStationFlowCounts, StationFlowCounts
-from src.backend.services.stats.utils import fetch_rows
+from src.backend.services.stats.utils import HOURS_CTE, fetch_rows, month_range_bounds
 
 def get_trips_between_stations_stats(
     start_year: int,
@@ -16,18 +13,28 @@ def get_trips_between_stations_stats(
     station_id: str | None = None,
     limit: int = 100,
 ) -> list[StationFlowCounts]:
-    """Fetch aggregated counts of trips between station pairs in the given month range."""
-    user_val = user_type.value if user_type else None
-    bike_val = bike_type.value if bike_type else None
+    """Fetch aggregated counts of trips between station pairs in the given month range,
+    following the shared spine pattern: a calendar hours CTE provides hours_count and
+    the top pairs are selected in SQL."""
+    spine_start, spine_end = month_range_bounds(start_year, start_month, end_year, end_month)
 
-    start_date = datetime.date(start_year, start_month, 1)
-    end_date = datetime.date(end_year + (end_month == 12), end_month % 12 + 1, 1)
+    filters = ["(fam.year, fam.month) >= (%s, %s)", "(fam.year, fam.month) <= (%s, %s)"]
+    filter_params: list = [start_year, start_month, end_year, end_month]
+    if station_id is not None:
+        filters.append("(fam.station_a_id = %s OR fam.station_b_id = %s)")
+        filter_params.extend([station_id, station_id])
+    if user_type is not None:
+        filters.append("fam.user_type = %s")
+        filter_params.append(user_type.value)
+    if bike_type is not None:
+        filters.append("fam.bike_type = %s")
+        filter_params.append(bike_type.value)
 
-    sql = """
-        WITH spine AS (
+    sql = f"""
+        WITH {HOURS_CTE},
+        spine AS (
             SELECT COUNT(*) AS hours_count
-            FROM weather_hourly
-            WHERE date >= %s AND date < %s
+            FROM hours
         )
         SELECT fam.station_a_id,
                sm_a.station_name AS station_a_name,
@@ -43,72 +50,41 @@ def get_trips_between_stations_stats(
         JOIN station_metadata sm_a ON sm_a.station_id = fam.station_a_id
         JOIN station_metadata sm_b ON sm_b.station_id = fam.station_b_id
         CROSS JOIN spine s
-        WHERE (fam.year, fam.month) >= (%s, %s) AND (fam.year, fam.month) <= (%s, %s)
-          AND (%s IS NULL OR fam.station_a_id = %s OR fam.station_b_id = %s)
-          AND (%s IS NULL OR fam.user_type = %s)
-          AND (%s IS NULL OR fam.bike_type = %s)
+        WHERE {" AND ".join(filters)}
         GROUP BY fam.station_a_id, fam.station_b_id,
                  sm_a.station_name, sm_a.lat, sm_a.lon,
                  sm_b.station_name, sm_b.lat, sm_b.lon,
                  s.hours_count
+        ORDER BY total_rides DESC, fam.station_a_id, fam.station_b_id
+        LIMIT %s
     """
-    params = (
-        start_date, end_date,
-        start_year, start_month, end_year, end_month,
-        station_id, station_id, station_id,
-        user_val, user_val,
-        bike_val, bike_val,
-    )
+    params = (spine_start, spine_end, *filter_params, limit)
 
     with get_conn() as conn:
         with conn.cursor() as cur:
             cur.execute(sql, params)
             rows = fetch_rows(cur)
 
-    by_pair: dict[tuple[str, str], dict] = {}
-    for r in rows:
-        key = (r["station_a_id"], r["station_b_id"])
-        if key not in by_pair:
-            by_pair[key] = {
-                "station_a_id": r["station_a_id"],
-                "station_a_name": r["station_a_name"],
-                "station_a_lat": r["station_a_lat"],
-                "station_a_lon": r["station_a_lon"],
-                "station_b_id": r["station_b_id"],
-                "station_b_name": r["station_b_name"],
-                "station_b_lat": r["station_b_lat"],
-                "station_b_lon": r["station_b_lon"],
-                "pair_total": 0,
-                "groups": [],
-            }
-        by_pair[key]["pair_total"] += int(r["total_rides"] or 0)
-        by_pair[key]["groups"].append(r)
-
-    top = sorted(by_pair.values(), key=lambda p: p["pair_total"], reverse=True)[:limit]
-
-    result = []
-    for pair in top:
-        groups = [
-            GroupedStationFlowCounts(
-                day_of_week=r.get("day_of_week"),
-                hour=None,
-                a_to_b_count=int(r.get("a_to_b_count") or 0),
-                b_to_a_count=int(r.get("b_to_a_count") or 0),
-                total_rides=int(r.get("total_rides") or 0),
-                hours_count=int(r["hours_count"]),
-            )
-            for r in pair["groups"]
-        ]
-        groups.sort(key=lambda g: g.day_of_week if g.day_of_week is not None else -1)
-        result.append(StationFlowCounts(
-            station_a_id=pair["station_a_id"],
-            station_a_name=pair["station_a_name"],
-            station_a_lat=pair["station_a_lat"],
-            station_a_lon=pair["station_a_lon"],
-            station_b_id=pair["station_b_id"],
-            station_b_name=pair["station_b_name"],
-            station_b_lat=pair["station_b_lat"],
-            station_b_lon=pair["station_b_lon"],
-            groups=groups,
-        ))
-    return result
+    return [
+        StationFlowCounts(
+            station_a_id=r["station_a_id"],
+            station_a_name=r["station_a_name"],
+            station_a_lat=r["station_a_lat"],
+            station_a_lon=r["station_a_lon"],
+            station_b_id=r["station_b_id"],
+            station_b_name=r["station_b_name"],
+            station_b_lat=r["station_b_lat"],
+            station_b_lon=r["station_b_lon"],
+            groups=[
+                GroupedStationFlowCounts(
+                    day_of_week=None,
+                    hour=None,
+                    a_to_b_count=int(r.get("a_to_b_count") or 0),
+                    b_to_a_count=int(r.get("b_to_a_count") or 0),
+                    total_rides=int(r.get("total_rides") or 0),
+                    hours_count=int(r["hours_count"]),
+                )
+            ],
+        )
+        for r in rows
+    ]

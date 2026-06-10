@@ -1,4 +1,5 @@
 import logging
+import os
 from pathlib import Path
 
 BACKEND_ROOT = Path(__file__).resolve().parent
@@ -15,6 +16,13 @@ GBFS_EBIKE_TYPE_ID        = "2"
 # Logging
 LOG_FILE_PATH = "logs/requests.log"
 LOG_LEVEL     = logging.INFO
+
+# CORS: comma-separated allowed origins, overridable without code changes
+CORS_ORIGINS = [
+    o.strip()
+    for o in os.getenv("CORS_ORIGINS", "http://localhost:5173,http://localhost:5174").split(",")
+    if o.strip()
+]
 
 # Test fixtures
 TEST_DATA_DIR = BACKEND_ROOT / "tests" / "test_data"

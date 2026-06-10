@@ -41,12 +41,11 @@ def _rows_to_bike_routes(rows: list[dict]) -> list[BikeRoute]:
         for row in rows
     ]
 
-def load_bike_routes(current_only: bool = False) -> list[BikeRoute]:
-    """Fetch bike route segments from PostgreSQL. Pass current_only=True to limit to active routes."""
-    query = _SELECT + (" WHERE status = 'Current'" if current_only else "")
+def load_bike_routes() -> list[BikeRoute]:
+    """Fetch all bike route segments from PostgreSQL."""
     with get_conn() as conn:
         with conn.cursor() as cur:
-            cur.execute(query)
+            cur.execute(_SELECT)
             cols = [d[0] for d in cur.description]
             rows = [dict(zip(cols, row)) for row in cur.fetchall()]
     return _rows_to_bike_routes(rows)
@@ -55,9 +54,11 @@ def load_bike_routes_for_year(year: int) -> list[BikeRoute]:
     """Return routes that were active at any point during the given year."""
     year_start = date(year, 1, 1)
     year_end   = date(year, 12, 31)
+    # Routes with an unknown installation date are assumed to predate the query year
+    # rather than being silently excluded (NULL <= date is never true).
     query = (
         _SELECT
-        + " WHERE installation_date <= %s"
+        + " WHERE (installation_date IS NULL OR installation_date <= %s)"
         "   AND (retired_date IS NULL OR retired_date >= %s)"
     )
     with get_conn() as conn:

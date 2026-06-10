@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 
 from src.backend.models.station import StationInfo, Station
-from src.backend.services.gbfs import fetch_station_data, merge_station, build_station_info, find_station_by_id
+from src.backend.services.gbfs import fetch_station_data, is_station_active, merge_station, build_station_info, find_station_by_id
 
 router = APIRouter(prefix="/stations", tags=["stations"])
 
@@ -18,22 +18,18 @@ def get_stations_availability():
         merge_station(s, station_status_data)
         for s in station_data
         # Filter out stations that are not currently active
-        if (
-            (status := station_status_data.get(s["station_id"]))
-            and status.get("is_installed") == 1
-            and status.get("is_renting") == 1
-            and status.get("is_returning") == 1
-        )
+        if is_station_active(station_status_data.get(s["station_id"]))
     ]
 
 @router.get("/empty", response_model=list[Station])
 def get_empty_stations():
-    """Get all stations that currently have no bikes available."""
+    """Get all active stations that currently have no bikes available."""
     station_data, station_status_data = fetch_station_data()
-    # First build the full station objects with merged info + status
+    # First build the station objects for currently active stations
     stations = [
         merge_station(s, station_status_data)
         for s in station_data
+        if is_station_active(station_status_data.get(s["station_id"]))
     ]
     # Filter the stations to only include those with no bikes available
     return [
@@ -42,7 +38,6 @@ def get_empty_stations():
             st.num_bikes_available == 0
             and st.num_classic_bikes_available == 0
             and st.num_ebikes_available == 0
-            and st.num_docks_available is not None  # optional sanity check
         )
     ]
 
