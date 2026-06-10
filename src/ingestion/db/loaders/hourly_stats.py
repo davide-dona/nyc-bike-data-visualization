@@ -1,9 +1,6 @@
-import logging
-
 import polars as pl
-from psycopg2.extras import execute_values
 
-log = logging.getLogger(__name__)
+from src.ingestion.db.loaders.common import insert_rows
 
 def insert_stats_hourly(conn, rides: pl.DataFrame) -> None:
     """Insert per-hour ride counts, total duration, and total distance into stats_hourly."""
@@ -27,16 +24,11 @@ def insert_stats_hourly(conn, rides: pl.DataFrame) -> None:
         for r in agg.iter_rows(named=True)
     ]
 
-    with conn.cursor() as cur:
-        execute_values(
-            cur,
-            """
-            INSERT INTO stats_hourly
-                (date, hour, day_of_week, user_type, bike_type,
-                 total_rides, total_duration_seconds, total_distance_km)
-            VALUES %s
-            ON CONFLICT (date, hour, user_type, bike_type) DO NOTHING
-            """,
-            rows,
-        )
-    log.info(f"[DB-LOAD: stats_hourly] Inserted {len(rows)} rows")
+    insert_rows(
+        conn,
+        "stats_hourly",
+        columns=["date", "hour", "day_of_week", "user_type", "bike_type",
+                 "total_rides", "total_duration_seconds", "total_distance_km"],
+        conflict_cols=["date", "hour", "user_type", "bike_type"],
+        rows=rows,
+    )

@@ -1,7 +1,7 @@
-from src.backend.db import get_conn
+from src.backend.db import fetch_rows, get_conn
 from src.backend.models.ride import MemberCasual, RideableType
-from src.backend.models.stats.station_flow_counts import GroupedStationFlowCounts, StationFlowCounts
-from src.backend.services.stats.utils import HOURS_CTE, fetch_rows, month_range_bounds
+from src.backend.models.station_stats.flow_counts import GroupedStationFlowCounts, StationFlowCounts
+from src.backend.services.sql.spine import HOURS_CTE, month_range_bounds
 
 def get_trips_between_stations_stats(
     start_year: int,

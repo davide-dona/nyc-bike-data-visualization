@@ -10,16 +10,16 @@ from fastapi import Request
 # Middleware to handle CORS for development with Vite
 from fastapi.middleware.cors import CORSMiddleware
 
-from src.backend.routes import stations, stats, bike_routes
+from src.backend.routes import stations, ride_stats, station_stats, coverage, bike_routes
 from src.backend.db import init_pool, close_pool
-from src.backend.config import CORS_ORIGINS, LOG_FILE_PATH, LOG_LEVEL
+from src.backend.config import settings
 
 logger = logging.getLogger("backend.request")
 if not logger.handlers:
-    os.makedirs(os.path.dirname(LOG_FILE_PATH), exist_ok=True)
+    os.makedirs(os.path.dirname(settings.log_file_path), exist_ok=True)
 
     stream_handler = logging.StreamHandler()
-    file_handler = RotatingFileHandler(LOG_FILE_PATH, maxBytes=10_000_000, backupCount=3)
+    file_handler = RotatingFileHandler(settings.log_file_path, maxBytes=10_000_000, backupCount=3)
     formatter = logging.Formatter(
         "%(asctime)s %(levelname)s %(name)s - %(message)s"
     )
@@ -27,7 +27,7 @@ if not logger.handlers:
     file_handler.setFormatter(formatter)
     logger.addHandler(stream_handler)
     logger.addHandler(file_handler)
-logger.setLevel(LOG_LEVEL)
+logger.setLevel(settings.log_level)
 logger.propagate = False
 
 @asynccontextmanager
@@ -66,7 +66,7 @@ async def log_requests(request: Request, call_next):
 # Allow requests from the Vite dev server (override with the CORS_ORIGINS env var)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=CORS_ORIGINS,
+    allow_origins=settings.cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -74,5 +74,7 @@ app.add_middleware(
 
 # Include the defined API routers
 app.include_router(stations.router)
-app.include_router(stats.router)
+app.include_router(ride_stats.router)
+app.include_router(station_stats.router)
+app.include_router(coverage.router)
 app.include_router(bike_routes.router)

@@ -13,13 +13,6 @@ HOURS_CTE = """hours AS (
             FROM generate_series(%s::timestamp, %s::timestamp - interval '1 hour', interval '1 hour') gs
         )"""
 
-def fetch_rows(cur) -> list[dict]:
-    """Fetch all rows from the cursor and return as a list of dictionaries."""
-    # Get the column names from the cursor description
-    cols = [d[0] for d in cur.description]
-    # Fetch all rows and zip each with the column names to create a list of dictionaries
-    return [dict(zip(cols, row)) for row in cur.fetchall()]
-
 def date_range_bounds(start_date: date, end_date: date) -> tuple[date, date]:
     """Validate an inclusive date range and return its [start, end) bounds for the hours spine."""
     if end_date < start_date:

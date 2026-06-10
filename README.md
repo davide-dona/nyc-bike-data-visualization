@@ -24,8 +24,7 @@ data-visualisation/
 ├── src/
 │   └── backend                       # Backend server implementation (FastAPI)
 │   └── frontend                      # Frontend application implementation (React)
-├── scripts/
-│   └── download_data.py              # Script to automate dataset downloading and merging
+│   └── ingestion                     # Data ingestion pipeline (download, process, load into Postgres)
 ├── docs/
 │   └── proposal/                     # Project proposal latex files
 │   └── technical-report/             # Technical report latex files
@@ -39,7 +38,7 @@ Prerequisites:
 
 - Docker Desktop (Windows/macOS) or Docker Engine + Compose plugin (Linux)
 
-Note: The image is built with the script `scripts/download_data.py` included with default values, so the dataset will be downloaded and merged automatically when the backend starts.
+Note: The image is built with the script `src/ingestion/cli.py` included with default values, so the dataset will be downloaded and merged automatically when the backend starts.
 
 ### Quick start with pre-built images
 
@@ -175,17 +174,17 @@ If you instead want to seed an arbitrary date range locally, use the main `docke
 
 ### Downloading the datasets
 
-To make the process easier, we provided a Python script that automates the downloading and merging of the trip data files based on specified date ranges. The script is located in `scripts/download_data.py`.
+To make the process easier, we provided a Python script that automates the downloading and merging of the trip data files based on specified date ranges. The script is located in `src/ingestion/cli.py`.
 Those files are downloaded from https://s3.amazonaws.com/tripdata/index.html.
 
 To use the script, run the following command in your terminal:
 
 ```bash
 export DATABASE_URL=postgresql://citibike:citibike@localhost:5432/citibike
-python scripts/download_data.py
+python -m src.ingestion.cli
 ```
 
-Database schema initialization in `scripts/download_data.py` executes ordered files from `postgres/schemas/`. For manual `psql` bootstrap, use `postgres/init.sql`.
+Database schema initialization in `src/ingestion/cli.py` executes ordered files from `postgres/schemas/`. For manual `psql` bootstrap, use `postgres/init.sql`.
 
 The available options for the script are:
 

@@ -1,7 +1,13 @@
-from src.backend.db import get_conn
+from src.backend.db import fetch_rows, get_conn
 from src.backend.models.ride import MemberCasual, RideableType
-from src.backend.models.stats.station_ride_counts import GroupedStationRideCount, StationRideGroupBy, StationRideCounts
-from src.backend.services.stats.utils import HOURS_CTE, fetch_rows, month_range_bounds
+from src.backend.models.station_stats.ride_counts import GroupedStationRideCount, StationRideGroupBy, StationRideCounts
+from src.backend.services.sql.query_builder import (
+    Filters,
+    SpineQueryBuilder,
+    dims_join_condition,
+    spine_cte_sql,
+)
+from src.backend.services.sql.spine import month_range_bounds
 
 def get_station_ride_counts_stats(
     start_year: int,
@@ -40,48 +46,36 @@ def get_station_ride_counts_stats(
         table, dims, has_dow_col = "station_activity_by_month", [], False
 
     # Fact-table filters, shared by the top-station selection and the bucketed select.
-    filters = ["(sah.year, sah.month) >= (%s, %s)", "(sah.year, sah.month) <= (%s, %s)"]
-    filter_params: list = [start_year, start_month, end_year, end_month]
+    f = Filters()
+    f.add("(sah.year, sah.month) >= (%s, %s)", start_year, start_month)
+    f.add("(sah.year, sah.month) <= (%s, %s)", end_year, end_month)
     if station_id is not None:
-        filters.append("sah.station_id = %s")
-        filter_params.append(station_id)
+        f.add("sah.station_id = %s", station_id)
     if user_type is not None:
-        filters.append("sah.user_type = %s")
-        filter_params.append(user_type.value)
+        f.add("sah.user_type = %s", user_type.value)
     if bike_type is not None:
-        filters.append("sah.bike_type = %s")
-        filter_params.append(bike_type.value)
+        f.add("sah.bike_type = %s", bike_type.value)
     if day_of_week is not None and has_dow_col:
-        filters.append("sah.day_of_week = %s")
-        filter_params.append(day_of_week)
-    where = " AND ".join(filters)
+        f.add("sah.day_of_week = %s", day_of_week)
 
-    spine_where = "WHERE day_of_week = %s" if day_of_week is not None else ""
-    spine_group = f"GROUP BY {', '.join(dims)}" if dims else ""
-    spine_params: list = [spine_start, spine_end] + ([day_of_week] if day_of_week is not None else [])
-    spine_join = (
-        f"JOIN spine s ON {' AND '.join(f's.{d} = sah.{d}' for d in dims)}"
-        if dims else "CROSS JOIN spine s"
-    )
     dim_select = "".join(f", sah.{d}" for d in dims)
 
-    sql = f"""
-        WITH {HOURS_CTE},
-        spine AS (
-            SELECT {", ".join([*dims, "COUNT(*) AS hours_count"])}
-            FROM hours
-            {spine_where}
-            {spine_group}
-        ),
-        top_stations AS (
+    q = SpineQueryBuilder(spine_start, spine_end)
+    q.add_cte(
+        "spine",
+        spine_cte_sql(dims, "FROM hours", "WHERE day_of_week = %s" if day_of_week is not None else ""),
+        [day_of_week] if day_of_week is not None else (),
+    )
+    q.add_cte("top_stations", f"""
             SELECT sah.station_id,
                    SUM(sah.outgoing_rides + sah.incoming_rides) AS station_total
             FROM {table} sah
-            WHERE {where}
+            WHERE {f.where_sql}
             GROUP BY sah.station_id
             ORDER BY station_total DESC
             LIMIT %s
-        )
+        """, [*f.params, limit])
+    q.final(f"""
         SELECT sah.station_id, sm.station_name, sm.lat, sm.lon{dim_select},
                SUM(sah.outgoing_rides) AS outgoing_rides,
                SUM(sah.incoming_rides) AS incoming_rides,
@@ -90,12 +84,12 @@ def get_station_ride_counts_stats(
         FROM {table} sah
         JOIN top_stations t ON t.station_id = sah.station_id
         JOIN station_metadata sm ON sm.station_id = sah.station_id
-        {spine_join}
-        WHERE {where}
+        JOIN spine s ON {dims_join_condition(dims, "s", "sah")}
+        WHERE {f.where_sql}
         GROUP BY sah.station_id, sm.station_name, sm.lat, sm.lon, t.station_total{dim_select}, s.hours_count
         ORDER BY t.station_total DESC, sah.station_id{dim_select}
-    """
-    params = (*spine_params, *filter_params, limit, *filter_params)
+    """, f.params)
+    sql, params = q.render()
 
     with get_conn() as conn:
         with conn.cursor() as cur:

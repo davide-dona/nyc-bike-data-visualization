@@ -6,7 +6,7 @@ on:
       - main
     paths:
       - "src/backend/**"
-      - "scripts/**"
+      - "src/ingestion/**"
       - "requirements.txt"
       - ".github/workflows/backend-tests.yml"
   pull_request:
@@ -14,7 +14,7 @@ on:
       - main
     paths:
       - "src/backend/**"
-      - "scripts/**"
+      - "src/ingestion/**"
       - "requirements.txt"
       - ".github/workflows/backend-tests.yml"
 
@@ -61,7 +61,7 @@ jobs:
       - name: Seed test database
         env:
           DATABASE_URL: postgresql://citibike:citibike@localhost:5432/citibike_test
-        run: python scripts/load_test_data.py
+        run: python -m src.ingestion.load_test_data
 
       - name: Run backend integration tests
         env:

@@ -1,5 +1,5 @@
 from src.backend.db import get_conn
-from src.backend.models.stats.date_range import DatasetDateRange
+from src.backend.models.coverage import DatasetDateRange
 
 def get_data_range_coverage() -> DatasetDateRange:
     with get_conn() as conn:

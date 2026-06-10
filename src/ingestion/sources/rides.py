@@ -11,13 +11,7 @@ from typing import Iterator
 import polars as pl
 import requests
 
-from config import (
-    BASE_URL_RIDE_DATA,
-    DOWNLOAD_CHUNK_SIZE_MB,
-    PARQUET_COMPRESSION,
-    RIDES_DATA_DIR,
-    YEARLY_CUTOFF,
-)
+from src.ingestion.config import settings
 
 log = logging.getLogger(__name__)
 
@@ -47,14 +41,14 @@ def _extract_coverage_from_filename(file_name: str) -> list[int]:
     """Return the YYYYMM months covered by a file based on its name.
 
     Accepted shapes: JC-YYYYMM-tripdata.csv.zip, YYYYMM-tripdata.csv.zip, or
-    YYYY-tripdata.csv.zip (yearly bundles for years <= YEARLY_CUTOFF).
+    YYYY-tripdata.csv.zip (yearly bundles for years <= settings.yearly_cutoff).
     """
     normalized = file_name[3:] if file_name.startswith("JC-") else file_name
     date_part = normalized.split("-")[0]
 
     if len(date_part) == 4:
         year = int(date_part)
-        if year <= YEARLY_CUTOFF:
+        if year <= settings.yearly_cutoff:
             return [year * 100 + month for month in range(1, 13)]
         raise ValueError(f"Unsupported date format in file name: {file_name}")
 
@@ -152,7 +146,7 @@ def _stream_zip_to_disk(file_key: str, base_data_url: str) -> Iterator[Path]:
 
     # Get the total size of the file
     total_size = int(response.headers.get("content-length", 0))
-    chunk_size = 1024 * 1024 * DOWNLOAD_CHUNK_SIZE_MB
+    chunk_size = 1024 * 1024 * settings.download_chunk_size_mb
 
     # Create a temporary file to stream the ZIP content into
     tmp = tempfile.NamedTemporaryFile(delete=False, suffix=".zip", prefix="citibike-")
@@ -267,13 +261,13 @@ def _write_month_parquet(df: pl.DataFrame, source_label: str) -> list[tuple[int,
     """Write `df` as hive-partitioned parquet and return the (year, month) pairs covered."""
     pairs = df.select(["year", "month"]).unique().rows()
     df.write_parquet(
-        RIDES_DATA_DIR,
+        settings.rides_data_dir,
         row_group_size=100_000,
         statistics=True,
         partition_by=["year", "month"],
-        compression=PARQUET_COMPRESSION,
+        compression=settings.parquet_compression,
     )
-    log.info(f"[PROCESS] Wrote {df.height} rows -> {RIDES_DATA_DIR} ({source_label})")
+    log.info(f"[PROCESS] Wrote {df.height} rows -> {settings.rides_data_dir} ({source_label})")
     return pairs
 
 def _process_month(raw_df: pl.DataFrame, source_label: str) -> list[tuple[int, int]]:
@@ -299,12 +293,12 @@ def download_ride_data(
     - (year, month) tuples for each month of data processed.
     """
     # Get all the available files from the S3 bucket and filter them based on parameters
-    available = _find_available_files(BASE_URL_RIDE_DATA)
+    available = _find_available_files(settings.base_url_ride_data)
     filtered = _filter_files(available, current_coverage, start_date, end_date, download_jc=download_jc)
 
     # For each selected file, stream it to disk, process its contents, and yield the covered months
     for file_key in filtered:
-        with _stream_zip_to_disk(file_key, BASE_URL_RIDE_DATA) as zip_path:
+        with _stream_zip_to_disk(file_key, settings.base_url_ride_data) as zip_path:
             for raw_df in _iter_month_frames(zip_path):
                 pairs = _process_month(raw_df, source_label=file_key)
                 # Drop the loop-bound DataFrame before suspending at the yields

@@ -1,10 +1,8 @@
-import os
 from contextlib import contextmanager
 from threading import BoundedSemaphore
 from psycopg2.pool import ThreadedConnectionPool
 
-POOL_MIN_CONN = 2
-POOL_MAX_CONN = 10
+from src.backend.config import settings
 
 # Global connection pool, initialized by init_pool()
 _pool: ThreadedConnectionPool | None = None
@@ -17,11 +15,11 @@ def init_pool() -> None:
     """Initialise the global database connection pool."""
     global _pool, _pool_slots
     _pool = ThreadedConnectionPool(
-        minconn=POOL_MIN_CONN,
-        maxconn=POOL_MAX_CONN,
-        dsn=os.environ["DATABASE_URL"],
+        minconn=settings.pool_min_conn,
+        maxconn=settings.pool_max_conn,
+        dsn=settings.database_url,
     )
-    _pool_slots = BoundedSemaphore(POOL_MAX_CONN)
+    _pool_slots = BoundedSemaphore(settings.pool_max_conn)
 
 def close_pool() -> None:
     """Close all pool connections (called on application shutdown)."""
@@ -30,6 +28,14 @@ def close_pool() -> None:
         _pool.closeall()
     _pool = None
     _pool_slots = None
+
+
+def fetch_rows(cur) -> list[dict]:
+    """Fetch all rows from the cursor and return as a list of dictionaries."""
+    # Get the column names from the cursor description
+    cols = [d[0] for d in cur.description]
+    # Fetch all rows and zip each with the column names to create a list of dictionaries
+    return [dict(zip(cols, row)) for row in cur.fetchall()]
 
 
 @contextmanager
