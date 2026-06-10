@@ -3,7 +3,7 @@ services:
     build:                                                        # Initialize the PostgreSQL service by building the image from the specified context and Dockerfile
       context: .                                                                    
       dockerfile: dockers/Dockerfile.postgres
-    image: ${IMAGE_PREFIX:-nyc-bike-local}-postgres:${TAG:-latest}
+    image: ${IMAGE_PREFIX:-nyc-bike}-db:${TAG:-latest}
     container_name: NYC-Bike-Visualisation-Postgres
     environment:                                                  # Environment variables for PostgreSQL configuration
       POSTGRES_DB: citibike
@@ -13,26 +13,25 @@ services:
       - pg_data:/var/lib/postgresql/data
     healthcheck:                                                 # Health check to ensure the PostgreSQL service is ready before other services depend on it
       test: ["CMD-SHELL", "psql -h 127.0.0.1 -U citibike -d citibike -tAc \"SELECT 1 FROM information_schema.tables WHERE table_name='station_metadata'\" | grep -q 1"]
-      interval: 5s
+      interval: 10s
       timeout: 10s
-      retries: 120000
-      start_period: 30s
+      retries: 720                                               # First boot of a preloaded image replays the full dump, which can take up to ~2h
+      start_period: 60s
 
   seeder:                                                       # Service of data seeding service that populates the database with initial data
     build:                                                      # Build the seeder image from the specified context and Dockerfile
       context: .
       dockerfile: dockers/Dockerfile.seeder
-      args:                                                     # Build arguments for the seeder image
-        DATA_START_DATE: ${DATA_START_DATE:-}
-        DATA_END_DATE: ${DATA_END_DATE:-}
-        DOWNLOAD_JC: ${DOWNLOAD_JC:-}
     container_name: NYC-Bike-Visualisation-Seeder
-    image: ${IMAGE_PREFIX:-nyc-bike-local}-seeder:${TAG:-latest}
+    image: ${IMAGE_PREFIX:-nyc-bike}-seeder:${TAG:-latest}
     depends_on:
       postgres:                                                 # Ensure the seeder service only starts after the PostgreSQL service is healthy
         condition: service_healthy
     environment:                                                # Environment variables for the seeder service, including database connection details and optional parameters for data seeding
       DATABASE_URL: postgresql://citibike:citibike@postgres:5432/citibike
+      DATA_START_DATE: ${DATA_START_DATE:-}                     # Optional date range and JC toggle, read at runtime (no rebuild needed)
+      DATA_END_DATE: ${DATA_END_DATE:-}
+      DOWNLOAD_JC: ${DOWNLOAD_JC:-}
     volumes:
       - app_data:/app/data
 
@@ -40,7 +39,7 @@ services:
     build:
       context: .
       dockerfile: dockers/Dockerfile.backend
-    image: ${IMAGE_PREFIX:-nyc-bike-local}-backend:${TAG:-latest}
+    image: ${IMAGE_PREFIX:-nyc-bike}-backend:${TAG:-latest}
     container_name: NYC-Bike-Visualisation-Backend
     init: true                                                  # Use an init system to handle signal forwarding and process reaping, ensuring graceful shutdowns              
     depends_on:                                                 # Ensure the backend service only starts after the seeder service has completed successfully
@@ -67,7 +66,7 @@ services:
     build:
       context: .
       dockerfile: dockers/Dockerfile.frontend
-    image: ${IMAGE_PREFIX:-nyc-bike-local}-frontend:${TAG:-latest}
+    image: ${IMAGE_PREFIX:-nyc-bike}-frontend:${TAG:-latest}
     container_name: NYC-Bike-Visualisation-Frontend
     init: true
     depends_on:
