@@ -113,14 +113,14 @@ Seeding the database locally takes a long time and ~17 GB of disk. For developme
 | `dev` | Last 2 complete months (refreshed monthly on the 5th) | small, pulls in minutes |
 | `latest` | Full dataset since January 2020 (refreshed monthly on the 5th) | ~17 GB on disk |
 
-`docker-compose.dev.yml` pulls the database image and builds the backend and frontend from your local sources — no seeder involved:
+`docker-compose.dev.yml` starts **only** the pre-seeded database — no seeder involved. Run the backend and frontend locally from source (see [LOCAL_SETUP.md](LOCAL_SETUP.md)); the database is exposed on `localhost:5432`:
 
 ```bash
 # Small dev database (default, recommended)
-docker compose -f docker-compose.dev.yml up --build
+docker compose -f docker-compose.dev.yml up postgres
 
 # Full database
-DB_TAG=latest docker compose -f docker-compose.dev.yml up --build
+DB_TAG=latest docker compose -f docker-compose.dev.yml up postgres
 ```
 
 Notes:
@@ -131,7 +131,7 @@ Notes:
 ```bash
 docker compose -f docker-compose.dev.yml down -v
 docker compose -f docker-compose.dev.yml pull postgres
-docker compose -f docker-compose.dev.yml up --build
+docker compose -f docker-compose.dev.yml up postgres
 ```
 
 If you want to seed an arbitrary date range locally instead, use the main `docker-compose.yml` with `DATA_START_DATE`/`DATA_END_DATE` as described [above](#customise-the-date-range).

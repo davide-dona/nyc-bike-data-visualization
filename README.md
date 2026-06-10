@@ -3,8 +3,6 @@
 
 <div align="center">
 
-<img src="docs/media/logo.svg" alt="NYC Bike Data Visualization" width="120" />
-
 # NYC Bike Data Visualization
 
 Interactive exploration of New York City's Citi Bike trip data.
@@ -21,7 +19,7 @@ This project focuses on the visualization of bike-sharing data from New York Cit
 
 ## Getting Started
 
-The fastest way to run the full application is with the **pre-built release images** — a complete, pre-seeded database and ready-to-run backend and frontend. No clone, no build.
+The fastest way to run the full application is with the **pre-built release images**: a complete, pre-seeded database and ready-to-run backend and frontend. No clone, no build.
 
 **1. Download `docker-compose.release.yml` from the [latest release](https://github.com/446f6e6e79/nyc-bike-data-visualization/releases/latest).**
 
@@ -33,24 +31,29 @@ docker compose -f docker-compose.release.yml up
 
 That's it. Once the services are up, open:
 
-| Service | URL |
-|---|---|
-| Frontend | http://localhost:5173 |
-| Backend API docs | http://localhost:8000/docs |
+- **Frontend:** http://localhost:5173
+- **Backend API docs:** http://localhost:8000/docs
 
-> First start pulls ~1.2 GB and uses ~17 GB on disk; bringing up the database can take several minutes — don't interrupt it. See [DOCKER_SETUP.md](DOCKER_SETUP.md#quick-start-with-pre-built-images) for storage notes and custom date ranges.
+> First start pulls ~1.2 GB and uses ~17 GB on disk; bringing up the database can take several minutes, so don't interrupt it. See [DOCKER_SETUP.md](DOCKER_SETUP.md#quick-start-with-pre-built-images) for storage notes and custom date ranges.
 
-### Other ways to run it
+### Development setup
 
-| Path | Command | Guide |
-|---|---|---|
-| **Dev stack** — pre-seeded DB image, backend & frontend built from source | `docker compose -f docker-compose.dev.yml up --build` | [DOCKER_SETUP.md](DOCKER_SETUP.md#development-with-a-pre-seeded-database) |
-| **Local development** — run backend & frontend directly on your machine | _see guide_ | [LOCAL_SETUP.md](LOCAL_SETUP.md) |
+For development, run only the pre-seeded database in Docker, then start the backend and frontend locally for hot-reloading:
+
+**1. Start the dev database (pulls a pre-seeded image, no seeding needed):**
+
+```bash
+docker compose -f docker-compose.dev.yml up postgres
+```
+
+**2. Run the backend and frontend on your machine.** Follow [LOCAL_SETUP.md](LOCAL_SETUP.md) for the rest of the setup.
+
+> The database is exposed on `localhost:5432`. See [DOCKER_SETUP.md](DOCKER_SETUP.md#development-with-a-pre-seeded-database) for database image tags (`dev` vs `latest`).
 
 ## Components
 
-- [Backend](src/backend/README.md) — FastAPI server, PostgreSQL setup, running tests, API docs
-- [Frontend](src/frontend/README.md) — React + Vite app, development server, running tests
+- [Backend](src/backend/README.md): FastAPI server, PostgreSQL setup, running tests, API docs
+- [Frontend](src/frontend/README.md): React + Vite app, development server, running tests
 
 ## Repository Structure
 
