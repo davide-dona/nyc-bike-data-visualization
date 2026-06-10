@@ -51,17 +51,37 @@ function aggregateUsage(items = []) {
             day_of_week: dayIndex,
             label: DAY_LABELS[dayIndex],
             ...bucket,
+            // hours_count covers 24 hours per occurrence of this weekday in the range
+            avg_rides: bucket.total_rides / Math.max(1, bucket.hours_count / 24),
         })),
         hourSeries: hourBuckets.map((bucket, hour) => ({
             hour,
             label: String(hour).padStart(2, '0'),
             ...bucket,
+            avg_rides: bucket.total_rides / Math.max(1, bucket.hours_count),
         })),
         totals: {
             totalOutgoing,
             totalIncoming,
             totalRides,
             totalHours,
+        },
+    }
+}
+
+function argmaxByAvgRides(series) {
+    return series.reduce((best, row) => (row.avg_rides > (best?.avg_rides ?? -1) ? row : best), null)
+}
+
+function buildSummary({ daySeries, hourSeries, totals }) {
+    const flowVolume = totals.totalOutgoing + totals.totalIncoming
+    return {
+        peakHour: argmaxByAvgRides(hourSeries),
+        busiestDay: argmaxByAvgRides(daySeries),
+        netFlow: {
+            totalIncoming: totals.totalIncoming,
+            totalOutgoing: totals.totalOutgoing,
+            pctDiff: (totals.totalOutgoing - totals.totalIncoming) / Math.max(1, flowVolume),
         },
     }
 }
@@ -132,6 +152,7 @@ export default function useInfrastructureStationSidebarData({ stationIds = [], f
             daySeries: aggregatedUsage.daySeries,
             hourSeries: aggregatedUsage.hourSeries,
             totals: aggregatedUsage.totals,
+            summary: buildSummary(aggregatedUsage),
             topFlows: aggregatedFlows.slice(0, 6),
         }
     }, [query.data, query.error, query.loading, query.refetch])
