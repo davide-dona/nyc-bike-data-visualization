@@ -76,7 +76,7 @@ export DATABASE_URL=postgresql://citibike:citibike@localhost:5432/citibike
 
 ## Starting the Server
 
-Make sure you have downloaded the dataset first — see [Downloading the datasets](../../README.md#downloading-the-datasets) in the root README.
+Make sure you have downloaded the dataset first — see [Downloading the dataset](../../LOCAL_SETUP.md#downloading-the-dataset).
 
 ```bash
 uvicorn src.backend.main:app --reload
