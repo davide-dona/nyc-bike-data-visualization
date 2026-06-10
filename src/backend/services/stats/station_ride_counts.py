@@ -1,9 +1,7 @@
-import datetime
-
 from src.backend.db import get_conn
 from src.backend.models.ride import MemberCasual, RideableType
 from src.backend.models.stats.station_ride_counts import GroupedStationRideCount, StationRideGroupBy, StationRideCounts
-from src.backend.services.stats.utils import fetch_rows
+from src.backend.services.stats.utils import HOURS_CTE, fetch_rows, month_range_bounds
 
 def get_station_ride_counts_stats(
     start_year: int,
@@ -17,155 +15,131 @@ def get_station_ride_counts_stats(
     group_by: StationRideGroupBy = StationRideGroupBy.NONE,
     limit: int = 100,
 ) -> list[StationRideCounts]:
-    user_val = user_type.value if user_type else None
-    bike_val = bike_type.value if bike_type else None
+    """Fetch per-station ride counts, following the shared spine pattern: a calendar
+    hours CTE provides hours_count per bucket, ride aggregates are computed per
+    station and bucket, and the top stations are selected in SQL."""
+    spine_start, spine_end = month_range_bounds(start_year, start_month, end_year, end_month)
 
-    start_date = datetime.date(start_year, start_month, 1)
-    end_date = datetime.date(end_year + (end_month == 12), end_month % 12 + 1, 1)
-
-    # Pick the smallest pre-aggregated table that satisfies the query shape.
+    # Pick the smallest pre-aggregated table that satisfies the query shape, the
+    # time dimensions to bucket by, and whether the table has a day_of_week column.
     # Falls back to station_activity_hourly only when both day_of_week and hour are needed.
     if group_by == StationRideGroupBy.DAY_OF_WEEK_AND_HOUR:
-        table       = "station_activity_hourly"
-        spine_dim   = "day_of_week, hour, "
-        spine_grp   = "GROUP BY day_of_week, hour"
-        spine_extra = ""
-        sah_sel     = ", sah.day_of_week, sah.hour"
-        sah_grp     = ", sah.day_of_week, sah.hour, s.hours_count"
-        spine_join  = "JOIN spine s ON s.day_of_week = sah.day_of_week AND s.hour = sah.hour"
-        has_dow_col = True
+        table, dims, has_dow_col = "station_activity_hourly", ["day_of_week", "hour"], True
     elif group_by == StationRideGroupBy.HOUR and day_of_week is not None:
         # Need to filter by dow AND group by hour — only the full table has both columns
-        table       = "station_activity_hourly"
-        spine_dim   = "hour, "
-        spine_grp   = "GROUP BY hour"
-        spine_extra = "AND day_of_week = %s"
-        sah_sel     = ", sah.hour"
-        sah_grp     = ", sah.hour, s.hours_count"
-        spine_join  = "JOIN spine s ON s.hour = sah.hour"
-        has_dow_col = True
+        table, dims, has_dow_col = "station_activity_hourly", ["hour"], True
     elif group_by == StationRideGroupBy.HOUR:
-        table       = "station_activity_by_hour"
-        spine_dim   = "hour, "
-        spine_grp   = "GROUP BY hour"
-        spine_extra = ""
-        sah_sel     = ", sah.hour"
-        sah_grp     = ", sah.hour, s.hours_count"
-        spine_join  = "JOIN spine s ON s.hour = sah.hour"
-        has_dow_col = False
+        table, dims, has_dow_col = "station_activity_by_hour", ["hour"], False
     elif group_by == StationRideGroupBy.DAY_OF_WEEK:
-        table       = "station_activity_by_dow"
-        spine_dim   = "day_of_week, "
-        spine_grp   = "GROUP BY day_of_week"
-        spine_extra = ""
-        sah_sel     = ", sah.day_of_week"
-        sah_grp     = ", sah.day_of_week, s.hours_count"
-        spine_join  = "JOIN spine s ON s.day_of_week = sah.day_of_week"
-        has_dow_col = True
+        table, dims, has_dow_col = "station_activity_by_dow", ["day_of_week"], True
     elif day_of_week is not None:
         # NONE group_by with a dow filter: by_dow is small and has the column
-        table       = "station_activity_by_dow"
-        spine_dim   = ""
-        spine_grp   = ""
-        spine_extra = "AND day_of_week = %s"
-        sah_sel     = ""
-        sah_grp     = ", s.hours_count"
-        spine_join  = "CROSS JOIN spine s"
-        has_dow_col = True
+        table, dims, has_dow_col = "station_activity_by_dow", [], True
     else:
         # NONE group_by, no dow filter: smallest possible table
-        table       = "station_activity_by_month"
-        spine_dim   = ""
-        spine_grp   = ""
-        spine_extra = ""
-        sah_sel     = ""
-        sah_grp     = ", s.hours_count"
-        spine_join  = "CROSS JOIN spine s"
-        has_dow_col = False
+        table, dims, has_dow_col = "station_activity_by_month", [], False
 
-    spine_params = [start_date, end_date]
-    if spine_extra:
-        spine_params.append(day_of_week)
+    # Fact-table filters, shared by the top-station selection and the bucketed select.
+    filters = ["(sah.year, sah.month) >= (%s, %s)", "(sah.year, sah.month) <= (%s, %s)"]
+    filter_params: list = [start_year, start_month, end_year, end_month]
+    if station_id is not None:
+        filters.append("sah.station_id = %s")
+        filter_params.append(station_id)
+    if user_type is not None:
+        filters.append("sah.user_type = %s")
+        filter_params.append(user_type.value)
+    if bike_type is not None:
+        filters.append("sah.bike_type = %s")
+        filter_params.append(bike_type.value)
+    if day_of_week is not None and has_dow_col:
+        filters.append("sah.day_of_week = %s")
+        filter_params.append(day_of_week)
+    where = " AND ".join(filters)
 
-    dow_where  = "AND (%s IS NULL OR sah.day_of_week = %s)" if has_dow_col else ""
-    dow_params = (day_of_week, day_of_week) if has_dow_col else ()
+    spine_where = "WHERE day_of_week = %s" if day_of_week is not None else ""
+    spine_group = f"GROUP BY {', '.join(dims)}" if dims else ""
+    spine_params: list = [spine_start, spine_end] + ([day_of_week] if day_of_week is not None else [])
+    spine_join = (
+        f"JOIN spine s ON {' AND '.join(f's.{d} = sah.{d}' for d in dims)}"
+        if dims else "CROSS JOIN spine s"
+    )
+    dim_select = "".join(f", sah.{d}" for d in dims)
 
     sql = f"""
-        WITH spine AS (
-            SELECT {spine_dim}COUNT(*) AS hours_count
-            FROM weather_hourly
-            WHERE date >= %s AND date < %s
-            {spine_extra}
-            {spine_grp}
+        WITH {HOURS_CTE},
+        spine AS (
+            SELECT {", ".join([*dims, "COUNT(*) AS hours_count"])}
+            FROM hours
+            {spine_where}
+            {spine_group}
+        ),
+        top_stations AS (
+            SELECT sah.station_id,
+                   SUM(sah.outgoing_rides + sah.incoming_rides) AS station_total
+            FROM {table} sah
+            WHERE {where}
+            GROUP BY sah.station_id
+            ORDER BY station_total DESC
+            LIMIT %s
         )
-        SELECT sah.station_id, sm.station_name, sm.lat, sm.lon{sah_sel},
+        SELECT sah.station_id, sm.station_name, sm.lat, sm.lon{dim_select},
                SUM(sah.outgoing_rides) AS outgoing_rides,
                SUM(sah.incoming_rides) AS incoming_rides,
                SUM(sah.outgoing_rides + sah.incoming_rides) AS total_rides,
                s.hours_count
         FROM {table} sah
+        JOIN top_stations t ON t.station_id = sah.station_id
         JOIN station_metadata sm ON sm.station_id = sah.station_id
         {spine_join}
-        WHERE (sah.year, sah.month) >= (%s, %s) AND (sah.year, sah.month) <= (%s, %s)
-          AND (%s IS NULL OR sah.station_id = %s)
-          AND (%s IS NULL OR sah.user_type = %s)
-          AND (%s IS NULL OR sah.bike_type = %s)
-          {dow_where}
-        GROUP BY sah.station_id, sm.station_name, sm.lat, sm.lon{sah_grp}
+        WHERE {where}
+        GROUP BY sah.station_id, sm.station_name, sm.lat, sm.lon, t.station_total{dim_select}, s.hours_count
+        ORDER BY t.station_total DESC, sah.station_id{dim_select}
     """
-    params = (
-        *spine_params,
-        start_year, start_month, end_year, end_month,
-        station_id, station_id,
-        user_val, user_val,
-        bike_val, bike_val,
-        *dow_params,
-    )
+    params = (*spine_params, *filter_params, limit, *filter_params)
 
     with get_conn() as conn:
         with conn.cursor() as cur:
             cur.execute(sql, params)
             rows = fetch_rows(cur)
-    
+
+    # Rows arrive ordered by station total; collect each station's buckets in order.
+    stations: list[dict] = []
     by_station: dict[str, dict] = {}
     for r in rows:
         sid = r["station_id"]
-        if sid not in by_station:
-            by_station[sid] = {
+        entry = by_station.get(sid)
+        if entry is None:
+            entry = {
                 "station_id": sid,
                 "station_name": r["station_name"],
                 "lat": r["lat"],
                 "lon": r["lon"],
-                "station_total": 0,
                 "groups": [],
             }
-        by_station[sid]["station_total"] += int(r["total_rides"] or 0)
-        by_station[sid]["groups"].append(r)
+            by_station[sid] = entry
+            stations.append(entry)
+        entry["groups"].append(r)
 
-    top = sorted(by_station.values(), key=lambda s: s["station_total"], reverse=True)[:limit]
-
-    result = []
-    for station in top:
-        raw_groups = _fill_station_groups(station["groups"], group_by)
-        groups = [
-            GroupedStationRideCount(
-                day_of_week=r.get("day_of_week"),
-                hour=r.get("hour"),
-                outgoing_rides=int(r.get("outgoing_rides") or 0),
-                incoming_rides=int(r.get("incoming_rides") or 0),
-                total_rides=int(r.get("total_rides") or 0),
-                hours_count=int(r.get("hours_count") or 0),
-            )
-            for r in raw_groups
-        ]
-        result.append(StationRideCounts(
+    return [
+        StationRideCounts(
             station_id=station["station_id"],
             station_name=station["station_name"],
             lat=station["lat"],
             lon=station["lon"],
-            groups=groups,
-        ))
-    return result
+            groups=[
+                GroupedStationRideCount(
+                    day_of_week=r.get("day_of_week"),
+                    hour=r.get("hour"),
+                    outgoing_rides=int(r.get("outgoing_rides") or 0),
+                    incoming_rides=int(r.get("incoming_rides") or 0),
+                    total_rides=int(r.get("total_rides") or 0),
+                    hours_count=int(r.get("hours_count") or 0),
+                )
+                for r in _fill_station_groups(station["groups"], group_by)
+            ],
+        )
+        for station in stations
+    ]
 
 
 def _fill_station_groups(groups: list[dict], group_by: StationRideGroupBy) -> list[dict]:

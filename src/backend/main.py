@@ -1,5 +1,6 @@
 from contextlib import asynccontextmanager
 import logging
+from logging.handlers import RotatingFileHandler
 import os
 import time
 
@@ -10,15 +11,15 @@ from fastapi import Request
 from fastapi.middleware.cors import CORSMiddleware
 
 from src.backend.routes import stations, stats, bike_routes
-from src.backend.db import init_pool
-from src.backend.config import LOG_FILE_PATH, LOG_LEVEL
+from src.backend.db import init_pool, close_pool
+from src.backend.config import CORS_ORIGINS, LOG_FILE_PATH, LOG_LEVEL
 
 logger = logging.getLogger("backend.request")
 if not logger.handlers:
     os.makedirs(os.path.dirname(LOG_FILE_PATH), exist_ok=True)
 
     stream_handler = logging.StreamHandler()
-    file_handler = logging.FileHandler(LOG_FILE_PATH)
+    file_handler = RotatingFileHandler(LOG_FILE_PATH, maxBytes=10_000_000, backupCount=3)
     formatter = logging.Formatter(
         "%(asctime)s %(levelname)s %(name)s - %(message)s"
     )
@@ -33,6 +34,7 @@ logger.propagate = False
 async def lifespan(app: FastAPI):
     init_pool()
     yield
+    close_pool()
 
 app = FastAPI(lifespan=lifespan)
 
@@ -61,10 +63,10 @@ async def log_requests(request: Request, call_next):
     )
     return response
 
-# Allow requests from the Vite dev server
+# Allow requests from the Vite dev server (override with the CORS_ORIGINS env var)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:5174"],
+    allow_origins=CORS_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

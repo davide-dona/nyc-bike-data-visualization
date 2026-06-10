@@ -8,6 +8,8 @@ from src.backend.config import INFO_URL, STATUS_URL
 from src.backend.config import TTL_SECONDS, GBFS_CLASSIC_BIKE_TYPE_ID, GBFS_EBIKE_TYPE_ID
 
 _cache_lock = Lock()
+# Serialises upstream fetches so concurrent cache misses don't all hit the GBFS API
+_fetch_lock = Lock()
 _cache: dict = {
     "timestamp": 0.0,
     "info": None,
@@ -18,30 +20,41 @@ def _fetch_from_source() -> tuple[list, dict]:
     """
     Fetch station information and status directly from the GBFS source API.
     Returns:
-        info:       List of station information dicts.
+        info:       List of all station information dicts (active or not).
         status_map: Dict mapping station_id to its status dict.
     """
     # Fetch the raw station information and status data from the GBFS feed with a timeout to prevent hanging.
     info = requests.get(INFO_URL, timeout=(3, 10)).json()["data"]["stations"]
     status = requests.get(STATUS_URL, timeout=(3, 10)).json()["data"]["stations"]
 
-    # Keep only stations that are currently active according to GBFS status flags.
-    # GBFS uses integer flags for these fields (1 = true, 0 = false).
-    active_status = [
-        s
-        for s in status
-        if s.get("is_installed") == 1 
-        and s.get("is_renting") == 1 
-        and s.get("is_returning") == 1
-    ]
+    # Map station_id -> status dict for quick lookup. No active-status filtering here:
+    # static info must stay available for inactive stations (historical data lookups);
+    # endpoints that only want active stations filter with is_station_active().
+    status_map = {s["station_id"]: s for s in status}
 
-    # Map active station_id -> status dict for quick lookup.
-    status_map = {s["station_id"]: s for s in active_status}
+    return info, status_map
 
-    # Filter static station info to only include stations present in the active status map.
-    filtered_info = [i for i in info if i.get("station_id") in status_map]
+def is_station_active(status: dict | None) -> bool:
+    """Whether a station is currently installed, renting and returning.
+    GBFS uses integer flags for these fields (1 = true, 0 = false)."""
+    return (
+        bool(status)
+        and status.get("is_installed") == 1
+        and status.get("is_renting") == 1
+        and status.get("is_returning") == 1
+    )
 
-    return filtered_info, status_map
+def _get_cached(force_refresh: bool) -> tuple[list, dict] | None:
+    """Return the cached station data if still valid, else None."""
+    with _cache_lock:
+        if (
+            not force_refresh
+            and _cache["info"] is not None
+            and _cache["status_map"] is not None
+            and (time.monotonic() - _cache["timestamp"] < TTL_SECONDS)
+        ):
+            return _cache["info"], _cache["status_map"]
+    return None
 
 def fetch_station_data(force_refresh: bool = False) -> tuple[list, dict]:
     """
@@ -49,35 +62,32 @@ def fetch_station_data(force_refresh: bool = False) -> tuple[list, dict]:
     Set force_refresh=True to bypass the cache and fetch fresh data.
     Falls back to stale cache if the upstream API is unavailable.
     """
-    now = time.monotonic()
-    # Check cache validity under lock to ensure thread safety
-    with _cache_lock:
-        cache_valid = (
-            not force_refresh
-            and _cache["info"] is not None
-            and _cache["status_map"] is not None
-            and (now - _cache["timestamp"] < TTL_SECONDS)
-        )
-        # If the cache is valid, return it immediately
-        if cache_valid:
-            return _cache["info"], _cache["status_map"]
+    cached = _get_cached(force_refresh)
+    if cached:
+        return cached
 
-    try:
-        info, status_map = _fetch_from_source()
-    except Exception as e:
-        # Fall back to stale cache if available
+    with _fetch_lock:
+        # Another thread may have refreshed the cache while we waited for the lock
+        cached = _get_cached(force_refresh)
+        if cached:
+            return cached
+
+        try:
+            info, status_map = _fetch_from_source()
+        except Exception as e:
+            # Fall back to stale cache if available
+            with _cache_lock:
+                if _cache["info"] is not None and _cache["status_map"] is not None:
+                    return _cache["info"], _cache["status_map"]
+            raise HTTPException(
+                status_code=503,
+                detail=f"Failed to fetch station data: {e}",
+            )
+
         with _cache_lock:
-            if _cache["info"] is not None and _cache["status_map"] is not None:
-                return _cache["info"], _cache["status_map"]
-        raise HTTPException(
-            status_code=503,
-            detail=f"Failed to fetch station data: {e}",
-        )
-
-    with _cache_lock:
-        _cache["timestamp"] = time.monotonic()
-        _cache["info"] = info
-        _cache["status_map"] = status_map
+            _cache["timestamp"] = time.monotonic()
+            _cache["info"] = info
+            _cache["status_map"] = status_map
 
     return info, status_map
 
