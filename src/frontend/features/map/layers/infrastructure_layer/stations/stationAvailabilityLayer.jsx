@@ -71,8 +71,8 @@ export function stationAvailabilityLegend({ showBikeRoutes = false } = {}) {
     return {
         entries: [
             { swatch: 'rgb(47, 125, 79)', label: 'Healthy', hint: 'bikes and docks available' },
-            { swatch: 'rgb(200, 138, 26)', label: 'Skewed', hint: 'nearly full or empty' },
-            { swatch: 'rgb(163, 45, 45)', label: 'Unhealthy', hint: 'broken or disabled' },
+            { swatch: 'rgb(200, 138, 26)', label: 'Skewed', hint: 'running low on bikes or docks' },
+            { swatch: 'rgb(163, 45, 45)', label: 'Unhealthy', hint: 'nearly empty, full, or out of service' },
         ],
         includeBikeRoutes: showBikeRoutes,
     }
