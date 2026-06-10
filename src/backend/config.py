@@ -17,7 +17,8 @@ class BackendSettings(BaseSettings):
     All values come from config.yaml next to this module — there are no code
     defaults, so a missing key fails loudly at startup. Environment variables
     (uppercased field name) override the YAML; empty env vars are treated as
-    unset. DATABASE_URL is deploy-specific and env-only.
+    unset. config.yaml ships a local-development DATABASE_URL; Docker and CI
+    override it via the env var.
     """
 
     model_config = SettingsConfigDict(
@@ -25,7 +26,7 @@ class BackendSettings(BaseSettings):
         env_ignore_empty=True,
     )
 
-    # Database (env-only, not stored in config.yaml)
+    # Database connection URL (local default in config.yaml, env-overridable)
     database_url: str
     pool_min_conn: int
     pool_max_conn: int

@@ -22,9 +22,13 @@ export function selectStationAvailability(stationData) {
             ? station.num_docks_available / actual_capacity
             : 0
 
-        // Define the station health score as a combination of bike availability and dock availability
+        // Station health measures balance: a healthy station has both bikes AND
+        // docks available. It peaks at 1.0 when supply is split evenly and falls
+        // toward 0 as the station nears empty (nothing to rent) or full (nowhere
+        // to return). The scarcer side dominates, so a near-empty or near-full
+        // station scores low even though it is technically "occupied".
         const station_health = actual_capacity > 0
-            ? (station.num_classic_bikes_available + station.num_ebikes_available + station.num_docks_available) / actual_capacity
+            ? 2 * Math.min(availability_score, dock_score)
             : 0
         
         return {
