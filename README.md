@@ -18,8 +18,9 @@ This project focuses on the visualization of bike-sharing data from New York Cit
 ```
 data-visualisation/
 ├── README.md                         # Project overview (this file)
-├── docker-compose.yml                # Docker Compose configuration for local development
-├── dockers/                          # Dockerfiles for backend and frontend services
+├── docker-compose.yml                # Docker Compose configuration (full stack, seeds locally)
+├── docker-compose.dev.yml            # Development stack with a pre-seeded database image
+├── dockers/                          # Dockerfiles for all services (db, seeder, backend, frontend)
 ├── src/
 │   └── backend                       # Backend server implementation (FastAPI)
 │   └── frontend                      # Frontend application implementation (React)
@@ -101,7 +102,7 @@ docker compose down
 
 > Use `docker compose down -v` only if you want to wipe the database and downloaded data entirely and start fresh.
 
-**Customise the date range** (optional) — by default the seeder downloads data starting from January 2020. The date range is **baked into the image at build time**, so you must pass the variables together with `--build`:
+**Customise the date range** (optional) — by default the seeder downloads data starting from January 2020. The variables are read by the seeder **at runtime**, so no rebuild is needed to change the range:
 
 | Variable | Description | Example |
 |---|---|---|
@@ -112,13 +113,13 @@ docker compose down
 Inline (Linux/macOS):
 
 ```bash
-DATA_START_DATE=202001 DATA_END_DATE=202112 docker compose up --build
+DATA_START_DATE=202001 DATA_END_DATE=202112 docker compose up
 ```
 
 On Windows (PowerShell):
 
 ```powershell
-$env:DATA_START_DATE="202001"; $env:DATA_END_DATE="202112"; docker compose up --build
+$env:DATA_START_DATE="202001"; $env:DATA_END_DATE="202112"; docker compose up
 ```
 
 Or create a `.env` file in the repository root (Docker Compose picks it up automatically):
@@ -129,7 +130,7 @@ DATA_END_DATE=202412
 # DOWNLOAD_JC=true
 ```
 
-> **Note:** Setting these variables without `--build` has no effect. The date range is fixed in the already-built seeder image. To change the range after a previous build, always pass `--build` to rebuild the seeder image.
+> **Note:** the seeder only adds months that are missing from the database. To shrink an already-seeded database (or start over with a different range), wipe the volumes first with `docker compose down -v`.
 
 ### Useful terminal checks
 
@@ -137,6 +138,38 @@ DATA_END_DATE=202412
 - Follow logs: `docker compose logs -f`
 - Check backend logs: `docker compose logs -f backend`
 - Check frontend logs: `docker compose logs -f frontend`
+
+## Development with a pre-seeded database
+
+Seeding the database locally takes a long time and ~17 GB of disk. For development, CI publishes **pre-seeded database images** to GHCR (`ghcr.io/446f6e6e79/nyc-bike-db`) so you can skip seeding entirely:
+
+| Tag | Contents | Size |
+|---|---|---|
+| `dev` | Last 2 complete months (refreshed monthly on the 5th) | small, pulls in minutes |
+| `latest` | Full dataset since January 2020 (refreshed monthly on the 5th) | ~17 GB on disk |
+
+`docker-compose.dev.yml` pulls the database image and builds the backend and frontend from your local sources — no seeder involved:
+
+```bash
+# Small dev database (default, recommended)
+docker compose -f docker-compose.dev.yml up --build
+
+# Full database
+DB_TAG=latest docker compose -f docker-compose.dev.yml up --build
+```
+
+Notes:
+
+- Each tag uses its own Docker volume (`nyc_bike_pg_dev` / `nyc_bike_pg_latest`), so switching between `dev` and `latest` always restores the right dataset.
+- The dump inside the image is only restored into an **empty** volume. To pick up a refreshed `dev` image after the monthly update, wipe the volume first:
+
+```bash
+docker compose -f docker-compose.dev.yml down -v
+docker compose -f docker-compose.dev.yml pull postgres
+docker compose -f docker-compose.dev.yml up --build
+```
+
+If you instead want to seed an arbitrary date range locally, use the main `docker-compose.yml` with `DATA_START_DATE`/`DATA_END_DATE` as described above.
 
 ## Local development (Linux, macOS)
 

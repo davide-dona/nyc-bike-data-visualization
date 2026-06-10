@@ -1,6 +1,8 @@
 name: Docker Release Pipeline
 
 # Builds and pushes all Docker images on release and seeds the database.
+# Produces two preloaded database images: the full dataset (-db:TAG / :latest)
+# and a small dev dataset with the last 2 complete months (-db:TAG-dev / :dev).
 on:
   release:
     types: [published]
@@ -8,11 +10,11 @@ on:
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
   REGISTRY: ghcr.io
-  IMAGE_PREFIX: ghcr.io/${{ github.repository_owner }}/nyc-bike-data-visualisation
+  IMAGE_PREFIX: ghcr.io/${{ github.repository_owner }}/nyc-bike
   PLATFORMS: linux/amd64,linux/arm64
 
 jobs:
-    
+
   prepare:                  # Extracts the release tag from the GitHub ref and makes it available to downstream jobs.
     runs-on: ubuntu-latest
     outputs:
@@ -98,7 +100,7 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-  build-postgres:           # Builds and pushes the postgres image to GitHub Container Registry.
+  build-db-base:            # Builds and pushes the unseeded (schema-only) database image used for seeding.
     needs: prepare
     runs-on: ubuntu-latest
     permissions:
@@ -123,7 +125,7 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Build and push postgres image
+      - name: Build and push unseeded db image
         uses: docker/build-push-action@v6
         with:
           context: .
@@ -131,7 +133,7 @@ jobs:
           platforms: ${{ env.PLATFORMS }}
           push: true
           tags: |
-            ${{ env.IMAGE_PREFIX }}-postgres:${{ needs.prepare.outputs.tag }}-unseeded
+            ${{ env.IMAGE_PREFIX }}-db:${{ needs.prepare.outputs.tag }}-unseeded
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -173,8 +175,8 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-  seed:             # Runs the seeder container to seed the database, exports the dump, and builds the final preloaded postgres image.
-    needs: [prepare, build-postgres, build-seeder]
+  seed-full:        # Seeds the full dataset, exports the dump, and builds the preloaded db image (:TAG and :latest).
+    needs: [prepare, build-db-base, build-seeder]
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -205,7 +207,7 @@ jobs:
             -e POSTGRES_DB=citibike \
             -e POSTGRES_USER=citibike \
             -e POSTGRES_PASSWORD=citibike \
-            ${{ env.IMAGE_PREFIX }}-postgres:${{ needs.prepare.outputs.tag }}-unseeded
+            ${{ env.IMAGE_PREFIX }}-db:${{ needs.prepare.outputs.tag }}-unseeded
           until docker logs pg 2>&1 | grep -q "database system is ready to accept connections"; do
             echo "Waiting for postgres..."; sleep 2
           done
@@ -231,53 +233,130 @@ jobs:
         if: always()
         run: docker rm -f pg
 
-      - name: Prepare preloaded Dockerfile
-        run: |
-          cat > /tmp/Dockerfile.preloaded << 'EOF'
-          FROM ${{ env.IMAGE_PREFIX }}-postgres:${{ needs.prepare.outputs.tag }}-unseeded
-          COPY citibike_data.sql.gz /docker-entrypoint-initdb.d/99_citibike_data.sql.gz
-          EOF
+      - name: Upload dump artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: citibike-dump-full
+          path: citibike_data.sql.gz
+          retention-days: 30
 
-      - name: Build and push preloaded postgres image
+      - name: Build and push preloaded db image
         uses: docker/build-push-action@v6
         with:
           context: .
-          file: /tmp/Dockerfile.preloaded
+          file: dockers/Dockerfile.db-preloaded
           platforms: ${{ env.PLATFORMS }}
           push: true
           tags: |
-            ${{ env.IMAGE_PREFIX }}-postgres:${{ needs.prepare.outputs.tag }}
-            ${{ env.IMAGE_PREFIX }}-postgres:latest
+            ${{ env.IMAGE_PREFIX }}-db:${{ needs.prepare.outputs.tag }}
+            ${{ env.IMAGE_PREFIX }}-db:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Remove seeder image
-        if: always()
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  seed-dev:         # Seeds the last 2 complete months and builds the small dev db image (:TAG-dev and :dev).
+    needs: [prepare, build-db-base, build-seeder]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: ${{ env.PLATFORMS }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Compute dev data window (last 2 complete months)
+        id: window
         run: |
-          TAG="${{ needs.prepare.outputs.tag }}"
-          OWNER="${{ github.repository_owner }}"
-          PACKAGE="nyc-bike-data-visualisation-seeder"
-          for ENDPOINT in \
-              "user/packages/container/${PACKAGE}/versions" \
-              "orgs/${OWNER}/packages/container/${PACKAGE}/versions"; do
-            ID=$(gh api "$ENDPOINT" --paginate 2>/dev/null \
-              | jq -r ".[] | select(.metadata.container.tags | contains([\"$TAG\"])) | .id" \
-              | head -1)
-            [ -z "$ID" ] && continue
-            gh api --method DELETE "${ENDPOINT%/versions}/$ID" \
-              && { echo "Deleted $PACKAGE:$TAG (id $ID)"; break; }
+          START=$(date -u -d "$(date -u +%Y-%m-01) -2 months" +%Y%m)
+          END=$(date -u -d "$(date -u +%Y-%m-01) -1 month" +%Y%m)
+          echo "start=$START" >> "$GITHUB_OUTPUT"
+          echo "end=$END" >> "$GITHUB_OUTPUT"
+          echo "Dev data window: $START..$END"
+
+      - name: Start postgres container for seeding
+        run: |
+          docker run -d --name pg \
+            -e POSTGRES_DB=citibike \
+            -e POSTGRES_USER=citibike \
+            -e POSTGRES_PASSWORD=citibike \
+            ${{ env.IMAGE_PREFIX }}-db:${{ needs.prepare.outputs.tag }}-unseeded
+          until docker logs pg 2>&1 | grep -q "database system is ready to accept connections"; do
+            echo "Waiting for postgres..."; sleep 2
           done
 
-      - name: Remove temporary unseeded postgres image
+      - name: Seed dev dataset
+        timeout-minutes: 60
+        run: |
+          docker run --rm \
+            --network container:pg \
+            -e DATABASE_URL=postgresql://citibike:citibike@localhost:5432/citibike \
+            -e DATA_START_DATE=${{ steps.window.outputs.start }} \
+            -e DATA_END_DATE=${{ steps.window.outputs.end }} \
+            -e PARALLEL_MONTHS=1 \
+            -e DB_LOADER_WORKERS=2 \
+            -e LOG_LEVEL=INFO \
+            ${{ env.IMAGE_PREFIX }}-seeder:${{ needs.prepare.outputs.tag }}
+
+      - name: Export database dump
+        run: |
+          docker exec pg pg_dump -U citibike --no-owner --no-privileges citibike \
+            | gzip > citibike_data_dev.sql.gz
+          echo "Dump size: $(du -sh citibike_data_dev.sql.gz | cut -f1)"
+
+      - name: Stop and remove postgres container
         if: always()
+        run: docker rm -f pg
+
+      - name: Upload dump artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: citibike-dump-dev
+          path: citibike_data_dev.sql.gz
+          retention-days: 30
+
+      - name: Build and push dev db image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: dockers/Dockerfile.db-preloaded
+          build-args: |
+            DUMP_FILE=citibike_data_dev.sql.gz
+          platforms: ${{ env.PLATFORMS }}
+          push: true
+          tags: |
+            ${{ env.IMAGE_PREFIX }}-db:${{ needs.prepare.outputs.tag }}-dev
+            ${{ env.IMAGE_PREFIX }}-db:dev
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  cleanup:          # Removes the temporary unseeded db image once both seed jobs have used it.
+    needs: [prepare, seed-full, seed-dev]
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+    steps:
+      - name: Remove temporary unseeded db image
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           TAG="${{ needs.prepare.outputs.tag }}-unseeded"
           OWNER="${{ github.repository_owner }}"
-          PACKAGE="nyc-bike-data-visualisation-postgres"
+          PACKAGE="nyc-bike-db"
           for ENDPOINT in \
               "user/packages/container/${PACKAGE}/versions" \
               "orgs/${OWNER}/packages/container/${PACKAGE}/versions"; do
@@ -290,7 +369,7 @@ jobs:
           done
 
   release:                 # Generates a docker-compose.release.yml with the new image tags and attaches it to the GitHub Release.
-    needs: [prepare, build-backend, build-frontend, build-postgres, build-seeder]
+    needs: [prepare, build-backend, build-frontend, build-db-base, build-seeder]
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -313,7 +392,7 @@ jobs:
           PREFIX: ${{ env.IMAGE_PREFIX }}
         run: |
           yq eval "
-            .services.postgres.image = strenv(PREFIX) + \"-postgres:\" + strenv(TAG) |
+            .services.postgres.image = strenv(PREFIX) + \"-db:\" + strenv(TAG) |
             .services.backend.image  = strenv(PREFIX) + \"-backend:\"  + strenv(TAG) |
             .services.frontend.image = strenv(PREFIX) + \"-frontend:\" + strenv(TAG) |
             del(.services.seeder) |
