@@ -1,24 +1,22 @@
 import logging
-import os
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 import polars as pl
 import psycopg2
 
-from config import RIDES_DATA_DIR, STATION_DISTANCES_PATH, WEATHER_DATA_DIR
-from utils.distances import enrich_with_distances
-from utils.stations import download_station_metadata
-from utils.db_loaders.flow_activity_monthly import insert_flow_activity_monthly
-from utils.db_loaders.hourly_stats import insert_stats_hourly
-from utils.db_loaders.station_activity_hourly import insert_station_activity_hourly
-from utils.db_loaders.station_activity_preagg import insert_station_activity_preagg
-from utils.db_loaders.station_metadata import upsert_station_metadata
-from utils.db_loaders.weather_hourly import upsert_weather_hourly
+from src.ingestion.config import settings
+from src.ingestion.sources.distances import enrich_with_distances
+from src.ingestion.sources.stations import download_station_metadata
+from src.ingestion.db.loaders.flow_activity_monthly import insert_flow_activity_monthly
+from src.ingestion.db.loaders.hourly_stats import insert_stats_hourly
+from src.ingestion.db.loaders.station_activity import insert_station_activity_hourly, insert_station_activity_preagg
+from src.ingestion.db.loaders.station_metadata import upsert_station_metadata
+from src.ingestion.db.loaders.weather_hourly import upsert_weather_hourly
 
 log = logging.getLogger(__name__)
 
-_SCHEMA_DIR = Path(__file__).resolve().parents[2] / "postgres" / "schemas"
+_SCHEMA_DIR = Path(__file__).resolve().parents[3] / "postgres" / "schemas"
 
 def init_db(conn) -> None:
     """Apply every postgres/schemas/*.sql file in alphabetical order."""
@@ -37,13 +35,13 @@ def _load_rides_partition(year: int, month: int) -> pl.DataFrame:
     """Scan the parquet partition for `(year, month)` and join distances if available.
     Returns a materialised DataFrame since we'll be reusing it for multiple inserts.
     """
-    partition_path = RIDES_DATA_DIR / f"year={year}" / f"month={month}"
+    partition_path = settings.rides_data_dir / f"year={year}" / f"month={month}"
     rides_lf = pl.scan_parquet(str(partition_path / "*.parquet"))
 
-    if STATION_DISTANCES_PATH.exists():
-        rides_lf = enrich_with_distances(rides_lf, pl.scan_parquet(str(STATION_DISTANCES_PATH)))
+    if settings.station_distances_path.exists():
+        rides_lf = enrich_with_distances(rides_lf, pl.scan_parquet(str(settings.station_distances_path)))
     else:
-        log.warning(f"[WARN] {STATION_DISTANCES_PATH} not found, skipping distance enrichment")
+        log.warning(f"[WARN] {settings.station_distances_path} not found, skipping distance enrichment")
         rides_lf = rides_lf.with_columns(pl.lit(None).cast(pl.Float32).alias("distance_km"))
 
     return rides_lf.collect()
@@ -66,7 +64,7 @@ def load_stats_for_month(conn, year: int, month: int, db_loader_workers: int) ->
     log.info(f"[PROCESS] {len(rides)} rides — computing aggregations")
 
     def _run(insert_fn) -> None:
-        pconn = psycopg2.connect(os.environ["DATABASE_URL"])
+        pconn = psycopg2.connect(settings.database_url)
         try:
             insert_fn(pconn, rides)
             pconn.commit()
@@ -83,11 +81,11 @@ def load_stats_for_month(conn, year: int, month: int, db_loader_workers: int) ->
 
 def load_weather_hourly(conn) -> None:
     """Load every weather parquet partition into the weather_hourly table."""
-    if not WEATHER_DATA_DIR.exists() or not any(WEATHER_DATA_DIR.rglob("*.parquet")):
-        log.warning(f"[WARN] No weather data found in {WEATHER_DATA_DIR}, skipping")
+    if not settings.weather_data_dir.exists() or not any(settings.weather_data_dir.rglob("*.parquet")):
+        log.warning(f"[WARN] No weather data found in {settings.weather_data_dir}, skipping")
         return
 
-    weather_df = pl.scan_parquet(str(WEATHER_DATA_DIR / "**/*.parquet"), hive_partitioning=True).collect()
+    weather_df = pl.scan_parquet(str(settings.weather_data_dir / "**/*.parquet"), hive_partitioning=True).collect()
     upsert_weather_hourly(conn, weather_df)
     conn.commit()
 

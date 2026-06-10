@@ -5,14 +5,8 @@ from datetime import date, timedelta
 import polars as pl
 import requests
 
-from config import (
-    NYC_COORDS,
-    PARQUET_COMPRESSION,
-    WEATHER_API_URL,
-    WEATHER_DATA_DIR,
-    WEATHER_TIMEZONE,
-)
-from utils.cache import is_fresh
+from src.ingestion.config import settings
+from src.ingestion.cache import is_fresh
 
 log = logging.getLogger(__name__)
 
@@ -65,23 +59,23 @@ def _create_weather_dataframe(weather_json: dict) -> pl.DataFrame:
 
 def download_weather_data(min_date: str, max_date: str, force_download: bool = False) -> None:
     """Download hourly NYC weather for the ride coverage range and write year-partitioned parquet."""
-    if not force_download and is_fresh(WEATHER_DATA_DIR):
-        log.info(f"[DOWNLOAD] Weather data already fresh at {WEATHER_DATA_DIR}, skipping")
+    if not force_download and is_fresh(settings.weather_data_dir):
+        log.info(f"[DOWNLOAD] Weather data already fresh at {settings.weather_data_dir}, skipping")
         return
 
     start_date, end_date = _get_date_range(min_date, max_date)
 
     log.info(f"[DOWNLOAD] Downloading weather {start_date.isoformat()} -> {end_date.isoformat()}...")
     response = requests.get(
-        WEATHER_API_URL,
+        settings.weather_api_url,
         params={
-            "latitude":        NYC_COORDS[0],
-            "longitude":       NYC_COORDS[1],
+            "latitude":        settings.nyc_coords[0],
+            "longitude":       settings.nyc_coords[1],
             "start_date":      start_date.isoformat(),
             "end_date":        end_date.isoformat(),
             # Hourly granularity is the smallest resolution available across the full historical range
             "hourly":          "temperature_2m,precipitation,weather_code,wind_speed_10m",
-            "timezone":        WEATHER_TIMEZONE,
+            "timezone":        settings.weather_timezone,
             "wind_speed_unit": "kmh",
         },
         timeout=(5, 120),
@@ -90,10 +84,10 @@ def download_weather_data(min_date: str, max_date: str, force_download: bool = F
 
     weather_data = _create_weather_dataframe(response.json())
     weather_data.write_parquet(
-        WEATHER_DATA_DIR,
+        settings.weather_data_dir,
         row_group_size=100_000,
         statistics=True,
         partition_by=["year"],
-        compression=PARQUET_COMPRESSION,
+        compression=settings.parquet_compression,
     )
-    log.info(f"[PROCESS] Wrote {weather_data.height} weather rows -> {WEATHER_DATA_DIR}")
+    log.info(f"[PROCESS] Wrote {weather_data.height} weather rows -> {settings.weather_data_dir}")

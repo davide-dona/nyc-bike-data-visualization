@@ -1,9 +1,6 @@
-import logging
-
 import polars as pl
-from psycopg2.extras import execute_values
 
-log = logging.getLogger(__name__)
+from src.ingestion.db.loaders.common import insert_rows
 
 def insert_flow_activity_monthly(conn, rides: pl.DataFrame) -> None:
     """Insert undirected monthly flow counts between station pairs.
@@ -43,15 +40,11 @@ def insert_flow_activity_monthly(conn, rides: pl.DataFrame) -> None:
         for r in merged.iter_rows(named=True)
     ]
 
-    with conn.cursor() as cur:
-        execute_values(
-            cur,
-            """
-            INSERT INTO flow_activity_monthly
-                (year, month, station_a_id, station_b_id, user_type, bike_type, a_to_b_count, b_to_a_count)
-            VALUES %s
-            ON CONFLICT (year, month, station_a_id, station_b_id, user_type, bike_type) DO NOTHING
-            """,
-            rows,
-        )
-    log.info(f"[DB-LOAD: flow_activity_monthly] Inserted {len(rows)} rows")
+    insert_rows(
+        conn,
+        "flow_activity_monthly",
+        columns=["year", "month", "station_a_id", "station_b_id",
+                 "user_type", "bike_type", "a_to_b_count", "b_to_a_count"],
+        conflict_cols=["year", "month", "station_a_id", "station_b_id", "user_type", "bike_type"],
+        rows=rows,
+    )

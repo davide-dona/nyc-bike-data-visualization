@@ -12,25 +12,14 @@ from datetime import date
 import shutil
 import psycopg2
 
-from utils.distances import compute_and_save_station_distances
-from utils.logging_setup import configure_logging
-from utils.rides import download_ride_data
-from utils.weather import download_weather_data
-from utils.bike_routes import download_bike_routes
-from utils.pg_loader import assert_no_coverage_gaps, get_loaded_months, init_db, load_stats_for_month, load_weather_hourly, update_dataset_coverage, upsert_station_metadata_from_gbfs
-from scripts.utils.db_loaders.bike_routes import upsert_bike_routes
-from config import (
-    DATA_DIR,
-    RIDES_DATA_DIR,
-    WEATHER_DATA_DIR,
-    STATION_DATA_DIR,
-    DEFAULT_START_DATE,
-    DEFAULT_END_DATE,
-    DOWNLOAD_JC,
-    PARALLEL_MONTHS,
-    DB_LOADER_WORKERS,
-    BIKE_ROUTES_DATA_DIR,
-)
+from src.ingestion.sources.distances import compute_and_save_station_distances
+from src.ingestion.logging_setup import configure_logging
+from src.ingestion.sources.rides import download_ride_data
+from src.ingestion.sources.weather import download_weather_data
+from src.ingestion.sources.bike_routes import download_bike_routes
+from src.ingestion.db.loader import assert_no_coverage_gaps, get_loaded_months, init_db, load_stats_for_month, load_weather_hourly, update_dataset_coverage, upsert_station_metadata_from_gbfs
+from src.ingestion.db.loaders.bike_routes import upsert_bike_routes
+from src.ingestion.config import settings
 
 def validate_yyyymm(date_value: str, arg_name: str) -> None:
     """
@@ -61,11 +50,11 @@ def parse_args() -> argparse.Namespace:
         argparse.Namespace: The parsed command-line arguments.
     """
     parser = argparse.ArgumentParser(description="Download Citi Bike tripdata ZIP files and convert them to parquet")
-    parser.add_argument("--start-date", default=DEFAULT_START_DATE, help="Start date in YYYYMM")
-    parser.add_argument("--end-date", default=DEFAULT_END_DATE, help="End date in YYYYMM")
-    parser.add_argument("--download-jc", action="store_true", default=DOWNLOAD_JC, help="Include JC files")
-    parser.add_argument("--parallel-months", type=int, default=PARALLEL_MONTHS, help="Number of months to load into the DB concurrently")
-    parser.add_argument("--db-loader-workers", type=int, default=DB_LOADER_WORKERS, help="Number of inner threads per month for parallel DB inserts")
+    parser.add_argument("--start-date", default=settings.default_start_date, help="Start date in YYYYMM")
+    parser.add_argument("--end-date", default=settings.default_end_date, help="End date in YYYYMM")
+    parser.add_argument("--download-jc", action="store_true", default=settings.download_jc, help="Include JC files")
+    parser.add_argument("--parallel-months", type=int, default=settings.parallel_months, help="Number of months to load into the DB concurrently")
+    parser.add_argument("--db-loader-workers", type=int, default=settings.db_loader_workers, help="Number of inner threads per month for parallel DB inserts")
     parser.add_argument("--force-download", action="store_true", help="Force re-download of all files, even if they already exist")
     return parser.parse_args()
 
@@ -115,7 +104,7 @@ log = logging.getLogger(__name__)
 
 def _load_month(year: int, month: int, db_loader_workers: int) -> None:
     """Helper to load a single month of rides data into Postgres, with memory logging and error handling."""
-    conn = psycopg2.connect(os.environ["DATABASE_URL"])
+    conn = psycopg2.connect(settings.database_url)
     try:
         load_stats_for_month(conn, year, month, db_loader_workers)
         conn.commit()
@@ -150,14 +139,14 @@ def main():
     log.info(f"[INFO] Using date range {args.start_date} to {args.end_date}, download JC files: {args.download_jc}, force download: {args.force_download}")
 
     # Create the download directory if it doesn't exist
-    os.makedirs(DATA_DIR, exist_ok=True)
-    os.makedirs(RIDES_DATA_DIR, exist_ok=True)
-    os.makedirs(STATION_DATA_DIR, exist_ok=True)
-    os.makedirs(WEATHER_DATA_DIR, exist_ok=True)
-    os.makedirs(BIKE_ROUTES_DATA_DIR, exist_ok=True)
+    os.makedirs(settings.data_dir, exist_ok=True)
+    os.makedirs(settings.rides_data_dir, exist_ok=True)
+    os.makedirs(settings.station_data_dir, exist_ok=True)
+    os.makedirs(settings.weather_data_dir, exist_ok=True)
+    os.makedirs(settings.bike_routes_data_dir, exist_ok=True)
 
     # Connect to Postgres
-    conn = psycopg2.connect(os.environ["DATABASE_URL"])
+    conn = psycopg2.connect(settings.database_url)
 
     # Initialise the database schema from postgres/schemas/*.sql
     init_db(conn)
@@ -219,7 +208,7 @@ def main():
     conn.close()
 
     # Remove the downloaded parquet files to save space (optional, comment out if you want to keep them)
-    shutil.rmtree(RIDES_DATA_DIR)
+    shutil.rmtree(settings.rides_data_dir)
 
 if __name__ == "__main__":
     main()

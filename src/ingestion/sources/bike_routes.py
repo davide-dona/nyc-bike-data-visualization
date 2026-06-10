@@ -5,12 +5,8 @@ from pathlib import Path
 import polars as pl
 import requests
 
-from config import(
-    BIKE_ROUTES_PATH,
-    BIKE_ROUTES_URL,
-    PARQUET_COMPRESSION,
-)
-from utils.cache import is_fresh
+from src.ingestion.config import settings
+from src.ingestion.cache import is_fresh
 
 log = logging.getLogger(__name__)
 
@@ -29,7 +25,7 @@ _UNUSED_COLUMNS = ["prevbikeid", "gwsys2", "spur", "ft2facilit", "tf2facilit"]
 def _fetch_bike_routes_csv() -> pl.DataFrame:
     """GET the bike-routes CSV and parse it with Polars."""
     try:
-        response = requests.get(BIKE_ROUTES_URL, timeout=(5, 120))
+        response = requests.get(settings.bike_routes_url, timeout=(5, 120))
         response.raise_for_status()
     except requests.exceptions.SSLError as exc:
         raise RuntimeError(
@@ -55,16 +51,16 @@ def _clean_bike_data(df: pl.DataFrame) -> pl.DataFrame:
 def download_bike_routes(force_download: bool = False) -> pl.DataFrame:
     """Return the cleaned bike-routes DataFrame, refreshing the parquet cache when stale."""
     log.info("[DOWNLOAD] Downloading bike routes...")
-    if not force_download and is_fresh(Path(BIKE_ROUTES_PATH)):
-        log.info(f"[DOWNLOAD] Bike routes already fresh at {BIKE_ROUTES_PATH}, skipping")
-        return pl.read_parquet(BIKE_ROUTES_PATH)
+    if not force_download and is_fresh(Path(settings.bike_routes_path)):
+        log.info(f"[DOWNLOAD] Bike routes already fresh at {settings.bike_routes_path}, skipping")
+        return pl.read_parquet(settings.bike_routes_path)
 
     df = _clean_bike_data(_fetch_bike_routes_csv())
     df.write_parquet(
-        BIKE_ROUTES_PATH,
+        settings.bike_routes_path,
         row_group_size=100_000,
         statistics=True,
-        compression=PARQUET_COMPRESSION,
+        compression=settings.parquet_compression,
     )
-    log.info(f"[PROCESS] Wrote bike routes -> {BIKE_ROUTES_PATH}")
+    log.info(f"[PROCESS] Wrote bike routes -> {settings.bike_routes_path}")
     return df

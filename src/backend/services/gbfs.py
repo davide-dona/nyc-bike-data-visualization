@@ -4,8 +4,7 @@ import requests
 from fastapi import HTTPException
 
 from src.backend.models.station import StationInfo, Station
-from src.backend.config import INFO_URL, STATUS_URL
-from src.backend.config import TTL_SECONDS, GBFS_CLASSIC_BIKE_TYPE_ID, GBFS_EBIKE_TYPE_ID
+from src.backend.config import settings
 
 _cache_lock = Lock()
 # Serialises upstream fetches so concurrent cache misses don't all hit the GBFS API
@@ -24,8 +23,8 @@ def _fetch_from_source() -> tuple[list, dict]:
         status_map: Dict mapping station_id to its status dict.
     """
     # Fetch the raw station information and status data from the GBFS feed with a timeout to prevent hanging.
-    info = requests.get(INFO_URL, timeout=(3, 10)).json()["data"]["stations"]
-    status = requests.get(STATUS_URL, timeout=(3, 10)).json()["data"]["stations"]
+    info = requests.get(settings.info_url, timeout=(3, 10)).json()["data"]["stations"]
+    status = requests.get(settings.status_url, timeout=(3, 10)).json()["data"]["stations"]
 
     # Map station_id -> status dict for quick lookup. No active-status filtering here:
     # static info must stay available for inactive stations (historical data lookups);
@@ -51,7 +50,7 @@ def _get_cached(force_refresh: bool) -> tuple[list, dict] | None:
             not force_refresh
             and _cache["info"] is not None
             and _cache["status_map"] is not None
-            and (time.monotonic() - _cache["timestamp"] < TTL_SECONDS)
+            and (time.monotonic() - _cache["timestamp"] < settings.gbfs_cache_ttl_seconds)
         ):
             return _cache["info"], _cache["status_map"]
     return None
@@ -134,8 +133,8 @@ def merge_station(station_data: dict, station_status_data: dict) -> Station:
         lon=station_data["lon"],
         capacity=station_data["capacity"],
         num_bikes_available=st.get("num_bikes_available", 0),
-        num_classic_bikes_available=counts_by_type.get(GBFS_CLASSIC_BIKE_TYPE_ID, 0),
-        num_ebikes_available=counts_by_type.get(GBFS_EBIKE_TYPE_ID, 0),
+        num_classic_bikes_available=counts_by_type.get(settings.gbfs_classic_bike_type_id, 0),
+        num_ebikes_available=counts_by_type.get(settings.gbfs_ebike_type_id, 0),
         num_docks_available=st.get("num_docks_available", 0),
         num_bikes_disabled=st.get("num_bikes_disabled", 0),
     )

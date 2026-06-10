@@ -98,7 +98,7 @@ psql postgres -c "CREATE DATABASE citibike_test OWNER citibike;"
 
 ```bash
 export DATABASE_URL=postgresql://citibike:citibike@localhost:5432/citibike_test
-python scripts/load_test_data.py
+python -m src.ingestion.load_test_data
 ```
 
 **3. Start the server:**

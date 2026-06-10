@@ -1,6 +1,6 @@
 import re
 from datetime import date
-from src.backend.db import get_conn
+from src.backend.db import fetch_rows, get_conn
 from src.backend.models.bike_route import BikeRoute, BikeSegmentGeometry, GeometryType
 
 _SELECT = (
@@ -46,8 +46,7 @@ def load_bike_routes() -> list[BikeRoute]:
     with get_conn() as conn:
         with conn.cursor() as cur:
             cur.execute(_SELECT)
-            cols = [d[0] for d in cur.description]
-            rows = [dict(zip(cols, row)) for row in cur.fetchall()]
+            rows = fetch_rows(cur)
     return _rows_to_bike_routes(rows)
 
 def load_bike_routes_for_year(year: int) -> list[BikeRoute]:
@@ -64,6 +63,5 @@ def load_bike_routes_for_year(year: int) -> list[BikeRoute]:
     with get_conn() as conn:
         with conn.cursor() as cur:
             cur.execute(query, (year_end, year_start))
-            cols = [d[0] for d in cur.description]
-            rows = [dict(zip(cols, row)) for row in cur.fetchall()]
+            rows = fetch_rows(cur)
     return _rows_to_bike_routes(rows)

@@ -1,28 +1,76 @@
-import logging
-import os
 from pathlib import Path
+from typing import Annotated
+
+from pydantic import field_validator
+from pydantic_settings import (
+    BaseSettings,
+    NoDecode,
+    SettingsConfigDict,
+    YamlConfigSettingsSource,
+)
 
 BACKEND_ROOT = Path(__file__).resolve().parent
 
-# GBFS feed URLs (Lyft/Citi Bike)
-INFO_URL   = "https://gbfs.lyft.com/gbfs/2.3/bkn/en/station_information.json"
-STATUS_URL = "https://gbfs.lyft.com/gbfs/2.3/bkn/en/station_status.json"
+class BackendSettings(BaseSettings):
+    """Backend configuration.
 
-# GBFS cache and type constants
-TTL_SECONDS              = 60
-GBFS_CLASSIC_BIKE_TYPE_ID = "1"
-GBFS_EBIKE_TYPE_ID        = "2"
+    All values come from config.yaml next to this module — there are no code
+    defaults, so a missing key fails loudly at startup. Environment variables
+    (uppercased field name) override the YAML; empty env vars are treated as
+    unset. DATABASE_URL is deploy-specific and env-only.
+    """
 
-# Logging
-LOG_FILE_PATH = "logs/requests.log"
-LOG_LEVEL     = logging.INFO
+    model_config = SettingsConfigDict(
+        yaml_file=BACKEND_ROOT / "config.yaml",
+        env_ignore_empty=True,
+    )
 
-# CORS: comma-separated allowed origins, overridable without code changes
-CORS_ORIGINS = [
-    o.strip()
-    for o in os.getenv("CORS_ORIGINS", "http://localhost:5173,http://localhost:5174").split(",")
-    if o.strip()
-]
+    # Database (env-only, not stored in config.yaml)
+    database_url: str
+    pool_min_conn: int
+    pool_max_conn: int
 
-# Test fixtures
-TEST_DATA_DIR = BACKEND_ROOT / "tests" / "test_data"
+    # GBFS feed URLs and constants (Lyft/Citi Bike)
+    info_url: str
+    status_url: str
+    gbfs_cache_ttl_seconds: int
+    gbfs_classic_bike_type_id: str
+    gbfs_ebike_type_id: str
+
+    # Logging (level name accepted by logging.setLevel, e.g. "INFO", "DEBUG")
+    log_file_path: str
+    log_level: str
+
+    # CORS allowed origins (comma-separated when given via env var)
+    cors_origins: Annotated[list[str], NoDecode]
+
+    # Test fixtures
+    test_data_dir: Path
+
+    @field_validator("cors_origins", mode="before")
+    @classmethod
+    def _split_csv(cls, v):
+        if isinstance(v, str):
+            return [o.strip() for o in v.split(",") if o.strip()]
+        return v
+
+    @field_validator("test_data_dir", mode="after")
+    @classmethod
+    def _resolve_against_backend_root(cls, v: Path) -> Path:
+        return v if v.is_absolute() else BACKEND_ROOT / v
+
+    @classmethod
+    def settings_customise_sources(
+        cls, settings_cls, init_settings, env_settings, dotenv_settings, file_secret_settings
+    ):
+        # Priority: init args > env vars > config.yaml
+        return (
+            init_settings,
+            env_settings,
+            dotenv_settings,
+            YamlConfigSettingsSource(settings_cls),
+            file_secret_settings,
+        )
+
+
+settings = BackendSettings()
