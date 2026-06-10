@@ -40,6 +40,7 @@ docker compose -f docker-compose.release.yml down
 You can also run it from the Docker Desktop built-in terminal in the same way.
 
 ## Quick start from source
+If you want to run the latest code or customise the date range, you can build the images locally.
 
 Clone the repository and start all services with a single command:
 

@@ -38,17 +38,7 @@ That's it. Once the services are up, open:
 
 ### Development setup
 
-For development, run only the pre-seeded database in Docker, then start the backend and frontend locally for hot-reloading:
-
-**1. Start the dev database (pulls a pre-seeded image, no seeding needed):**
-
-```bash
-docker compose -f docker-compose.dev.yml up postgres
-```
-
-**2. Run the backend and frontend on your machine.** Follow [LOCAL_SETUP.md](LOCAL_SETUP.md) for the rest of the setup.
-
-> The database is exposed on `localhost:5432`. See [DOCKER_SETUP.md](DOCKER_SETUP.md#development-with-a-pre-seeded-database) for database image tags (`dev` vs `latest`).
+For development, run a pre-seeded database in Docker and start the backend and frontend locally for hot-reloading. See **[LOCAL_SETUP.md](LOCAL_SETUP.md)** for the full walkthrough — installing dependencies with [uv](https://docs.astral.sh/uv/), the database, the dataset, and running each service.
 
 ## Components
 

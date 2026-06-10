@@ -1,0 +1,35 @@
+[project]
+name = "nyc-bike-data-visualization"
+version = "0.1.0"
+description = "Interactive exploration of New York City's Citi Bike trip data."
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi==0.135.1",
+    "uvicorn==0.41.0",
+    "pydantic==2.12.5",
+    "pydantic-settings[yaml]==2.14.1",
+    "psycopg2-binary==2.9.10",
+    "polars==1.39.0",
+    "requests==2.32.5",
+]
+
+[dependency-groups]
+# Jupyter / visualization stack — only used by src/notebooks, excluded from the
+# backend and seeder images.
+notebooks = [
+    "jupyterlab==4.5.5",
+    "ipykernel==7.2.0",
+    "ipywidgets==8.1.8",
+    "pandas==3.0.1",
+    "matplotlib==3.10.8",
+    "seaborn==0.13.2",
+    "folium==0.20.0",
+]
+dev = [
+    "pytest==9.0.2",
+]
+
+[tool.uv]
+# The code runs from source (src.* imports via PYTHONPATH); it is not built or
+# installed as a package, so no build backend is needed.
+package = false

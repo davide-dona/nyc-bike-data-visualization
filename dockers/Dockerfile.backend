@@ -6,15 +6,12 @@ WORKDIR /app
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
 
-# Copy the requirements and excluded packages list to the container
-COPY requirements.txt /app/requirements.txt
-COPY dockers/excluded-packages.txt /tmp/excluded-packages.txt
-
-# Use awk to filter out excluded packages from the requirements and install the remaining packages
-RUN awk -F'==' 'NR==FNR { excluded[$1]=1; next } !($1 in excluded)' \
-    /tmp/excluded-packages.txt /app/requirements.txt > /tmp/requirements.docker.txt \
-    && pip install --no-cache-dir -r /tmp/requirements.docker.txt \
-    && rm /tmp/requirements.docker.txt /tmp/excluded-packages.txt
+# Install the runtime dependencies with uv. --no-dev omits the dev group and the
+# notebooks group is non-default, so the Jupyter/viz stack is left out.
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
+COPY pyproject.toml uv.lock /app/
+RUN uv sync --frozen --no-dev
+ENV PATH="/app/.venv/bin:$PATH"
 
 # Copy the application code to the container
 COPY src/backend /app/src/backend

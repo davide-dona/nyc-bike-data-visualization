@@ -1,7 +1,12 @@
 # Ingestion configuration — single source of truth for all ingestion settings.
-# DATABASE_URL is deploy-specific and provided via the environment, never here.
 # Any key can be overridden with the uppercased environment variable of the
 # same name; CLI flags on src.ingestion.cli take precedence over both.
+
+# Database. The value below is the local-development default (it matches the
+# dev database from docker-compose.dev.yml, exposed on localhost:5432). Docker
+# and CI override it with the DATABASE_URL env var (Docker uses the `postgres`
+# service name as host; CI points at a separate `citibike_test` database).
+database_url: postgresql://citibike:citibike@localhost:5432/citibike
 
 # Root data directory (relative paths resolve against the repository root)
 data_dir: data

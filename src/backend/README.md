@@ -4,85 +4,21 @@ This directory contains the backend server implementation for the bike-sharing d
 
 It offers endpoints to retrieve real-time and historical data about bike stations, including their locations, available bikes, and docks.
 
-## Setup Instructions
+## Environment setup
 
-1. **Create a virtual environment (optional but recommended):**
+Dependencies (via `uv`), the PostgreSQL database, and the dataset are covered in [LOCAL_SETUP.md](../../LOCAL_SETUP.md). Set that up first, then run the commands below from the **project root**.
 
-   ```bash
-   python -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
-   ```
-
-2. **Install the required dependencies:**
-
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-3. **Run commands from the project root directory** (the directory containing `src/`):
-
-## Starting the PostgreSQL Server
-
-The project uses a PostgreSQL 16 database. Both options below use the same credentials:
-
-| Setting  | Value      |
-|----------|------------|
-| Database | `citibike` |
-| User     | `citibike` |
-| Password | `citibike` |
-
-### Option A: Docker Compose (recommended)
-
-From the project root:
-
-```bash
-docker compose up postgres -d
-```
-
-This starts a `postgres:16-alpine` container named `NYC-Bike-Visualisation-Postgres` on port `5432`.
-
-To stop the server:
-
-```bash
-docker compose stop postgres
-```
-
-### Option B: Manual Setup (without Docker)
-
-1. **Install PostgreSQL 16:**
-
-   - macOS: `brew install postgresql@16 && brew services start postgresql@16`
-   - Linux (Ubuntu/Debian): `sudo apt install postgresql-16 && sudo systemctl start postgresql`
-
-2. **Create the user and database:**
-
-   ```bash
-   psql postgres -c "CREATE USER citibike WITH PASSWORD 'citibike';"
-   psql postgres -c "CREATE DATABASE citibike OWNER citibike;"
-   ```
-
-3. **Initialize the schemas:**
-
-   ```bash
-   export DATABASE_URL=postgresql://citibike:citibike@localhost:5432/citibike
-   psql "$DATABASE_URL" -f postgres/init.sql
-   ```
-
-Set the connection URL before running the backend or any scripts:
-
-```bash
-export DATABASE_URL=postgresql://citibike:citibike@localhost:5432/citibike
-```
+The connection URL defaults to `postgresql://citibike:citibike@localhost:5432/citibike` (from `config.yaml`) and can be overridden with the `DATABASE_URL` environment variable.
 
 ## Starting the Server
 
-Make sure you have downloaded the dataset first — see [Downloading the dataset](../../LOCAL_SETUP.md#downloading-the-dataset).
+Make sure you have a seeded database — see [LOCAL_SETUP.md](../../LOCAL_SETUP.md#database).
 
 ```bash
-uvicorn src.backend.main:app --reload
+uv run uvicorn src.backend.main:app --reload
 ```
 
-This will launch the FastAPI server with hot-reloading enabled, allowing you to see changes in real-time as you edit the code. The server will be accessible at `http://localhost:8000`.
+This launches the FastAPI server with hot-reloading at `http://localhost:8000`.
 
 ## Running Backend Tests
 
@@ -98,19 +34,19 @@ psql postgres -c "CREATE DATABASE citibike_test OWNER citibike;"
 
 ```bash
 export DATABASE_URL=postgresql://citibike:citibike@localhost:5432/citibike_test
-python -m src.ingestion.load_test_data
+uv run python -m src.ingestion.load_test_data
 ```
 
 **3. Start the server:**
 
 ```bash
-uvicorn src.backend.main:app --host 127.0.0.1 --port 8000
+uv run uvicorn src.backend.main:app --host 127.0.0.1 --port 8000
 ```
 
 **4. In a second terminal, run the tests:**
 
 ```bash
-pytest src/backend/tests -q
+uv run pytest src/backend/tests -q
 ```
 
 ## API Documentation
