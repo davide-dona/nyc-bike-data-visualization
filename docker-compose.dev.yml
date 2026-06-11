@@ -1,5 +1,5 @@
 # Development stack: starts only a prebuilt, preloaded database image. The backend
-# and frontend are run locally from source (see LOCAL_SETUP.md), not in Docker.
+# and frontend are run locally from source (see docs/setup/LOCAL_SETUP.md), not in Docker.
 #
 #   docker compose -f docker-compose.dev.yml up postgres                  # small dataset (last 2 complete months)
 #   DB_TAG=latest docker compose -f docker-compose.dev.yml up postgres    # full dataset (~17 GB)

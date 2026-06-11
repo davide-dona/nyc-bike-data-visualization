@@ -34,16 +34,17 @@ That's it. Once the services are up, open:
 - **Frontend:** http://localhost:5173
 - **Backend API docs:** http://localhost:8000/docs
 
-> First start pulls ~1.2 GB and uses ~17 GB on disk; bringing up the database can take several minutes, so don't interrupt it. See [DOCKER_SETUP.md](DOCKER_SETUP.md#quick-start-with-pre-built-images) for storage notes and custom date ranges.
+> First start pulls ~1.2 GB and uses ~17 GB on disk; bringing up the database can take several minutes, so don't interrupt it. See [DOCKER_SETUP.md](docs/setup/DOCKER_SETUP.md#quick-start-with-pre-built-images) for storage notes and custom date ranges.
 
 ### Development setup
 
-For development, run a pre-seeded database in Docker and start the backend and frontend locally for hot-reloading. See **[LOCAL_SETUP.md](LOCAL_SETUP.md)** for the full walkthrough — installing dependencies with [uv](https://docs.astral.sh/uv/), the database, the dataset, and running each service.
+For development, run a pre-seeded database in Docker and start the backend and frontend locally for hot-reloading. See **[LOCAL_SETUP.md](docs/setup/LOCAL_SETUP.md)** for the full walkthrough — installing dependencies with [uv](https://docs.astral.sh/uv/), the database, the dataset, and running each service.
 
 ## Components
 
 - [Backend](src/backend/README.md): FastAPI server, PostgreSQL setup, running tests, API docs
 - [Frontend](src/frontend/README.md): React + Vite app, development server, running tests
+- [Demo recorder](demo/README.md): Playwright script that tours every page and records a demo video
 
 ## Repository Structure
 
@@ -52,9 +53,9 @@ nyc-bike-data-visualization/
 ├── src/                      # Application source (backend, frontend, ingestion)
 ├── postgres/                 # Database schema files and init scripts
 ├── dockers/                  # Dockerfiles for all services
+├── demo/                     # Playwright demo video recorder
 ├── docs/                     # Project reports (proposal, technical, final)
+│   └── setup/                # Setup guides (Docker and local development)
 ├── docker-compose.yml        # Full stack from source (seeds the DB locally)
-├── docker-compose.dev.yml    # Dev stack (pre-seeded DB image)
-├── DOCKER_SETUP.md           # All Docker workflows
-└── LOCAL_SETUP.md            # Local development setup
+└── docker-compose.dev.yml    # Dev stack (pre-seeded DB image)
 ```

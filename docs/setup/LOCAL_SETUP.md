@@ -95,9 +95,9 @@ uv run uvicorn src.backend.main:app --reload
 
 The API is served at <http://localhost:8000> (interactive docs at `/docs`). For
 backend architecture, endpoints, and tests, see
-[src/backend/README.md](src/backend/README.md).
+[src/backend/README.md](../../src/backend/README.md).
 
 ## Run the frontend
 
-See [src/frontend/README.md](src/frontend/README.md) for installing
+See [src/frontend/README.md](../../src/frontend/README.md) for installing
 dependencies, starting the dev server, and running tests.

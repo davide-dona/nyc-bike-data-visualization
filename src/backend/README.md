@@ -6,13 +6,13 @@ It offers endpoints to retrieve real-time and historical data about bike station
 
 ## Environment setup
 
-Dependencies (via `uv`), the PostgreSQL database, and the dataset are covered in [LOCAL_SETUP.md](../../LOCAL_SETUP.md). Set that up first, then run the commands below from the **project root**.
+Dependencies (via `uv`), the PostgreSQL database, and the dataset are covered in [LOCAL_SETUP.md](../../docs/setup/LOCAL_SETUP.md). Set that up first, then run the commands below from the **project root**.
 
 The connection URL defaults to `postgresql://citibike:citibike@localhost:5432/citibike` (from `config.yaml`) and can be overridden with the `DATABASE_URL` environment variable.
 
 ## Starting the Server
 
-Make sure you have a seeded database — see [LOCAL_SETUP.md](../../LOCAL_SETUP.md#database).
+Make sure you have a seeded database — see [LOCAL_SETUP.md](../../docs/setup/LOCAL_SETUP.md#database).
 
 ```bash
 uv run uvicorn src.backend.main:app --reload
