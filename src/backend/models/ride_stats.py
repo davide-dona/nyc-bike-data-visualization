@@ -20,11 +20,14 @@ class Stats(BaseModel):
     """Base class for statistics models."""
     total_rides: int
     hours_count: int        # Number of hours that the stats are calculated over, used to calculate average hourly counts
+    hours_with_rides: int = 0                   # Hours in the group with recorded ride time; sample size for the speed std
     average_duration_seconds: float
     average_distance_km: float
     average_speed_kmh: float
     total_duration_seconds: float
     total_distance_km: float
+    rides_per_hour_std: float | None = None     # Sample std of per-hour ride counts (incl. zero-ride hours), None when hours_count < 2
+    average_speed_kmh_std: float | None = None  # Sample std of per-hour mean speeds, None when hours_with_rides < 2
 
 # Extends Stats with optional day_of_week and hour fields for grouping by day of week, hour, or both
 class GroupedStats(Stats):
