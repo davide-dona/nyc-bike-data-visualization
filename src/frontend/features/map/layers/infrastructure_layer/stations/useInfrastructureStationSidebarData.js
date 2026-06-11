@@ -4,6 +4,12 @@ import { fetchInfrastructureStationSidebarData } from './stationSidebarApi.js'
 
 const DAY_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
+// Commute windows and the share of window volume a net imbalance must exceed
+// to count as a real commute signal rather than noise.
+const MORNING_HOURS = [6, 7, 8, 9, 10]
+const EVENING_HOURS = [16, 17, 18, 19, 20]
+const CHARACTER_THRESHOLD = 0.15
+
 function emptySeries(length) {
     return Array.from({ length }, () => ({ outgoing_rides: 0, incoming_rides: 0, total_rides: 0, hours_count: 0 }))
 }
@@ -59,6 +65,8 @@ function aggregateUsage(items = []) {
             label: String(hour).padStart(2, '0'),
             ...bucket,
             avg_rides: bucket.total_rides / Math.max(1, bucket.hours_count),
+            avg_incoming: bucket.incoming_rides / Math.max(1, bucket.hours_count),
+            avg_outgoing: bucket.outgoing_rides / Math.max(1, bucket.hours_count),
         })),
         totals: {
             totalOutgoing,
@@ -73,6 +81,26 @@ function argmaxByAvgRides(series) {
     return series.reduce((best, row) => (row.avg_rides > (best?.avg_rides ?? -1) ? row : best), null)
 }
 
+export function stationCharacter(hourSeries) {
+    const windowStats = (hours) => hours.reduce((acc, hour) => {
+        const row = hourSeries[hour]
+        acc.net += (row?.avg_incoming ?? 0) - (row?.avg_outgoing ?? 0)
+        acc.volume += (row?.avg_incoming ?? 0) + (row?.avg_outgoing ?? 0)
+        return acc
+    }, { net: 0, volume: 0 })
+
+    const morning = windowStats(MORNING_HOURS)
+    const evening = windowStats(EVENING_HOURS)
+    const significant = (w) => Math.abs(w.net) > CHARACTER_THRESHOLD * w.volume
+
+    let label = 'Balanced'
+    if (significant(morning) && significant(evening)) {
+        if (morning.net > 0 && evening.net < 0) label = 'Workplace-like'
+        else if (morning.net < 0 && evening.net > 0) label = 'Residential-like'
+    }
+    return { label, morningNet: morning.net, eveningNet: evening.net }
+}
+
 function buildSummary({ daySeries, hourSeries, totals }) {
     const flowVolume = totals.totalOutgoing + totals.totalIncoming
     return {
@@ -83,6 +111,7 @@ function buildSummary({ daySeries, hourSeries, totals }) {
             totalOutgoing: totals.totalOutgoing,
             pctDiff: (totals.totalOutgoing - totals.totalIncoming) / Math.max(1, flowVolume),
         },
+        character: stationCharacter(hourSeries),
     }
 }
 

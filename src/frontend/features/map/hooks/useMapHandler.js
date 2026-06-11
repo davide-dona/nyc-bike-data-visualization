@@ -20,6 +20,8 @@ export function useMapHandler() {
     const [activeLayer, setActiveLayer] = useState('station_usage')
     // Whether to show bike routes on the infrastructure layer
     const [showBikeRoutes, setShowBikeRoutes] = useState(false)
+    // Which metric the station usage layer encodes ('all' | 'incoming' | 'outgoing')
+    const [usageMode, setUsageMode] = useState('all')
 
     // Handler for view map changes
     const handleViewStateChange = useCallback(({ viewState: nextViewState }) => {
@@ -53,7 +55,9 @@ export function useMapHandler() {
         setActiveLayer,
         setCurrentTime,
         setShowBikeRoutes,
+        setUsageMode,
         showBikeRoutes,
+        usageMode,
         viewState,
     }
 }

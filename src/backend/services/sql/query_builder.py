@@ -26,9 +26,10 @@ class Filters:
 
 def spine_cte_sql(dims: list[str], from_sql: str = "FROM hours", where_sql: str = "") -> str:
     """Body of the spine CTE: bucket the hours calendar by `dims`, counting hours
-    per bucket. With no dims the spine collapses to a single row."""
+    per bucket. Dims may carry an "AS alias" for the output name; GROUP BY uses
+    the bare expression. With no dims the spine collapses to a single row."""
     select_cols = ", ".join([*dims, "COUNT(*) AS hours_count"])
-    group = f"GROUP BY {', '.join(dims)}" if dims else ""
+    group = f"GROUP BY {', '.join(d.split(' AS ')[0] for d in dims)}" if dims else ""
     return f"SELECT {select_cols} {from_sql} {where_sql} {group}"
 
 

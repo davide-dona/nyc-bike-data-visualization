@@ -9,7 +9,6 @@ import { toStationParams } from '../../utils/station_param.js'
  */
 export async function fetchStationUsageCounts(filters = {}) {
     const params = { ...toStationParams(filters), group_by: 'hour' }
-    console.lo
     const { data } = await apiClient.get(ENDPOINTS.stationUsageCounts(), {
         params,
     })

@@ -10,6 +10,8 @@ import useTripCounts from '../features/map/layers/trip_flow_layer/trips/useTripC
 import useHourlyStats from '../features/temporal/hooks/useHourlyStats.js'
 import useWeeklyStats from '../features/temporal/hooks/useWeeklyStats.js'
 import useWeatherStats from '../features/weather/hooks/useWeatherStats.js'
+import useTemperatureResponse from '../features/weather/hooks/useTemperatureResponse.js'
+import useRainImpact from '../features/weather/hooks/useRainImpact.js'
 
 // Stub axios via apiClient — all hooks use apiClient.get(), which returns { data: ... }
 vi.mock('../clients/apiClient.js', () => ({
@@ -61,6 +63,16 @@ describe('hooks smoke tests', () => {
 
     it('useWeatherStats resolves without throwing', async () => {
         const { result } = renderHook(() => useWeatherStats(TEST_FILTERS), { wrapper })
+        await waitFor(() => expect(result.current).toBeDefined())
+    })
+
+    it('useTemperatureResponse resolves without throwing', async () => {
+        const { result } = renderHook(() => useTemperatureResponse(TEST_FILTERS), { wrapper })
+        await waitFor(() => expect(result.current).toBeDefined())
+    })
+
+    it('useRainImpact resolves without throwing', async () => {
+        const { result } = renderHook(() => useRainImpact(TEST_FILTERS), { wrapper })
         await waitFor(() => expect(result.current).toBeDefined())
     })
 })

@@ -26,9 +26,9 @@ const BASE_TILE_URL = 'https://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png
  * @param {string} activeLayer - The currently active map layer to determine which layers to build.
  * @returns {Object} The built layers and their status.
  */
-export function useBuildLayers({ filters, currentTime, activeLayer, showBikeRoutes }) {
+export function useBuildLayers({ filters, currentTime, activeLayer, showBikeRoutes, usageMode }) {
     // Fetch and process data
-    const { frameStations, maxUsage, maxDelta, loading: stationLoading, error: stationError, refetch: stationRefetch } = useStationUsageLayer({ filters: filters, currentTime })
+    const { frameStations, maxUsage, maxDelta, loading: stationLoading, error: stationError, refetch: stationRefetch } = useStationUsageLayer({ filters: filters, currentTime, usageMode })
     const { selectedStationIds, onStationPick, resetSelectedStationIds } = useTripStationSelection() // Manage station selection state for trip flow layer
     const [hoveredTripStationId, setHoveredTripStationId] = useState(null)
     const { trips, maxTripFlow, stations: tripStations, loading: tripLoading, error: tripError, refetch: tripRefetch } = useTripFlowLayer({ filters, selectedStationIds })

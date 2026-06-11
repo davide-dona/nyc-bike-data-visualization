@@ -1,7 +1,11 @@
 import useWeatherStats from "./hooks/useWeatherStats"
 import useWeatherRidgelineStats from "./hooks/useWeatherRidgelineStats"
+import useTemperatureResponse from "./hooks/useTemperatureResponse"
+import useRainImpact from "./hooks/useRainImpact"
 import ScatterPlot from "./components/ScatterPlot"
 import WeatherRidgeline from "./components/WeatherRidgeline"
+import TemperatureResponse from "./components/TemperatureResponse"
+import RainImpact from "./components/RainImpact"
 import VisualizationGuide from "../../components/VisualizationGuide"
 
 /**
@@ -17,10 +21,22 @@ function WeatherPage({ filters = {} }) {
         error: ridgelineError,
         refetch: refetchRidgeline,
     } = useWeatherRidgelineStats(filters)
+    const {
+        series: temperatureSeries,
+        loading: temperatureLoading,
+        error: temperatureError,
+        refetch: refetchTemperature,
+    } = useTemperatureResponse(filters)
+    const {
+        rainStats,
+        loading: rainLoading,
+        error: rainError,
+        refetch: refetchRain,
+    } = useRainImpact(filters)
 
-    const loadingAll = loading || ridgelineLoading
-    const errorAll = error || ridgelineError
-    const refetchAll = () => Promise.all([refetch(), refetchRidgeline()])
+    const loadingAll = loading || ridgelineLoading || temperatureLoading || rainLoading
+    const errorAll = error || ridgelineError || temperatureError || rainError
+    const refetchAll = () => Promise.all([refetch(), refetchRidgeline(), refetchTemperature(), refetchRain()])
 
     return (
         <section className="page-card">
@@ -49,6 +65,21 @@ function WeatherPage({ filters = {} }) {
                     onRefetch={refetchAll}
                 />
 
+                <div className="weather-deepdive-grid">
+                    <TemperatureResponse
+                        series={temperatureSeries}
+                        loading={loadingAll}
+                        error={errorAll}
+                        onRefetch={refetchAll}
+                    />
+                    <RainImpact
+                        data={rainStats}
+                        loading={loadingAll}
+                        error={errorAll}
+                        onRefetch={refetchAll}
+                    />
+                </div>
+
                 <VisualizationGuide
                     mapName="Weather Impact"
                     title="How To Read It"
@@ -65,6 +96,10 @@ function WeatherPage({ filters = {} }) {
                         {
                             title: 'Compare with other views',
                             text: 'Use the ridgeline to inspect when each weather code concentrates over hours and weekdays, then connect that pattern to temporal peaks.',
+                        },
+                        {
+                            title: 'Read the curves',
+                            text: 'The temperature curve shows how demand climbs with warmth — casual riders react more strongly than members. The rain bars show how much ridership survives each precipitation intensity relative to dry hours.',
                         },
                     ]}
                 />

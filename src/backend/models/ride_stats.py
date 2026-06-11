@@ -10,6 +10,12 @@ class StatsGroupBy(str, Enum):
     DAY_OF_WEEK_AND_HOUR = "day_of_week,hour"
     DATE = "date"
 
+class WeatherVariable(str, Enum):
+    """Weather dimension stats can be bucketed by."""
+    WEATHER_CODE = "weather_code"
+    TEMPERATURE = "temperature"
+    PRECIPITATION = "precipitation"
+
 class Stats(BaseModel):
     """Base class for statistics models."""
     total_rides: int
@@ -26,4 +32,5 @@ class GroupedStats(Stats):
     day_of_week: int | None = None      # Day of week data refers to (0=Monday, 6=Sunday), or None if not grouped by day of week
     hour: int | None = None             # Hour of day data refers to (0-23), or None if not grouped by hour
     weather_code: int | None = None     # Weather condition for the group, or None if not grouped by weather
+    weather_bin: float | None = None    # Lower edge of the numeric weather bucket (temperature/precipitation), or None
     date: date_type | None = None       # Calendar date, populated only when grouped by date
