@@ -27,8 +27,5 @@ src/start_station_heatmap.html
 //Frontend modules
 node_modules/
 /src/frontend/dist
-
-//Demo recordings
-demo/recordings/
 .github/prompts/plan-polarsParquetStrategy.prompt.md
 CLAUDE.md

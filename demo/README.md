@@ -1,12 +1,12 @@
-# Demo Video Recorder
+# Demo Tour
 
-A [Playwright](https://playwright.dev/) script that drives the running application through all three pages — **Map**, **Temporal**, and **Weather** — exercising the main features along the way, and records the session as a video.
+A [Playwright](https://playwright.dev/) script that drives the running application through all three pages — **Map**, **Temporal**, and **Weather** — exercising the main features along the way. It opens a regular, maximized Chromium window and interacts with the page like a real user — the cursor glides along eased paths, the time/speed wheels are dragged with the mouse, and the map is zoomed and panned to show detail — so you can capture the session with your screen-recording tool of choice. Since synthetic mouse events don't move the OS cursor, the script renders its own on-screen pointer with press and click-ripple animations, so every interaction is visible in the recording.
 
 What the tour covers:
 
-- **Map page:** the day animation with the time and speed wheels, the incoming/outgoing/all usage modes, station tooltips, fullscreen mode, the *Trip flow* layer (station selection + reset), and the *Infrastructure* layer (bike routes overlay + station detail sidebar).
+- **Map page:** the day animation with the time and speed wheels, the incoming/outgoing/all usage modes, zooming into Manhattan for station tooltips and panning around, fullscreen mode, the *Trip flow* layer (station selection + reset), and the *Infrastructure* layer (bike routes overlay + station detail sidebar).
 - **Global filters:** the rider/bike type filters and the date window picker in the header.
-- **Temporal page:** hovering the 3D weekly surface, switching metrics, compare mode (adding, hiding, and resetting a comparison surface), histograms, and the daily line chart.
+- **Temporal page:** hovering and rotating the 3D weekly surface, switching metrics, compare mode (adding, hiding, and resetting a comparison surface), histograms, and the daily line chart.
 - **Weather page:** the weather scatter plot, ridgeline, temperature response, rain impact, and the visualization guide.
 
 ## Prerequisites
@@ -23,29 +23,18 @@ npm install
 npx playwright install chromium
 ```
 
-## Recording a demo
+## Running the tour
+
+Start your screen recorder, then:
 
 ```bash
 npm run demo
 ```
 
-A Chromium window opens and runs the tour (roughly 3–5 minutes, depending on query times). The recording is saved to `recordings/nyc-bike-demo-<timestamp>.webm`; the path is printed at the end.
+A maximized Chromium window opens and runs the tour (roughly 3–5 minutes, depending on query times); progress for each section is printed to the terminal. The window uses no fixed viewport, so the app renders responsively, exactly as in a regular browser.
 
-Options via environment variables:
-
-| Variable | Description | Default |
-|---|---|---|
-| `BASE_URL` | Frontend URL to record | `http://localhost:5173` |
-| `HEADLESS` | Set to `1` to record without opening a browser window | headed |
+To point the tour at a different frontend URL:
 
 ```bash
-BASE_URL=http://localhost:5173 HEADLESS=1 npm run demo
-```
-
-## Converting to MP4
-
-Playwright records WebM. If you need an MP4 (e.g., for slides), convert it with [ffmpeg](https://ffmpeg.org/):
-
-```bash
-ffmpeg -i recordings/nyc-bike-demo-<timestamp>.webm -c:v libx264 -crf 20 demo.mp4
+BASE_URL=http://localhost:5173 npm run demo
 ```

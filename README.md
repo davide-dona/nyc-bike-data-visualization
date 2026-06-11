@@ -44,7 +44,7 @@ For development, run a pre-seeded database in Docker and start the backend and f
 
 - [Backend](src/backend/README.md): FastAPI server, PostgreSQL setup, running tests, API docs
 - [Frontend](src/frontend/README.md): React + Vite app, development server, running tests
-- [Demo recorder](demo/README.md): Playwright script that tours every page and records a demo video
+- [Demo tour](demo/README.md): Playwright script that drives the app through every page and feature, for recording demo videos
 
 ## Repository Structure
 
@@ -53,7 +53,7 @@ nyc-bike-data-visualization/
 ├── src/                      # Application source (backend, frontend, ingestion)
 ├── postgres/                 # Database schema files and init scripts
 ├── dockers/                  # Dockerfiles for all services
-├── demo/                     # Playwright demo video recorder
+├── demo/                     # Playwright demo tour script
 ├── docs/                     # Project reports (proposal, technical, final)
 │   └── setup/                # Setup guides (Docker and local development)
 ├── docker-compose.yml        # Full stack from source (seeds the DB locally)
