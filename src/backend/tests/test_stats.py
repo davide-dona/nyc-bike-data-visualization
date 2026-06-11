@@ -12,10 +12,15 @@ def test_get_stats_no_filters():
     payload = response.json()
     assert payload["total_rides"] == 2
     assert payload["hours_count"] == 24
+    assert payload["hours_with_rides"] == 2
     assert payload["average_duration_seconds"] > 0
     assert payload["average_distance_km"] > 0
     assert payload["total_duration_seconds"] > 0
     assert payload["total_distance_km"] > 0
+    # Per-hour ride counts are [1, 1] + [0] * 22 → sample std sqrt(11/138)
+    assert abs(payload["rides_per_hour_std"] - (11 / 138) ** 0.5) < 1e-9
+    assert payload["average_speed_kmh_std"] is not None
+    assert payload["average_speed_kmh_std"] >= 0
 
 def test_get_stats_user_type():
     """Test that /stats/ returns expected fields for a given user type."""
@@ -28,10 +33,13 @@ def test_get_stats_user_type():
     payload = response.json()
     assert payload["total_rides"] == 0
     assert payload["hours_count"] == 24
+    assert payload["hours_with_rides"] == 0
     assert payload["average_duration_seconds"] == 0
     assert payload["average_distance_km"] == 0
     assert payload["total_duration_seconds"] == 0
     assert payload["total_distance_km"] == 0
+    assert payload["rides_per_hour_std"] == 0
+    assert payload["average_speed_kmh_std"] is None
 
 
 def test_get_stats_group_by_none_matches_default():
@@ -88,6 +96,10 @@ def test_get_stats_grouped_by_hour():
     assert hour_15["total_rides"] == 1
     assert sum(row["total_rides"] for row in payload) == 2
 
+    # Single-hour buckets have no sample std (STDDEV_SAMP needs n >= 2)
+    assert all(row["rides_per_hour_std"] is None for row in payload)
+    assert all(row["average_speed_kmh_std"] is None for row in payload)
+
 
 def test_get_stats_grouped_by_weather():
     """Test that weather grouping uses hourly weather coverage for hours_count."""
@@ -124,6 +136,9 @@ def test_get_stats_by_weather_temperature_bins():
     # Rides at hour 5 (1.3 °C → bin 0) and hour 15 (5.2 °C → bin 4)
     assert bins[0.0]["total_rides"] == 1
     assert bins[4.0]["total_rides"] == 1
+    # Bin 0: per-hour counts [1, 0, 0, 0, 0] → sample std sqrt(0.2)
+    assert bins[0.0]["hours_with_rides"] == 1
+    assert abs(bins[0.0]["rides_per_hour_std"] - 0.2 ** 0.5) < 1e-9
 
 
 def test_get_stats_by_weather_precipitation_bins():

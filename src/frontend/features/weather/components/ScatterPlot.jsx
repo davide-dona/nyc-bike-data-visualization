@@ -13,6 +13,52 @@ import {
 import { SCATTER_BORDER_COLOR, SCATTER_BORDER_WIDTH, SCATTER_POINT_RADIUS } from "../../../utils/styling"
 import StatusMessage from "../../../components/StatusMessage"
 
+// Chart.js has no built-in error bars: draw ±1 standard-error whiskers (with end
+// caps) around each point, reading the SE values formatData put on the datum.
+const ERROR_BAR_CAP = 4
+const errorBarPlugin = {
+    id: "scatterErrorBars",
+    afterDatasetsDraw(chart) {
+        const { ctx, chartArea, scales: { x, y } } = chart
+        ctx.save()
+        ctx.beginPath()
+        ctx.rect(chartArea.left, chartArea.top, chartArea.width, chartArea.height)
+        ctx.clip()
+        ctx.lineWidth = 1
+        chart.data.datasets.forEach((ds, i) => {
+            if (!chart.isDatasetVisible(i)) return
+            ctx.strokeStyle = ds.backgroundColor
+            ds.data.forEach(p => {
+                const px = x.getPixelForValue(p.x)
+                const py = y.getPixelForValue(p.y)
+                ctx.beginPath()
+                if (p.ridesPerHourSE) {
+                    const yLo = y.getPixelForValue(p.y - p.ridesPerHourSE)
+                    const yHi = y.getPixelForValue(p.y + p.ridesPerHourSE)
+                    ctx.moveTo(px, yLo)
+                    ctx.lineTo(px, yHi)
+                    ctx.moveTo(px - ERROR_BAR_CAP, yLo)
+                    ctx.lineTo(px + ERROR_BAR_CAP, yLo)
+                    ctx.moveTo(px - ERROR_BAR_CAP, yHi)
+                    ctx.lineTo(px + ERROR_BAR_CAP, yHi)
+                }
+                if (p.avgSpeedSE) {
+                    const xLo = x.getPixelForValue(p.x - p.avgSpeedSE)
+                    const xHi = x.getPixelForValue(p.x + p.avgSpeedSE)
+                    ctx.moveTo(xLo, py)
+                    ctx.lineTo(xHi, py)
+                    ctx.moveTo(xLo, py - ERROR_BAR_CAP)
+                    ctx.lineTo(xLo, py + ERROR_BAR_CAP)
+                    ctx.moveTo(xHi, py - ERROR_BAR_CAP)
+                    ctx.lineTo(xHi, py + ERROR_BAR_CAP)
+                }
+                ctx.stroke()
+            })
+        })
+        ctx.restore()
+    },
+}
+
 /**
  * Component for rendering a scatter plot of weather data
  * @param {{ Array }} data - Scatter data
@@ -26,6 +72,16 @@ export default function ScatterPlot({ data, loading, error, onRefetch }) {
     const chartRef = useRef(null)
     const tooltipRef = useRef(null)
     const formattedData = useMemo(() => formatData(data), [data])
+    // Widen the scales so whiskers on extreme points aren't clipped; suggested*
+    // only ever extends the auto-fit bounds.
+    const axisBounds = useMemo(() => {
+        if (!formattedData.length) return {}
+        return {
+            xMin: Math.min(...formattedData.map(p => p.avgSpeed - (p.avgSpeedSE ?? 0))),
+            xMax: Math.max(...formattedData.map(p => p.avgSpeed + (p.avgSpeedSE ?? 0))),
+            yMax: Math.max(...formattedData.map(p => p.ridesPerHour + (p.ridesPerHourSE ?? 0))),
+        }
+    }, [formattedData])
 
     const WEATHER_ICONS = {
         Clear: "☀",
@@ -115,7 +171,7 @@ export default function ScatterPlot({ data, loading, error, onRefetch }) {
                             Activity
                         </div>
                         <div style="margin-bottom: 4px; font-family: ${FONT_MONO}; font-size: 11px;">
-                            <span style="color: ${PAPER_RAISED}; font-weight: 600;">${point.ridesPerHour.toFixed(0)}</span><span style="color: rgba(251, 248, 242, 0.7);">/h</span>
+                            <span style="color: ${PAPER_RAISED}; font-weight: 600;">${point.ridesPerHour.toFixed(0)}</span><span style="color: rgba(251, 248, 242, 0.7);">/h</span>${point.ridesPerHourSE != null ? `<span style="color: rgba(251, 248, 242, 0.55); margin-left: 4px;">± ${point.ridesPerHourSE.toFixed(1)}</span>` : ""}
                         </div>
                         <div style="margin-bottom: 4px; font-family: ${FONT_MONO}; font-size: 11px;">
                             <span style="color: rgba(251, 248, 242, 0.7);">Volume:</span>
@@ -140,7 +196,7 @@ export default function ScatterPlot({ data, loading, error, onRefetch }) {
                         </div>
                         <div style="font-family: ${FONT_MONO}; font-size: 11px;">
                             <span style="color: rgba(251, 248, 242, 0.7);">Typical speed:</span>
-                            <span style="color: ${PAPER_RAISED}; font-weight: 600; margin-left: 4px;">${point.avgSpeed.toFixed(2)}km/h</span>
+                            <span style="color: ${PAPER_RAISED}; font-weight: 600; margin-left: 4px;">${point.avgSpeed.toFixed(2)}km/h</span>${point.avgSpeedSE != null ? `<span style="color: rgba(251, 248, 242, 0.55); margin-left: 4px;">± ${point.avgSpeedSE.toFixed(2)}</span>` : ""}
                         </div>
                     </div>
                 `
@@ -218,6 +274,7 @@ export default function ScatterPlot({ data, loading, error, onRefetch }) {
                     pointStyle: 'circle',
                 })),
             },
+            plugins: [errorBarPlugin],
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
@@ -272,6 +329,8 @@ export default function ScatterPlot({ data, loading, error, onRefetch }) {
                             font: { family: FONT_DISPLAY, size: 13, weight: "500" },
                             color: INK,
                         },
+                        suggestedMin: axisBounds.xMin,
+                        suggestedMax: axisBounds.xMax,
                         ticks: { font: { family: FONT_MONO, size: 10 }, color: INK_MUTED },
                         grid: { color: RULE },
                     },
@@ -283,6 +342,7 @@ export default function ScatterPlot({ data, loading, error, onRefetch }) {
                             color: INK,
                         },
                         beginAtZero: true,
+                        suggestedMax: axisBounds.yMax,
                         ticks: {
                             font: { family: FONT_MONO, size: 10 },
                             color: INK_MUTED,
@@ -301,7 +361,7 @@ export default function ScatterPlot({ data, loading, error, onRefetch }) {
                 tooltipRef.current = null
             }
         }
-    }, [formattedData])
+    }, [formattedData, axisBounds])
 
     return (
         <div className="scatter-plot-frame">
