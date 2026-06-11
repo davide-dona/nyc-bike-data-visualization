@@ -102,7 +102,66 @@ def test_get_stats_grouped_by_weather():
     assert isinstance(payload, list)
     assert payload
     assert all("weather_code" in row for row in payload)
+    assert all(row["weather_bin"] is None for row in payload)
     assert sum(row["hours_count"] for row in payload) == 24
+
+
+def test_get_stats_by_weather_temperature_bins():
+    """Test that variable=temperature buckets spine hours into 2°C bins."""
+    response = requests.get(
+        f"{BASE_URL}/stats/stats_by_weather",
+        params={**DATE_PARAMS, "variable": "temperature"},
+        timeout=DEFAULT_TIMEOUT,
+    )
+    assert response.status_code == 200
+    payload = response.json()
+
+    bins = {row["weather_bin"]: row for row in payload}
+    # Seed temps -1.8..5.2 °C: 5 hours below 0°, 5 in [0,2), 8 in [2,4), 6 in [4,6)
+    assert sorted(bins) == [-2.0, 0.0, 2.0, 4.0]
+    assert [bins[b]["hours_count"] for b in sorted(bins)] == [5, 5, 8, 6]
+    assert all(row["weather_code"] is None for row in payload)
+    # Rides at hour 5 (1.3 °C → bin 0) and hour 15 (5.2 °C → bin 4)
+    assert bins[0.0]["total_rides"] == 1
+    assert bins[4.0]["total_rides"] == 1
+
+
+def test_get_stats_by_weather_precipitation_bins():
+    """Test that variable=precipitation buckets hours by rain intensity."""
+    response = requests.get(
+        f"{BASE_URL}/stats/stats_by_weather",
+        params={**DATE_PARAMS, "variable": "precipitation"},
+        timeout=DEFAULT_TIMEOUT,
+    )
+    assert response.status_code == 200
+    payload = response.json()
+
+    bins = {row["weather_bin"]: row for row in payload}
+    # 23 dry hours plus the single 0.1 mm trace hour at 16:00
+    assert sorted(bins) == [0.0, 0.1]
+    assert bins[0.0]["hours_count"] == 23
+    assert bins[0.0]["total_rides"] == 2
+    assert bins[0.1]["hours_count"] == 1
+    assert bins[0.1]["total_rides"] == 0
+
+
+def test_get_stats_by_weather_temperature_user_filter():
+    """Test that user_type filters compose with weather variable bucketing."""
+    member = requests.get(
+        f"{BASE_URL}/stats/stats_by_weather",
+        params={**DATE_PARAMS, "variable": "temperature", "user_type": "member"},
+        timeout=DEFAULT_TIMEOUT,
+    )
+    assert member.status_code == 200
+    assert sum(row["total_rides"] for row in member.json()) == 2
+
+    casual = requests.get(
+        f"{BASE_URL}/stats/stats_by_weather",
+        params={**DATE_PARAMS, "variable": "temperature", "user_type": "casual"},
+        timeout=DEFAULT_TIMEOUT,
+    )
+    assert casual.status_code == 200
+    assert sum(row["total_rides"] for row in casual.json()) == 0
 
 
 def test_get_stats_grouped_by_day_and_hour():

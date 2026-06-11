@@ -28,7 +28,7 @@ export const INITIAL_VIEW_STATE = {
 }
 
 // Allowed zoom range for map interactions
-export const MIN_ZOOM = 12
+export const MIN_ZOOM = 10
 export const MAX_ZOOM = 15
 // Allowed pitch range for map interactions
 export const MIN_PITCH = 0
@@ -181,7 +181,9 @@ function MapPage({ filters }) {
         setActiveLayer,
         setCurrentTime,
         setShowBikeRoutes,
+        setUsageMode,
         showBikeRoutes,
+        usageMode,
         viewState,
     } = useMapHandler()
     // Build the layers to be rendered based on the active layer and fetched data
@@ -194,7 +196,7 @@ function MapPage({ filters }) {
         resetSelectedStationIds,
         hasTripFlowSelection,
         selectedInfrastructureStations,
-    } = useBuildLayers({ filters, currentTime, activeLayer, showBikeRoutes })
+    } = useBuildLayers({ filters, currentTime, activeLayer, showBikeRoutes, usageMode })
     const shouldShowMapUi = !error
     const shouldShowMapLegend = !loading && !error
     const hasLayersData = layers.length > 0 && layers.some(layer => Array.isArray(layer.data) && layer.data.length > 0)
@@ -244,7 +246,7 @@ function MapPage({ filters }) {
                         onHover={handleHover}
                         onClick={handleMapClick}
                         getCursor={getCursor}
-                        getTooltip={({ object }) => Tooltip({ object, activeLayer })}
+                        getTooltip={({ object }) => Tooltip({ object, activeLayer, usageMode })}
                     />
                     <button
                         type="button"
@@ -268,6 +270,8 @@ function MapPage({ filters }) {
                             hasAnimation={hasAnimation}
                             showBikeRoutes={showBikeRoutes}
                             setShowBikeRoutes={setShowBikeRoutes}
+                            usageMode={usageMode}
+                            setUsageMode={setUsageMode}
                             resetSelectedStationIds={resetSelectedStationIds}
                             hasTripFlowSelection={hasTripFlowSelection}
                             disabled={loading}

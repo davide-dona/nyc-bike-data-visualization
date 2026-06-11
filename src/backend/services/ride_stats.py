@@ -3,7 +3,7 @@ from itertools import product
 
 from src.backend.db import fetch_rows, get_conn
 from src.backend.models.ride import MemberCasual, RideableType
-from src.backend.models.ride_stats import GroupedStats, Stats, StatsGroupBy
+from src.backend.models.ride_stats import GroupedStats, Stats, StatsGroupBy, WeatherVariable
 
 from src.backend.services.sql.query_builder import (
     Filters,
@@ -23,13 +23,29 @@ _GROUP_DIMS: dict[StatsGroupBy, list[str]] = {
     StatsGroupBy.DAY_OF_WEEK_AND_HOUR: ["day_of_week", "hour"],
 }
 
+# Bucketing expression over the weather_hourly alias `w`, the output column name,
+# and the source column whose NULLs exclude an hour from the spine and facts.
+# Numeric bins are encoded as their lower edge: temperature in 2 °C steps,
+# precipitation in dry/trace/light/moderate/heavy buckets (mm/h) since uniform
+# bins would put nearly all hours in the dry bucket.
+_WEATHER_EXPRS: dict[WeatherVariable, tuple[str, str, str]] = {
+    WeatherVariable.WEATHER_CODE: ("w.weather_code", "weather_code", "w.weather_code"),
+    WeatherVariable.TEMPERATURE: ("(floor(w.temperature_2m / 2)::int * 2)", "weather_bin", "w.temperature_2m"),
+    WeatherVariable.PRECIPITATION: (
+        "(CASE WHEN w.precipitation <= 0 THEN 0.0"
+        " WHEN w.precipitation < 0.5 THEN 0.1"
+        " WHEN w.precipitation < 2.5 THEN 0.5"
+        " WHEN w.precipitation < 7.6 THEN 2.5"
+        " ELSE 7.6 END)", "weather_bin", "w.precipitation"),
+}
+
 def get_stats_data(
     start_date: date,
     end_date: date,
     group_by: StatsGroupBy = StatsGroupBy.NONE,
     user_type: MemberCasual | None = None,
     bike_type: RideableType | None = None,
-    group_by_weather: bool = False,
+    weather_var: WeatherVariable | None = None,
 ) -> Stats | list[GroupedStats]:
     """Fetch aggregated stats for rides in the given date range, optionally grouped by time dimensions and/or weather.
 
@@ -49,25 +65,29 @@ def get_stats_data(
     if bike_type is not None:
         f.add("sh.bike_type = %s", bike_type.value)
 
-    if group_by_weather:
+    if weather_var is not None:
         # Weather buckets need the weather table: each spine hour is labelled with
-        # its weather_code, and rides are joined to weather the same way.
-        spine_cols = [f"h.{d}" for d in dims] + ["w.weather_code"]
+        # its weather bucket, and rides are joined to weather the same way.
+        expr, weather_name, src_col = _WEATHER_EXPRS[weather_var]
+        weather_col = f"{expr} AS {weather_name}"
+        spine_cols = [f"h.{d}" for d in dims] + [weather_col]
         spine_from = (
             "FROM hours h JOIN weather_hourly w ON w.date = h.date AND w.hour = h.hour "
-            "WHERE w.weather_code IS NOT NULL"
+            f"WHERE {src_col} IS NOT NULL"
         )
-        fact_cols = [f"sh.{d}" for d in dims] + ["w.weather_code"]
+        fact_cols = [f"sh.{d}" for d in dims] + [weather_col]
         fact_join = "JOIN weather_hourly w ON w.date = sh.date AND w.hour = sh.hour"
-        f.add("w.weather_code IS NOT NULL")
+        f.add(f"{src_col} IS NOT NULL")
     else:
         spine_cols = [f"h.{d}" for d in dims]
         spine_from = "FROM hours h"
         fact_cols = [f"sh.{d}" for d in dims]
         fact_join = ""
 
-    out_dims = [c.split(".")[1] for c in spine_cols]
-    fact_group = f"GROUP BY {', '.join(fact_cols)}" if fact_cols else ""
+    # Columns may be plain ("h.hour") or aliased ("<expr> AS weather_bin"):
+    # output names come from the alias when present, GROUP BY uses the bare expression.
+    out_dims = [c.split(" AS ")[-1].split(".")[-1] for c in spine_cols]
+    fact_group = f"GROUP BY {', '.join(c.split(' AS ')[0] for c in fact_cols)}" if fact_cols else ""
     out_select = ", ".join(f"s.{d}" for d in out_dims)
     order_by = f"ORDER BY {out_select}" if out_dims else ""
 
@@ -99,13 +119,13 @@ def get_stats_data(
             cur.execute(sql, params)
             rows = fetch_rows(cur)
 
-    if group_by == StatsGroupBy.NONE and not group_by_weather:
+    if group_by == StatsGroupBy.NONE and weather_var is None:
         # Spine and rides each collapse to a single row, so exactly one row exists.
         return _to_stats(rows[0], int(rows[0]["hours_count"]))
 
     grouped = [_to_grouped_stats(r, int(r["hours_count"])) for r in rows]
-    if group_by_weather and group_by != StatsGroupBy.NONE:
-        grouped = _fill_weather_gaps(grouped, group_by)
+    if weather_var is not None and group_by != StatsGroupBy.NONE:
+        grouped = _fill_weather_gaps(grouped, group_by, _WEATHER_EXPRS[weather_var][1])
     return grouped
 
 def _derive_stats(r: dict, hours_count: int) -> dict:
@@ -131,6 +151,7 @@ def _to_grouped_stats(r: dict, hours_count: int) -> GroupedStats:
         day_of_week=r.get("day_of_week"),
         hour=r.get("hour"),
         weather_code=r.get("weather_code"),
+        weather_bin=r.get("weather_bin"),
         date=r.get("date"),
         **_derive_stats(r, hours_count),
     )
@@ -139,20 +160,20 @@ def _to_grouped_stats(r: dict, hours_count: int) -> GroupedStats:
 # range (date) cannot be gap-filled.
 _DIM_RANGES = {"day_of_week": range(7), "hour": range(24)}
 
-def _fill_weather_gaps(rows: list[GroupedStats], group_by: StatsGroupBy) -> list[GroupedStats]:
-    """Add zero-stats rows for (weather_code, time bucket) combos absent from the result."""
+def _fill_weather_gaps(rows: list[GroupedStats], group_by: StatsGroupBy, weather_attr: str) -> list[GroupedStats]:
+    """Add zero-stats rows for (weather bucket, time bucket) combos absent from the result."""
     dims = _GROUP_DIMS[group_by]
     if not dims or any(d not in _DIM_RANGES for d in dims):
         return rows
 
     def key(r: GroupedStats) -> tuple:
-        return (r.weather_code, *(getattr(r, d) for d in dims))
+        return (getattr(r, weather_attr), *(getattr(r, d) for d in dims))
 
     existing = {key(r): r for r in rows}
     result = [
         existing.get((wc, *tk))
-        or GroupedStats(weather_code=wc, **dict(zip(dims, tk)), **_zero_stats())
-        for wc in {r.weather_code for r in rows}
+        or GroupedStats(**{weather_attr: wc}, **dict(zip(dims, tk)), **_zero_stats())
+        for wc in {getattr(r, weather_attr) for r in rows}
         for tk in product(*(_DIM_RANGES[d] for d in dims))
     ]
     return sorted(result, key=key)

@@ -82,6 +82,57 @@ function VerticalBarChart({ title, rows, labelKey, valueKey, unit }) {
     )
 }
 
+function characterHint(label) {
+    if (label === 'Workplace-like') return 'AM arrivals · PM departures'
+    if (label === 'Residential-like') return 'AM departures · PM arrivals'
+    return null
+}
+
+function DivergingHourChart({ title, rows }) {
+    const axisMax = niceCeil(Math.max(...rows.map((row) => Math.max(Number(row?.avg_incoming ?? 0), Number(row?.avg_outgoing ?? 0))), 0))
+    return (
+        <section className="infra-sidebar__chart-block">
+            <div className="infra-sidebar__section-heading">{title}</div>
+            <div className="infra-sidebar__chart-caption" aria-hidden="true">
+                <span className="infra-sidebar__chart-caption-swatch tone-accent" /> arrivals
+                <span className="infra-sidebar__chart-caption-swatch" /> departures
+            </div>
+            <div className="infra-sidebar__chart-body">
+                <div className="infra-sidebar__y-axis" aria-hidden="true">
+                    <span className="infra-sidebar__y-tick">{formatAvg(axisMax)}</span>
+                    <span className="infra-sidebar__y-tick">0</span>
+                    <span className="infra-sidebar__y-tick">{formatAvg(axisMax)}</span>
+                </div>
+                <div className="infra-sidebar__chart-area">
+                    <div className="infra-sidebar__gridlines" aria-hidden="true">
+                        <span /><span /><span />
+                    </div>
+                    <div className="infra-sidebar__vbars" role="img" aria-label={title}>
+                        {rows.map((row) => {
+                            const incoming = Number(row?.avg_incoming ?? 0)
+                            const outgoing = Number(row?.avg_outgoing ?? 0)
+                            return (
+                                <div key={row.hour} className="infra-sidebar__vbar-wrap" title={`${row.label}:00 — in ${formatAvg(incoming)}/h · out ${formatAvg(outgoing)}/h`}>
+                                    <div className="infra-sidebar__dvbar-track">
+                                        <div className="infra-sidebar__dvbar-top">
+                                            <div className="infra-sidebar__dvbar-fill tone-accent" style={{ height: `${(incoming / axisMax) * 100}%` }} />
+                                        </div>
+                                        <div className="infra-sidebar__dvbar-midline" />
+                                        <div className="infra-sidebar__dvbar-bottom">
+                                            <div className="infra-sidebar__dvbar-fill" style={{ height: `${(outgoing / axisMax) * 100}%` }} />
+                                        </div>
+                                    </div>
+                                    <span className="infra-sidebar__vbar-label">{rows.length > 12 && row.hour % 2 !== 0 ? '⋅' : row.label}</span>
+                                </div>
+                            )
+                        })}
+                    </div>
+                </div>
+            </div>
+        </section>
+    )
+}
+
 export default function InfrastructureStationSidebar({ selectedStations = [], filters = {}, onClose }) {
     const stationIds = useMemo(() => selectedStations.map((station) => station.id), [selectedStations])
     const stationData = useInfrastructureStationSidebarData({ stationIds, filters })
@@ -107,7 +158,7 @@ export default function InfrastructureStationSidebar({ selectedStations = [], fi
 
     const todayDow = (new Date().getDay() + 6) % 7
     const todayRow = stationData.daySeries[todayDow]
-    const { peakHour, busiestDay, netFlow } = stationData.summary
+    const { peakHour, busiestDay, netFlow, character } = stationData.summary
     const topFlows = stationData.topFlows.slice(0, 5)
     const maxFlowRides = topFlows[0]?.total_rides ?? 0
 
@@ -157,6 +208,10 @@ export default function InfrastructureStationSidebar({ selectedStations = [], fi
                         <span className="infra-sidebar__highlight-label">Flow balance</span>
                         <strong className="infra-sidebar__highlight-value">{flowBalanceText(netFlow)}</strong>
                     </li>
+                    <li className="infra-sidebar__highlight-row">
+                        <span className="infra-sidebar__highlight-label">Profile</span>
+                        <strong className="infra-sidebar__highlight-value" title={characterHint(character.label) ?? undefined}>{character.label}</strong>
+                    </li>
                 </ul>
             </section>}
 
@@ -165,6 +220,7 @@ export default function InfrastructureStationSidebar({ selectedStations = [], fi
                 <div className="infra-sidebar__chart-grid">
                     <VerticalBarChart title="Avg rides by day of week" rows={stationData.daySeries.map((row) => ({ ...row, label: DAY_ORDER[row.day_of_week] ?? row.label }))} labelKey="day_of_week" valueKey="avg_rides" unit="avg rides" />
                     <VerticalBarChart title="Avg rides by hour" rows={stationData.hourSeries.map((row) => ({ ...row, tooltip_label: `${row.label}:00` }))} labelKey="hour" valueKey="avg_rides" unit="avg rides/h" />
+                    <DivergingHourChart title="Avg in / out by hour" rows={stationData.hourSeries} />
                 </div>
             </section>}
 
