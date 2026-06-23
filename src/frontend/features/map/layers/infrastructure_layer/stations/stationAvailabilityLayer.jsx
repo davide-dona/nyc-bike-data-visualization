@@ -1,10 +1,11 @@
 import { ScatterplotLayer } from '@deck.gl/layers'
 import {
     HEALTHY_RGB,
-    WARNING_RGB,
     DANGER_RGB,
     UNKNOWN_RGB,
+    ACCENT_RGB,
 } from '../../../../../utils/editorialTokens.js'
+import { HEALTH_CATEGORY } from './stationAvailabilitySelector.js'
 
 /**
  * Creates a scatterplot layer for displaying station availability information.
@@ -12,38 +13,47 @@ import {
  *   - latitude: number
  *   - longitude: number
  *   - capacity: number (total docks)
- *   - station_health: number (0 to 1, where 1 is fully healthy)
+ *   - health_category: string (HEALTH_CATEGORY value)
  * @returns
  */
-export function createStationAvailabilityLayer({ stations }) {
+export function createStationAvailabilityLayer({ stations, selectedStationIds = [], onStationPick }) {
+    const selectedIds = new Set(selectedStationIds)
     return new ScatterplotLayer({
         id: 'station-availability-layer',
         data: stations,
         getPosition: (d) => [d.longitude, d.latitude],
         getRadius: (d) => Math.sqrt(d.capacity) * 8, // larger stations appear bigger
-        getFillColor: (d) => getStationColor(d.station_health),
-        getLineColor: [255, 255, 255],
+        getFillColor: (d) => selectedIds.has(d.id) ? [249, 115, 22, 240] : getStationColor(d.health_category),
+        getLineColor: (d) => selectedIds.has(d.id) ? [255, 255, 255] : [255, 255, 255],
+        getLineWidth: (d) => selectedIds.has(d.id) ? 3 : 1,
         lineWidthMinPixels: 1,
         stroked: true,
         filled: true,
         radiusMinPixels: 4,
         radiusMaxPixels: 30,
         pickable: true,
+        onClick: onStationPick,
     })
 }
 
-/**
- * Maps station_health [0, 1] to an editorial color:
- * 0.0 → danger (no bikes, no docks — broken/disabled)
- * 0.5 → warning (heavily skewed toward full or empty)
- * 1.0 → healthy (balanced bikes and docks)
- * null → unknown (ink-muted)
- */
-function getStationColor(health) {
-    if (health == null) return UNKNOWN_RGB
-    if (health >= 0.7) return HEALTHY_RGB
-    if (health >= 0.4) return WARNING_RGB
-    return DANGER_RGB
+export const HEALTH_CATEGORY_LABELS = {
+    [HEALTH_CATEGORY.HEALTHY]: 'Healthy',
+    [HEALTH_CATEGORY.EMPTY_RISK]: 'Empty risk',
+    [HEALTH_CATEGORY.FULL_RISK]: 'Full risk',
+    [HEALTH_CATEGORY.UNKNOWN]: 'Offline',
+}
+
+// Empty risk is red (the rider-facing "nothing to rent" failure); full risk is
+// blue to stay distinct from the orange selection highlight.
+const HEALTH_CATEGORY_COLORS = {
+    [HEALTH_CATEGORY.HEALTHY]: HEALTHY_RGB,
+    [HEALTH_CATEGORY.EMPTY_RISK]: DANGER_RGB,
+    [HEALTH_CATEGORY.FULL_RISK]: ACCENT_RGB,
+    [HEALTH_CATEGORY.UNKNOWN]: UNKNOWN_RGB,
+}
+
+function getStationColor(category) {
+    return HEALTH_CATEGORY_COLORS[category] ?? UNKNOWN_RGB
 }
 
 
@@ -52,13 +62,12 @@ function getStationColor(health) {
  * @returns {string} A formatted string with station information for the tooltip.
  */
 export function stationAvailabilityTooltip( object ) {
-    return `
-            ${object.name}\n
+    return `${object.name}\n
+            Status: ${HEALTH_CATEGORY_LABELS[object.health_category] ?? 'Offline'}
             Available Classical Bikes: ${object.classicalBikes}
             Available Electric Bikes: ${object.electricBikes}
             Available Docks: ${object.available_docks}
-            Total Capacity: ${object.capacity}
-        `
+            Total Capacity: ${object.capacity}`
 }
 
 /**
@@ -70,8 +79,9 @@ export function stationAvailabilityLegend({ showBikeRoutes = false } = {}) {
     return {
         entries: [
             { swatch: 'rgb(47, 125, 79)', label: 'Healthy', hint: 'bikes and docks available' },
-            { swatch: 'rgb(200, 138, 26)', label: 'Skewed', hint: 'nearly full or empty' },
-            { swatch: 'rgb(163, 45, 45)', label: 'Unhealthy', hint: 'broken or disabled' },
+            { swatch: 'rgb(163, 45, 45)', label: 'Empty risk', hint: 'few or no bikes to rent' },
+            { swatch: 'rgb(25, 83, 216)', label: 'Full risk', hint: 'few or no docks to return' },
+            { swatch: 'rgb(110, 106, 98)', label: 'Offline', hint: 'no live data' },
         ],
         includeBikeRoutes: showBikeRoutes,
     }

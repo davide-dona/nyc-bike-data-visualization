@@ -7,15 +7,16 @@ import { stationAvailabilityTooltip } from '../layers/infrastructure_layer/stati
 /**
  * Renders a tooltip based on the active layer and the provided object.
  * @param {Object} object - The data object associated with the hovered element on the map.
- * @param {string} activeLayer - The currently active map layer to determine tooltip content. 
+ * @param {string} activeLayer - The currently active map layer to determine tooltip content.
+ * @param {string} usageMode - Usage mode of the station usage layer, used to label its metric.
  * @returns {string} The tooltip content.
  */
-export default function Tooltip({ object, activeLayer }) {
+export default function Tooltip({ object, activeLayer, usageMode }) {
     // To avoid errors when hovering over empty areas of the map
     if (!object) return null
     switch (activeLayer) {
         case 'station_usage':
-            return stationUsageTooltip(object)
+            return stationUsageTooltip(object, usageMode)
         case 'trip_flow':
             // Distinguish between trip arcs and trip stations
             if (object.start_station_name) {

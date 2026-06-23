@@ -1,7 +1,7 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { NavLink } from "react-router-dom";
 import { useLocation } from "react-router-dom";
-import DateRangeFilter from "./components/DateRangeFilter.jsx";
+import DateWindowPicker from "./components/DateWindowPicker.jsx";
 import useHeaderFilters from "./hooks/useHeaderFilters.js";
 import RiderBikeFilter from "./components/RiderBikeFilter.jsx";
 import { useDatasetDateRange } from "./hooks/useDatasetDateRange.js";
@@ -34,10 +34,23 @@ function AppHeader({ onFiltersChange, forceDisableFilters = false }) {
     const [lockHintPosition, setLockHintPosition] = useState({ x: 0, y: 0 });
     const lockHintRef = useRef(null);
     const { dateRange: datasetRange } = useDatasetDateRange();
+    const hasSeededDateRangeRef = useRef(false);
     const kicker =
         datasetRange?.min_date && datasetRange?.max_date
             ? `NYC / ${datasetRange.min_date.slice(0, 4)}–${datasetRange.max_date.slice(0, 4)}`
             : "NYC";
+
+    useEffect(() => {
+        if (hasSeededDateRangeRef.current) return;
+        if (!datasetRange?.min_date || !datasetRange?.max_date) return;
+        if (dateRange) return;
+
+        hasSeededDateRangeRef.current = true;
+        handleDateRangeCommit({
+            start_date: datasetRange.min_date,
+            end_date: datasetRange.max_date,
+        });
+    }, [datasetRange, dateRange, handleDateRangeCommit]);
 
     const updateLockHintPosition = useCallback(
         (event) => {
@@ -118,22 +131,23 @@ function AppHeader({ onFiltersChange, forceDisableFilters = false }) {
                 </nav>
             </div>
             <div className="app-header__filters">
-                <DateRangeFilter
-                    value={dateRange}
-                    onCommit={handleDateRangeCommit}
-                    disabled={areDateFiltersDisabled}
-                />
-                <div
-                    className={`app-header__filter-lockzone${shouldShowLockHint ? " is-locked" : ""}`}
-                    onMouseEnter={updateLockHintPosition}
-                    onMouseMove={updateLockHintPosition}
-                    onMouseLeave={hideLockHint}
-                >
-                    <RiderBikeFilter
-                        value={currentUserFilters}
-                        onChange={handleUserFilterChange}
-                        disabled={areUserFiltersDisabled}
+                <div className="app-header__filters-group">
+                    <DateWindowPicker
+                        value={dateRange}
+                        onCommit={handleDateRangeCommit}
+                        disabled={areDateFiltersDisabled}
                     />
+                    <div
+                        className={`app-header__filter-lockzone${shouldShowLockHint ? " is-locked" : ""}`}
+                        onMouseEnter={updateLockHintPosition}
+                        onMouseMove={updateLockHintPosition}
+                        onMouseLeave={hideLockHint}
+                    >
+                        <RiderBikeFilter
+                            value={currentUserFilters}
+                            onChange={handleUserFilterChange}
+                            disabled={areUserFiltersDisabled}
+                        />
                     {shouldShowLockHint && (
                         <p
                             ref={lockHintRef}
@@ -150,6 +164,7 @@ function AppHeader({ onFiltersChange, forceDisableFilters = false }) {
                             unlock them.
                         </p>
                     )}
+                    </div>
                 </div>
             </div>
         </header>

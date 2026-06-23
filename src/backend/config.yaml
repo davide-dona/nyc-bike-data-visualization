@@ -1,0 +1,32 @@
+# Backend configuration — single source of truth for all backend settings.
+# Any key can be overridden with the uppercased environment variable of the
+# same name (e.g. CORS_ORIGINS as a comma-separated string).
+
+# Database. The value below is the local-development default (it matches the
+# dev database from docker-compose.dev.yml, exposed on localhost:5432). Docker
+# and CI override it with the DATABASE_URL env var (Docker uses the `postgres`
+# service name as host; CI points at a separate `citibike_test` database).
+database_url: postgresql://citibike:citibike@localhost:5432/citibike
+
+# Connection pool
+pool_min_conn: 2
+pool_max_conn: 10
+
+# GBFS feed (Lyft / Citi Bike)
+info_url: https://gbfs.lyft.com/gbfs/2.3/bkn/en/station_information.json
+status_url: https://gbfs.lyft.com/gbfs/2.3/bkn/en/station_status.json
+gbfs_cache_ttl_seconds: 60
+gbfs_classic_bike_type_id: "1"
+gbfs_ebike_type_id: "2"
+
+# Logging (level name accepted by logging.setLevel)
+log_file_path: logs/requests.log
+log_level: INFO
+
+# CORS allowed origins
+cors_origins:
+  - http://localhost:5173
+  - http://localhost:5174
+
+# Test fixtures (relative paths resolve against src/backend/)
+test_data_dir: tests/test_data

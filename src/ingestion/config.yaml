@@ -1,0 +1,42 @@
+# Ingestion configuration — single source of truth for all ingestion settings.
+# Any key can be overridden with the uppercased environment variable of the
+# same name; CLI flags on src.ingestion.cli take precedence over both.
+
+# Database. The value below is the local-development default (it matches the
+# dev database from docker-compose.dev.yml, exposed on localhost:5432). Docker
+# and CI override it with the DATABASE_URL env var (Docker uses the `postgres`
+# service name as host; CI points at a separate `citibike_test` database).
+database_url: postgresql://citibike:citibike@localhost:5432/citibike
+
+# Root data directory (relative paths resolve against the repository root)
+data_dir: data
+
+# Download URLs
+base_url_ride_data: https://s3.amazonaws.com/tripdata/
+weather_api_url: https://archive-api.open-meteo.com/v1/archive
+bike_routes_url: https://data.cityofnewyork.us/api/views/mzxg-pwib/rows.csv?accessType=DOWNLOAD
+
+# Default date range for data ingestion (YYYYMM).
+# default_end_date null = computed as one month ago, the most recent complete month.
+default_start_date: "202001"
+default_end_date: null
+download_jc: false
+download_chunk_size_mb: 50  # Size of chunks to read when downloading ride data, in megabytes
+max_cache_age_days: 30      # Max age for cached data files before re-download
+
+# Months processed concurrently by the outer pool. 1 keeps the seeder safe on
+# small CI runners (e.g. ubuntu-latest, 2 vCPU / 7 GB shared with postgres).
+parallel_months: 1
+# Inner pool size for the per-month DB inserts. Each worker holds the rides
+# frame plus its aggregation intermediates, so this multiplies memory pressure.
+db_loader_workers: 2
+
+# Data processing constants
+yearly_cutoff: 2023         # Files with only a year <= this are assumed to cover the full year
+parquet_compression: zstd
+street_circuity_factor: 1.3
+earth_radius_km: 6371
+
+# Weather retrieval settings
+nyc_coords: [40.7823234, -73.9654161]
+weather_timezone: America/New_York

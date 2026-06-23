@@ -26,7 +26,7 @@
   }
 
   .weather-ridgeline-toggle {
-    @apply inline-flex border border-rule border-[2px] bg-paper;
+    @apply inline-flex border border-rule border-[1px] bg-paper;
   }
 
   .weather-ridgeline-toggle__btn {
@@ -60,5 +60,21 @@
 
   .weather-histogram-frame {
     @apply relative w-full h-[39vh];
+  }
+
+  .weather-deepdive-grid {
+    @apply grid grid-cols-1 gap-4 lg:grid-cols-2;
+  }
+
+  .weather-deepdive-frame {
+    @apply relative w-full border-t border-ink border-x border-b border-rule bg-paper-raised p-5;
+  }
+
+  .weather-deepdive-frame__title {
+    @apply m-0 mb-4 font-mono text-[11px] uppercase tracking-eyebrow text-ink-muted;
+  }
+
+  .weather-deepdive-plot {
+    @apply relative w-full h-[34vh] min-h-[260px];
   }
 }

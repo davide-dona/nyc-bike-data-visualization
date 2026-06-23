@@ -13,9 +13,10 @@ import { LIMIT_STATIONS } from '../../../../utils/config.jsx'
  * It retrieves station ride counts, filters them based on the current time frame, and calculates the maximum usage for scaling purposes.
  * @param {Object} filters - Optional filters for fetching station ride counts, such as date range or user-selected filters.
  * @param {number} currentTime - Current hour frame (0-23) for filtering station usage data.
+ * @param {string} usageMode - Which metric the layer encodes ('all' | 'incoming' | 'outgoing').
  * @returns {Object} An object containing the filtered station data for the current time frame, maximum usage value, loading state, and error state.
  */
-export function useStationUsageLayer({ filters, currentTime }) {
+export function useStationUsageLayer({ filters, currentTime, usageMode = 'all' }) {
     // Build filters for station usage data
     const stationUsageCountFilters = {
         limit: LIMIT_STATIONS,
@@ -32,9 +33,9 @@ export function useStationUsageLayer({ filters, currentTime }) {
 
     // Process station data to get the stations for the current time frame and calculate the maximum usage for scaling
     const stations = useMemo(() => selectStations(stationUsageCounts), [stationUsageCounts])
-    const frameStations = useMemo(() => getStationForCurrentTime(stations, currentTime), [stations, currentTime])
-    const maxUsage = useMemo(() => getMaxUsage(stations), [stations])
-    const maxDelta = useMemo(() => getMaxDelta(stations), [stations])
+    const frameStations = useMemo(() => getStationForCurrentTime(stations, currentTime, usageMode), [stations, currentTime, usageMode])
+    const maxUsage = useMemo(() => getMaxUsage(stations, usageMode), [stations, usageMode])
+    const maxDelta = useMemo(() => getMaxDelta(stations, usageMode), [stations, usageMode])
 
     return { frameStations, maxUsage, maxDelta, loading, error, refetch }
 }

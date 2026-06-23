@@ -1,27 +1,35 @@
 name: Docker Release Pipeline
 
+# Builds and pushes all Docker images on release and seeds the database.
+# Produces two preloaded database images: the full dataset (-db:TAG / :latest)
+# and a small dev dataset with the last 2 complete months (-db:TAG-dev / :dev).
 on:
-  # ONLY triggers when a new release is published
   release:
     types: [published]
 
-# Environment variables for the workflow
 env:
-  # This forces the use of Node 24 for compatibility 
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
   REGISTRY: ghcr.io
-  IMAGE_PREFIX: ghcr.io/${{ github.repository_owner }}/nyc-bike-data-visualisation
+  IMAGE_PREFIX: ghcr.io/${{ github.repository_owner }}/nyc-bike
   PLATFORMS: linux/amd64,linux/arm64
 
 jobs:
-  build-and-push-images:
+
+  prepare:                  # Extracts the release tag from the GitHub ref and makes it available to downstream jobs.
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      packages: write
     outputs:
       tag: ${{ steps.tag.outputs.value }}
+    steps:
+      - name: Resolve release tag
+        id: tag
+        run: echo "value=${GITHUB_REF#refs/tags/}" >> "$GITHUB_OUTPUT"
 
+  build-backend:            # Builds and pushes the backend image to GitHub Container Registry.
+    needs: prepare
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -33,31 +41,13 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Set up QEMU                
+      - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
         with:
           platforms: ${{ env.PLATFORMS }}
 
-      - name: Set up Docker Buildx            
+      - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
-      
-      # Extract the release tag from the GitHub event context
-      - name: Extract release tag
-        id: tag
-        run: echo "value=${GITHUB_REF#refs/tags/}" >> "$GITHUB_OUTPUT"
-       
-      - name: Build and push postgres image
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: dockers/Dockerfile.postgres
-          platforms: ${{ env.PLATFORMS }}
-          push: true
-          tags: |
-            ${{ env.IMAGE_PREFIX }}-postgres:${{ steps.tag.outputs.value }}
-            ${{ env.IMAGE_PREFIX }}-postgres:latest
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
 
       - name: Build and push backend image
         uses: docker/build-push-action@v6
@@ -67,10 +57,35 @@ jobs:
           platforms: ${{ env.PLATFORMS }}
           push: true
           tags: |
-            ${{ env.IMAGE_PREFIX }}-backend:${{ steps.tag.outputs.value }}
+            ${{ env.IMAGE_PREFIX }}-backend:${{ needs.prepare.outputs.tag }}
             ${{ env.IMAGE_PREFIX }}-backend:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+  build-frontend:           # Builds and pushes the frontend image to GitHub Container Registry.
+    needs: prepare
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: ${{ env.PLATFORMS }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
       - name: Build and push frontend image
         uses: docker/build-push-action@v6
@@ -80,62 +95,88 @@ jobs:
           platforms: ${{ env.PLATFORMS }}
           push: true
           tags: |
-            ${{ env.IMAGE_PREFIX }}-frontend:${{ steps.tag.outputs.value }}
+            ${{ env.IMAGE_PREFIX }}-frontend:${{ needs.prepare.outputs.tag }}
             ${{ env.IMAGE_PREFIX }}-frontend:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Generate versioned docker-compose for release
-        env:
-          TAG: ${{ steps.tag.outputs.value }}
-          IMAGE_PREFIX: ${{ env.IMAGE_PREFIX }}
-        run: |
-          set -euo pipefail
-          echo "Generating docker-compose.release.yml with pinned image tags."
-          pip install pyyaml -q
-          python3 - << 'EOF'
-          import os, yaml
+  build-db-base:            # Builds and pushes the unseeded (schema-only) database image used for seeding.
+    needs: prepare
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-          tag = os.environ["TAG"]
-          prefix = os.environ["IMAGE_PREFIX"]
-
-          image_map = {
-              "dockers/Dockerfile.backend":  f"{prefix}-backend:{tag}",
-              "dockers/Dockerfile.frontend": f"{prefix}-frontend:{tag}",
-              "dockers/Dockerfile.postgres": f"{prefix}-postgres:{tag}",
-          }
-
-          with open("docker-compose.yml") as f:
-              compose = yaml.safe_load(f)
-
-          for svc in compose["services"].values():
-              build = svc.pop("build", {})
-              dockerfile = build.get("dockerfile")
-              if dockerfile in image_map:
-                  svc["image"] = image_map[dockerfile]
-
-          with open("docker-compose.release.yml", "w") as f:
-              yaml.dump(compose, f, default_flow_style=False, sort_keys=False)
-
-          print("docker-compose.release.yml generated.")
-          EOF
-
-      - name: Verify release assets exist
-        run: |
-          set -euo pipefail
-          test -s docker-compose.release.yml || { echo "docker-compose.release.yml is missing or empty!"; exit 1; }
-          echo "Release assets verified."
-      # Once the docker-compose file is generated and verified, we can attach it to the GitHub Release
-      - name: Attach assets to GitHub Release
-        uses: softprops/action-gh-release@v2
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v4
         with:
-          tag_name: ${{ steps.tag.outputs.value }}
-          name: Data Visualisation Docker Release ${{ steps.tag.outputs.value }}
-          files: |
-            docker-compose.release.yml
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-  fill-postgres:
-    needs: build-and-push-images
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: ${{ env.PLATFORMS }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and push unseeded db image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: dockers/Dockerfile.postgres
+          platforms: ${{ env.PLATFORMS }}
+          push: true
+          tags: |
+            ${{ env.IMAGE_PREFIX }}-db:${{ needs.prepare.outputs.tag }}-unseeded
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  build-seeder:             # Builds and pushes the seeder image to GitHub Container Registry.
+    needs: prepare
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: ${{ env.PLATFORMS }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and push seeder image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: dockers/Dockerfile.seeder
+          platforms: ${{ env.PLATFORMS }}
+          push: true
+          tags: |
+            ${{ env.IMAGE_PREFIX }}-seeder:${{ needs.prepare.outputs.tag }}
+            ${{ env.IMAGE_PREFIX }}-seeder:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  seed-full:        # Seeds the full dataset, exports the dump, and builds the preloaded db image (:TAG and :latest).
+    needs: [prepare, build-db-base, build-seeder]
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -166,19 +207,21 @@ jobs:
             -e POSTGRES_DB=citibike \
             -e POSTGRES_USER=citibike \
             -e POSTGRES_PASSWORD=citibike \
-            ${{ env.IMAGE_PREFIX }}-postgres:${{ needs.build-and-push-images.outputs.tag }}
-          until docker exec pg pg_isready -U citibike -d citibike; do
-            echo "Waiting for postgres..."; sleep 3
+            ${{ env.IMAGE_PREFIX }}-db:${{ needs.prepare.outputs.tag }}-unseeded
+          until docker logs pg 2>&1 | grep -q "database system is ready to accept connections"; do
+            echo "Waiting for postgres..."; sleep 2
           done
 
-      - name: Download and seed default dataset
-        timeout-minutes: 120
+      - name: Seed default dataset
+        timeout-minutes: 480
         run: |
           docker run --rm \
             --network container:pg \
             -e DATABASE_URL=postgresql://citibike:citibike@localhost:5432/citibike \
-            ${{ env.IMAGE_PREFIX }}-backend:${{ needs.build-and-push-images.outputs.tag }} \
-            python /app/scripts/download_data.py
+            -e PARALLEL_MONTHS=1 \
+            -e DB_LOADER_WORKERS=2 \
+            -e LOG_LEVEL=INFO \
+            ${{ env.IMAGE_PREFIX }}-seeder:${{ needs.prepare.outputs.tag }}
 
       - name: Export database dump
         run: |
@@ -190,15 +233,176 @@ jobs:
         if: always()
         run: docker rm -f pg
 
-      - name: Build and push preloaded postgres image
+      - name: Upload dump artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: citibike-dump-full
+          path: citibike_data.sql.gz
+          retention-days: 30
+
+      - name: Build and push preloaded db image
         uses: docker/build-push-action@v6
         with:
           context: .
-          file: dockers/Dockerfile.postgres-preloaded
+          file: dockers/Dockerfile.db-preloaded
           platforms: ${{ env.PLATFORMS }}
           push: true
           tags: |
-            ${{ env.IMAGE_PREFIX }}-postgres:${{ needs.build-and-push-images.outputs.tag }}
-            ${{ env.IMAGE_PREFIX }}-postgres:latest
+            ${{ env.IMAGE_PREFIX }}-db:${{ needs.prepare.outputs.tag }}
+            ${{ env.IMAGE_PREFIX }}-db:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+  seed-dev:         # Seeds the last 2 complete months and builds the small dev db image (:TAG-dev and :dev).
+    needs: [prepare, build-db-base, build-seeder]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: ${{ env.PLATFORMS }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Compute dev data window (last 2 complete months)
+        id: window
+        run: |
+          START=$(date -u -d "$(date -u +%Y-%m-01) -2 months" +%Y%m)
+          END=$(date -u -d "$(date -u +%Y-%m-01) -1 month" +%Y%m)
+          echo "start=$START" >> "$GITHUB_OUTPUT"
+          echo "end=$END" >> "$GITHUB_OUTPUT"
+          echo "Dev data window: $START..$END"
+
+      - name: Start postgres container for seeding
+        run: |
+          docker run -d --name pg \
+            -e POSTGRES_DB=citibike \
+            -e POSTGRES_USER=citibike \
+            -e POSTGRES_PASSWORD=citibike \
+            ${{ env.IMAGE_PREFIX }}-db:${{ needs.prepare.outputs.tag }}-unseeded
+          until docker logs pg 2>&1 | grep -q "database system is ready to accept connections"; do
+            echo "Waiting for postgres..."; sleep 2
+          done
+
+      - name: Seed dev dataset
+        timeout-minutes: 60
+        run: |
+          docker run --rm \
+            --network container:pg \
+            -e DATABASE_URL=postgresql://citibike:citibike@localhost:5432/citibike \
+            -e DATA_START_DATE=${{ steps.window.outputs.start }} \
+            -e DATA_END_DATE=${{ steps.window.outputs.end }} \
+            -e PARALLEL_MONTHS=1 \
+            -e DB_LOADER_WORKERS=2 \
+            -e LOG_LEVEL=INFO \
+            ${{ env.IMAGE_PREFIX }}-seeder:${{ needs.prepare.outputs.tag }}
+
+      - name: Export database dump
+        run: |
+          docker exec pg pg_dump -U citibike --no-owner --no-privileges citibike \
+            | gzip > citibike_data_dev.sql.gz
+          echo "Dump size: $(du -sh citibike_data_dev.sql.gz | cut -f1)"
+
+      - name: Stop and remove postgres container
+        if: always()
+        run: docker rm -f pg
+
+      - name: Upload dump artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: citibike-dump-dev
+          path: citibike_data_dev.sql.gz
+          retention-days: 30
+
+      - name: Build and push dev db image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: dockers/Dockerfile.db-preloaded
+          build-args: |
+            DUMP_FILE=citibike_data_dev.sql.gz
+          platforms: ${{ env.PLATFORMS }}
+          push: true
+          tags: |
+            ${{ env.IMAGE_PREFIX }}-db:${{ needs.prepare.outputs.tag }}-dev
+            ${{ env.IMAGE_PREFIX }}-db:dev
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  cleanup:          # Removes the temporary unseeded db image once both seed jobs have used it.
+    needs: [prepare, seed-full, seed-dev]
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+    steps:
+      - name: Remove temporary unseeded db image
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="${{ needs.prepare.outputs.tag }}-unseeded"
+          OWNER="${{ github.repository_owner }}"
+          PACKAGE="nyc-bike-db"
+          for ENDPOINT in \
+              "user/packages/container/${PACKAGE}/versions" \
+              "orgs/${OWNER}/packages/container/${PACKAGE}/versions"; do
+            ID=$(gh api "$ENDPOINT" --paginate 2>/dev/null \
+              | jq -r ".[] | select(.metadata.container.tags | contains([\"$TAG\"])) | .id" \
+              | head -1)
+            [ -z "$ID" ] && continue
+            gh api --method DELETE "${ENDPOINT%/versions}/$ID" \
+              && { echo "Deleted $PACKAGE:$TAG (id $ID)"; break; }
+          done
+
+  release:                 # Generates a docker-compose.release.yml with the new image tags and attaches it to the GitHub Release.
+    needs: [prepare, build-backend, build-frontend, build-db-base, build-seeder]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Generate docker-compose.release.yml
+        env:
+          TAG: ${{ needs.prepare.outputs.tag }}
+          PREFIX: ${{ env.IMAGE_PREFIX }}
+        run: |
+          yq eval "
+            .services.postgres.image = strenv(PREFIX) + \"-db:\" + strenv(TAG) |
+            .services.backend.image  = strenv(PREFIX) + \"-backend:\"  + strenv(TAG) |
+            .services.frontend.image = strenv(PREFIX) + \"-frontend:\" + strenv(TAG) |
+            del(.services.seeder) |
+            del(.services.*.build) |
+            del(.services.backend.depends_on.seeder)
+          " docker-compose.yml > docker-compose.release.yml
+
+      - name: Attach assets to GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ needs.prepare.outputs.tag }}
+          name: Data Visualisation Docker Release ${{ needs.prepare.outputs.tag }}
+          files: docker-compose.release.yml

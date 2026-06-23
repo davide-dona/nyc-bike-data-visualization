@@ -1,55 +1,77 @@
 from pathlib import Path
-import logging
-from datetime import datetime, timedelta
+from typing import Annotated
 
-PROJECT_ROOT = Path(__file__).resolve().parents[2]
+from pydantic import field_validator
+from pydantic_settings import (
+    BaseSettings,
+    NoDecode,
+    SettingsConfigDict,
+    YamlConfigSettingsSource,
+)
+
 BACKEND_ROOT = Path(__file__).resolve().parent
 
-# Base URL for the S3 bucket containing the ride data files
-BASE_URL_RIDE_DATA = "https://s3.amazonaws.com/tripdata/"
-WEATHER_API_URL = "https://archive-api.open-meteo.com/v1/archive"
+class BackendSettings(BaseSettings):
+    """Backend configuration.
 
-# URL for downloading bike route data from NYC Open Data
-BIKE_ROUTES_URL = "https://data.cityofnewyork.us/api/views/mzxg-pwib/rows.csv?accessType=DOWNLOAD"
+    All values come from config.yaml next to this module — there are no code
+    defaults, so a missing key fails loudly at startup. Environment variables
+    (uppercased field name) override the YAML; empty env vars are treated as
+    unset. config.yaml ships a local-development DATABASE_URL; Docker and CI
+    override it via the env var.
+    """
 
-# URLs provided by Lyft's GBFS feed
-INFO_URL = "https://gbfs.lyft.com/gbfs/2.3/bkn/en/station_information.json"
-STATUS_URL = "https://gbfs.lyft.com/gbfs/2.3/bkn/en/station_status.json"
+    model_config = SettingsConfigDict(
+        yaml_file=BACKEND_ROOT / "config.yaml",
+        env_ignore_empty=True,
+    )
 
-# Cache settings for GBFS data
-TTL_SECONDS = 60  # Cache time-to-live in seconds
-# Note: The GBFS feed provides a "vehicle_types_available" field which is a list of dicts containing bike counts by type. 
-# Each dict has a "vehicle_type_id" (e.g. "1" for classic bikes, "2" for e-bikes) and a "count".
-GBFS_CLASSIC_BIKE_TYPE_ID = "1"
-GBFS_EBIKE_TYPE_ID = "2"
+    # Database connection URL (local default in config.yaml, env-overridable)
+    database_url: str
+    pool_min_conn: int
+    pool_max_conn: int
 
-# Path to directories and files
-DATA_DIR = PROJECT_ROOT / "data"
-RIDES_DATA_DIR = DATA_DIR / "rides"             # Directory for processed ride data
-WEATHER_DATA_DIR = DATA_DIR / "weather"         # Directory for processed weather data
-STATION_DATA_DIR = DATA_DIR / "stations"        # Directory for precomputed station-pair distances
-STATION_DISTANCES_PATH = STATION_DATA_DIR / "station_pair_distances.parquet"
-BIKE_ROUTES_DATA_DIR = DATA_DIR / "bike_routes" # Directory for preprocessed bike route data
-BIKE_ROUTES_PATH = BIKE_ROUTES_DATA_DIR / "bike_routes.parquet"
-DAILY_STATS_DATA_DIR = DATA_DIR / "daily_stats"  # Directory for precomputed daily stats
-DAILY_STATS_PATH = DAILY_STATS_DATA_DIR / "daily_stats.parquet"
+    # GBFS feed URLs and constants (Lyft/Citi Bike)
+    info_url: str
+    status_url: str
+    gbfs_cache_ttl_seconds: int
+    gbfs_classic_bike_type_id: str
+    gbfs_ebike_type_id: str
 
-# Setting for weather data retrieval
-NYC_COORDS = (40.7823234, -73.9654161)
-WEATHER_TIMEZONE = "America/New_York"
+    # Logging (level name accepted by logging.setLevel, e.g. "INFO", "DEBUG")
+    log_file_path: str
+    log_level: str
 
-# Default parameters for data processing and retrieval
-DEFAULT_START_DATE = "202501"
-# The default end date is set to the YYYYMM of the previous month
-one_month_ago = datetime.now() - timedelta(days=30)
-DEFAULT_END_DATE = one_month_ago.strftime("%Y%m")
-DOWNLOAD_JC = False
-YEARLY_CUTOFF = 2023        # If a file name contains only a year <= this cutoff, we assume it covers the entire year
-PARQUET_COMPRESSION = "zstd"
-STREET_CIRCUITY_FACTOR = 1.3
+    # CORS allowed origins (comma-separated when given via env var)
+    cors_origins: Annotated[list[str], NoDecode]
 
-TEST_DATA_DIR = BACKEND_ROOT / "tests" / "test_data"
+    # Test fixtures
+    test_data_dir: Path
 
-# Log file settings
-LOG_FILE_PATH = "logs/requests.log"
-LOG_LEVEL = logging.INFO            # To disable logging, set to logging.CRITICAL or higher
+    @field_validator("cors_origins", mode="before")
+    @classmethod
+    def _split_csv(cls, v):
+        if isinstance(v, str):
+            return [o.strip() for o in v.split(",") if o.strip()]
+        return v
+
+    @field_validator("test_data_dir", mode="after")
+    @classmethod
+    def _resolve_against_backend_root(cls, v: Path) -> Path:
+        return v if v.is_absolute() else BACKEND_ROOT / v
+
+    @classmethod
+    def settings_customise_sources(
+        cls, settings_cls, init_settings, env_settings, dotenv_settings, file_secret_settings
+    ):
+        # Priority: init args > env vars > config.yaml
+        return (
+            init_settings,
+            env_settings,
+            dotenv_settings,
+            YamlConfigSettingsSource(settings_cls),
+            file_secret_settings,
+        )
+
+
+settings = BackendSettings()

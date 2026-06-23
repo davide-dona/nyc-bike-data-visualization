@@ -1,10 +1,11 @@
 import DeckGL from '@deck.gl/react'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useMapHandler } from './hooks/useMapHandler.js'
 import { useBuildLayers } from './hooks/useBuildLayers.js'
 import MapController from './components/MapController.jsx'
 import MapLegend from './components/MapLegend.jsx'
 import LayerSelector from './components/LayerSelector.jsx'
+import InfrastructureStationSidebar from './components/InfrastructureStationSidebar.jsx'
 import StatusMessage from '../../components/StatusMessage.jsx'
 import Tooltip from './components/Tooltip.jsx'
 import VisualizationGuide from '../../components/VisualizationGuide.jsx'
@@ -38,6 +39,12 @@ export const MIN_LONGITUDE = -74.30
 export const MAX_LONGITUDE = -73.65
 export const MIN_LATITUDE = 40.45
 export const MAX_LATITUDE = 40.95
+
+const POINT_LAYER_ID_PREFIXES = [
+    'station-usage-layer',
+    'trip-flow-stations-layer',
+    'station-availability-layer',
+]
 
 const MAP_LAYER_GUIDES = {
     station_usage: {
@@ -110,6 +117,26 @@ const MAP_LAYER_GUIDES = {
 
 function MapPage({ filters }) {
     const [showInitialLoadingOverlay, setShowInitialLoadingOverlay] = useState(true)
+    const [isHoveringPoint, setIsHoveringPoint] = useState(false)
+    const [isFullscreen, setIsFullscreen] = useState(false)
+    const mapShellRef = useRef(null)
+
+    const handleHover = useCallback(({ object, layer }) => {
+        if (!object || !layer?.id) {
+            setIsHoveringPoint(false)
+            return
+        }
+
+        setIsHoveringPoint(
+            POINT_LAYER_ID_PREFIXES.some((prefix) => layer.id.startsWith(prefix)),
+        )
+    }, [])
+
+    const getCursor = useCallback(({ isDragging }) => {
+        if (isDragging) return 'grabbing'
+        if (isHoveringPoint) return 'pointer'
+        return 'grab'
+    }, [isHoveringPoint])
 
     useEffect(() => {
         const timeoutId = setTimeout(() => {
@@ -119,6 +146,29 @@ function MapPage({ filters }) {
         return () => {
             clearTimeout(timeoutId)
         }
+    }, [])
+
+    useEffect(() => {
+        const syncFullscreenState = () => {
+            setIsFullscreen(document.fullscreenElement === mapShellRef.current)
+        }
+
+        document.addEventListener('fullscreenchange', syncFullscreenState)
+        return () => {
+            document.removeEventListener('fullscreenchange', syncFullscreenState)
+        }
+    }, [])
+
+    const toggleFullscreen = useCallback(async () => {
+        const mapShellNode = mapShellRef.current
+        if (!mapShellNode || !document.fullscreenEnabled) return
+
+        if (document.fullscreenElement === mapShellNode) {
+            await document.exitFullscreen()
+            return
+        }
+
+        await mapShellNode.requestFullscreen()
     }, [])
 
     // Map handler manages view state, active layer, animation time, and related logic
@@ -131,7 +181,9 @@ function MapPage({ filters }) {
         setActiveLayer,
         setCurrentTime,
         setShowBikeRoutes,
+        setUsageMode,
         showBikeRoutes,
+        usageMode,
         viewState,
     } = useMapHandler()
     // Build the layers to be rendered based on the active layer and fetched data
@@ -139,15 +191,31 @@ function MapPage({ filters }) {
         layers,
         loading,
         error,
+        clearInfrastructureSelection,
         refetch,
         resetSelectedStationIds,
         hasTripFlowSelection,
-    } = useBuildLayers({ filters, currentTime, activeLayer, showBikeRoutes })
+        selectedInfrastructureStations,
+    } = useBuildLayers({ filters, currentTime, activeLayer, showBikeRoutes, usageMode })
     const shouldShowMapUi = !error
     const shouldShowMapLegend = !loading && !error
     const hasLayersData = layers.length > 0 && layers.some(layer => Array.isArray(layer.data) && layer.data.length > 0)
     const shouldShowStatusOverlay = showInitialLoadingOverlay || loading || error || !hasLayersData
     const guide = MAP_LAYER_GUIDES[activeLayer] ?? MAP_LAYER_GUIDES.station_usage
+
+    const handleMapClick = useCallback((info) => {
+        if (activeLayer !== 'infrastructure') return
+
+        const pickedObject = info?.object
+        const layerId = info?.layer?.id ?? ''
+        const isStationPick = layerId.startsWith('station-availability-layer') && pickedObject?.id
+
+        if (isStationPick) return
+
+        if (!pickedObject) {
+            clearInfrastructureSelection()
+        }
+    }, [activeLayer, clearInfrastructureSelection])
 
     return (
         <section className="page-card">
@@ -169,14 +237,31 @@ function MapPage({ filters }) {
                 </div>
             </header>
             <div className="page-card__body">
-                <div className="map-shell">
+                <div ref={mapShellRef} className="map-shell">
                     <DeckGL
                         viewState={viewState}
                         onViewStateChange={handleViewStateChange}
                         controller={controller}
                         layers={layers}
-                        getTooltip={({ object }) => Tooltip({ object, activeLayer })}
+                        onHover={handleHover}
+                        onClick={handleMapClick}
+                        getCursor={getCursor}
+                        getTooltip={({ object }) => Tooltip({ object, activeLayer, usageMode })}
                     />
+                    <button
+                        type="button"
+                        className="map-fullscreen-button"
+                        onClick={toggleFullscreen}
+                        title={isFullscreen ? 'Exit full screen' : 'Enter full screen'}
+                        aria-label={isFullscreen ? 'Exit full screen map' : 'Enter full screen map'}
+                    >
+                        <span className="map-fullscreen-button__icon" aria-hidden="true">
+                            <i className={`fa-solid ${isFullscreen ? 'fa-compress' : 'fa-expand'}`} />
+                        </span>
+                        <span className="map-fullscreen-button__text">
+                            {isFullscreen ? 'Exit Full Screen' : 'Full Screen'}
+                        </span>
+                    </button>
                     {shouldShowMapUi && (
                         <MapController
                             activeLayer={activeLayer}
@@ -185,6 +270,8 @@ function MapPage({ filters }) {
                             hasAnimation={hasAnimation}
                             showBikeRoutes={showBikeRoutes}
                             setShowBikeRoutes={setShowBikeRoutes}
+                            usageMode={usageMode}
+                            setUsageMode={setUsageMode}
                             resetSelectedStationIds={resetSelectedStationIds}
                             hasTripFlowSelection={hasTripFlowSelection}
                             disabled={loading}
@@ -196,6 +283,11 @@ function MapPage({ filters }) {
                             showBikeRoutes={showBikeRoutes}
                         />
                     )}
+                    <InfrastructureStationSidebar
+                        selectedStations={selectedInfrastructureStations}
+                        filters={filters}
+                        onClose={clearInfrastructureSelection}
+                    />
                     {shouldShowStatusOverlay && (
                         <StatusMessage
                             loading={showInitialLoadingOverlay || loading}

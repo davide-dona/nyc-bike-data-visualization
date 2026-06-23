@@ -115,7 +115,7 @@ export default function ScatterPlot({ data, loading, error, onRefetch }) {
                             Activity
                         </div>
                         <div style="margin-bottom: 4px; font-family: ${FONT_MONO}; font-size: 11px;">
-                            <span style="color: ${PAPER_RAISED}; font-weight: 600;">${point.ridesPerHour.toFixed(0)}</span><span style="color: rgba(251, 248, 242, 0.7);">/h</span>
+                            <span style="color: ${PAPER_RAISED}; font-weight: 600;">${point.ridesPerHour.toFixed(0)}</span><span style="color: rgba(251, 248, 242, 0.7);">/h</span>${point.ridesPerHourSE != null ? `<span style="color: rgba(251, 248, 242, 0.55); margin-left: 4px;">± ${point.ridesPerHourSE.toFixed(1)}</span>` : ""}
                         </div>
                         <div style="margin-bottom: 4px; font-family: ${FONT_MONO}; font-size: 11px;">
                             <span style="color: rgba(251, 248, 242, 0.7);">Volume:</span>
@@ -140,7 +140,7 @@ export default function ScatterPlot({ data, loading, error, onRefetch }) {
                         </div>
                         <div style="font-family: ${FONT_MONO}; font-size: 11px;">
                             <span style="color: rgba(251, 248, 242, 0.7);">Typical speed:</span>
-                            <span style="color: ${PAPER_RAISED}; font-weight: 600; margin-left: 4px;">${point.avgSpeed.toFixed(2)}km/h</span>
+                            <span style="color: ${PAPER_RAISED}; font-weight: 600; margin-left: 4px;">${point.avgSpeed.toFixed(2)}km/h</span>${point.avgSpeedSE != null ? `<span style="color: rgba(251, 248, 242, 0.55); margin-left: 4px;">± ${point.avgSpeedSE.toFixed(2)}</span>` : ""}
                         </div>
                     </div>
                 `

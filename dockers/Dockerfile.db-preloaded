@@ -1,0 +1,12 @@
+# Builds a postgres image preloaded with a Citi Bike database dump.
+# Used by the CI workflows (docker-publish.yml, monthly-update.yml) to produce
+# the full (:latest / :TAG) and dev (:dev) variants of the nyc-bike-db image.
+ARG BASE_IMAGE=postgres:16-alpine
+FROM ${BASE_IMAGE}
+
+COPY postgres/init/ /docker-entrypoint-initdb.d/
+RUN sed -i 's/\r//' /docker-entrypoint-initdb.d/*.sh
+
+# Dump file in the build context; restored by the postgres entrypoint on first boot
+ARG DUMP_FILE=citibike_data.sql.gz
+COPY ${DUMP_FILE} /docker-entrypoint-initdb.d/99_citibike_data.sql.gz

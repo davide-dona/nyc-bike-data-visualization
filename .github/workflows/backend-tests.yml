@@ -6,16 +6,18 @@ on:
       - main
     paths:
       - "src/backend/**"
-      - "scripts/**"
-      - "requirements.txt"
+      - "src/ingestion/**"
+      - "pyproject.toml"
+      - "uv.lock"
       - ".github/workflows/backend-tests.yml"
   pull_request:
     branches:
       - main
     paths:
       - "src/backend/**"
-      - "scripts/**"
-      - "requirements.txt"
+      - "src/ingestion/**"
+      - "pyproject.toml"
+      - "uv.lock"
       - ".github/workflows/backend-tests.yml"
 
 jobs:
@@ -46,10 +48,11 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
       - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
+        run: uv sync --frozen
 
       - name: Create test database
         env:
@@ -61,13 +64,13 @@ jobs:
       - name: Seed test database
         env:
           DATABASE_URL: postgresql://citibike:citibike@localhost:5432/citibike_test
-        run: python scripts/load_test_data.py
+        run: uv run python -m src.ingestion.load_test_data
 
       - name: Run backend integration tests
         env:
           DATABASE_URL: postgresql://citibike:citibike@localhost:5432/citibike_test
         run: |
-          python -m uvicorn src.backend.main:app --host 127.0.0.1 --port 8000 &
+          uv run python -m uvicorn src.backend.main:app --host 127.0.0.1 --port 8000 &
           SERVER_PID=$!
           trap 'kill $SERVER_PID' EXIT
 
@@ -85,4 +88,4 @@ jobs:
           PY
 
           cd src/backend
-          pytest tests -q
+          uv run pytest tests -q

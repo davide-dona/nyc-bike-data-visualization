@@ -1,0 +1,57 @@
+import logging
+
+import polars as pl
+from psycopg2.extras import execute_values
+
+log = logging.getLogger(__name__)
+
+def upsert_weather_hourly(conn, weather_df: pl.DataFrame) -> None:
+    """Upsert hourly weather observations into weather_hourly, deduped by (date, hour)."""
+    if weather_df.is_empty():
+        log.info("[DB-LOAD: weather_hourly] 0 rows upserted")
+        return
+
+    weather_hourly = (
+        weather_df
+        .with_columns([
+            pl.col("datetime").dt.date().alias("date"),
+            pl.col("datetime").dt.hour().cast(pl.Int16).alias("hour"),
+            (pl.col("datetime").dt.weekday() - 1).cast(pl.Int16).alias("day_of_week"),
+        ])
+        .select([
+            "date",
+            "hour",
+            "day_of_week",
+            pl.col("weather_code").cast(pl.Int16),
+            pl.col("temperature_2m").cast(pl.Float64),
+            pl.col("precipitation").cast(pl.Float64),
+            pl.col("wind_speed_10m").cast(pl.Float64),
+        ])
+        .unique(subset=["date", "hour"], keep="last")
+    )
+
+    rows = [
+        (
+            r["date"],
+            int(r["hour"]),
+            int(r["day_of_week"]),
+            int(r["weather_code"]) if r["weather_code"] is not None else None,
+            float(r["temperature_2m"]) if r["temperature_2m"] is not None else None,
+            float(r["precipitation"]) if r["precipitation"] is not None else None,
+            float(r["wind_speed_10m"]) if r["wind_speed_10m"] is not None else None,
+        )
+        for r in weather_hourly.iter_rows(named=True)
+    ]
+
+    with conn.cursor() as cur:
+        execute_values(
+            cur,
+            """
+            INSERT INTO weather_hourly
+                (date, hour, day_of_week, weather_code, temperature_2m, precipitation, wind_speed_10m)
+            VALUES %s
+            ON CONFLICT (date, hour) DO NOTHING
+            """,
+            rows,
+        )
+    log.info(f"[DB-LOAD: weather_hourly] Inserted {len(rows)} rows")

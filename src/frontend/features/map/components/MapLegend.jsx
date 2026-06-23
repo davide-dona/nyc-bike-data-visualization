@@ -8,12 +8,12 @@ import { legendFor, bikeRoutesLegend } from "../utils/map_legend.js";
  * @param {boolean} showBikeRoutes - When true, an extra bike-routes section is surfaced.
  * @returns {JSX.Element} Legend panel for the current map layer.
  */
-export default function MapLegend({ activeLayer, showBikeRoutes }) {
+export default function MapLegend({ activeLayer, showBikeRoutes, className = '' }) {
     const activeLayerLabel = LAYER_OPTIONS.find((layer) => layer.value === activeLayer)?.label || "Layer";
     const legend = legendFor(activeLayer, { showBikeRoutes });
 
     return (
-        <div className="map-legend">
+        <div className={`map-legend-${activeLayerLabel == "Station usage" ? "bottom-right" : "top-left"}${className ? ` ${className}` : ''}`}>
             <p className="map-legend-title">{activeLayerLabel}</p>
             <ul className="map-legend__list">
                 {legend.entries.map((entry) => (
