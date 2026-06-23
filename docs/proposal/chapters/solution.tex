@@ -28,6 +28,24 @@ While specific chart types and encodings will be refined during development, a f
 Regarding focus, the map-centric spatial view serves as the primary entry point, offering the most intuitive and immediate reading of the data.
 Temporal and user/rideable breakdowns take a supporting role, enriching the analysis without cluttering the interface.
 
+\subsection{Message-Driven Views}
+The considerations above describe the exploratory layer of the dashboard.
+On top of it, three guided views carry the narrative defined by our driving questions, each pairing a question with a deliberate encoding:
+\begin{itemize}
+  \item \textbf{Adoption view (growth)}: a stacked area chart of monthly trip volume since 2013, split by rideable type (classic vs.\@ electric) to expose the shift towards e-bikes.
+  We deliberately plot raw counts and annotate that part of the rise reflects fleet and station expansion rather than demand alone, so the trend is not over-interpreted.
+  \item \textbf{Two-ridership view (weather split)}: a scatter plot of daily ridership against temperature, with separate regression lines for members and casual riders, faceted by season and filterable by precipitation.
+  The contrast in the two slopes \emph{is} the message: casual demand is weather-elastic, while commuter demand stays comparatively flat.
+  \item \textbf{Green-dividend view (headline)}: a cumulative area chart of estimated car-kilometres displaced and \(\text{CO}_2\) avoided over time.
+  We compute it as
+  \[
+    \text{CO}_2\ \text{avoided} = \text{trips} \times \text{avg.\ distance} \times \text{substitution rate} \times \text{emission factor},
+  \]
+  where the car-substitution rate is the most uncertain term.
+  Rather than present a single, potentially misleading figure, we render the result as a low/mid/high band controlled by a slider and accompanied by an explicit assumptions box, turning an estimate into a transparent, defensible range.
+\end{itemize}
+These guided views act as the immediate, high-level entry points of the dual-level design, while the map, faceted temporal charts, and cross-filtering described above let users drill down once a message has caught their attention.
+
 \subsection{Constraints}
 In general, obtaining the most value from the data while respecting project constraints is a key challenge.
 The project must balance the ambition of performing meaningful analyses with practical limitations such as time availability, data quality, and implementation complexity. 

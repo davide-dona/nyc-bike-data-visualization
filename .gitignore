@@ -29,3 +29,4 @@ node_modules/
 /src/frontend/dist
 .github/prompts/plan-polarsParquetStrategy.prompt.md
 CLAUDE.md
+docs/requirements/

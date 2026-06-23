@@ -44,6 +44,7 @@ For development, run a pre-seeded database in Docker and start the backend and f
 
 - [Backend](src/backend/README.md): FastAPI server, PostgreSQL setup, running tests, API docs
 - [Frontend](src/frontend/README.md): React + Vite app, development server, running tests
+- [Dataset exploration](src/notebooks/README.md): EDA notebook behind the technical report (dataset description and data-quality analysis)
 
 ## Repository Structure
 

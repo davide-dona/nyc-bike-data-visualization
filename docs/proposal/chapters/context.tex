@@ -37,5 +37,26 @@ This information reflects the most relevant angles we aim to explore, as it dire
 Beyond the operations team, our visualization can also benefit city planners by providing insights into commute 
 flows and modal patterns, which can inform infrastructure investment and urban planning decisions.
 
-For the general public, it can raise awareness of urban mobility and sustainable transportation alternatives, 
+For the general public, it can raise awareness of urban mobility and sustainable transportation alternatives,
 fostering a more informed and engaged community.
+
+\subsection{Intended Message and Driving Questions}
+Beyond exposing the data for free exploration, our visualization argues a specific thesis:
+\begin{quote}
+\textit{Citi Bike has grown into a year-round engine of low-carbon mobility in New York City, and the size of that climate dividend depends on who is riding and on the weather.}
+\end{quote}
+
+This message is supported by three driving questions, ordered so that the narrative builds from scale, to nuance, to payoff:
+\begin{enumerate}
+  \item \textbf{Adoption: is bike usage growing?}
+  We trace ridership since 2013 to show whether \texttt{Citi Bike} is becoming a more established part of the city's mobility, and whether the recent growth is increasingly electric.
+  We report raw ride volumes while being explicit that part of any rise reflects fleet and station expansion, not demand alone.
+  \item \textbf{Two riderships: who keeps riding when the weather turns?}
+  We contrast members (largely commuters) with casual riders (largely leisure and tourism) to test the hypothesis that commuter demand is weather-resilient while casual demand is fair-weather, varying sharply with temperature, precipitation, and season.
+  \item \textbf{Green dividend: how much car travel does this displace?}
+  As the headline of the project, we translate ridership into an estimate of car-kilometres avoided and the associated \(\text{CO}_2\) savings, making the sustainability argument concrete.
+  Because this estimate depends on an assumed car-substitution rate, we communicate it transparently as a range rather than a single figure.
+\end{enumerate}
+
+These questions nest rather than compete: the green dividend (Q3) scales with the volume established by adoption (Q1) and is modulated by the seasonal and user-type split revealed in (Q2).
+This thesis-driven framing guides our default views, while the underlying exploratory interface still lets users investigate the data on their own terms.
