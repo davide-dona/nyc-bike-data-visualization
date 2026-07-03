@@ -8,6 +8,7 @@ import {
     FONT_MONO,
 } from "../../../utils/editorialTokens.js"
 import { BAR_SOLID, BAR_MUTED } from "../../../utils/styling"
+import { formatCount } from "../../../utils/numberFormat.js"
 import StatusMessage from "../../../components/StatusMessage"
 
 // Labels keyed on the backend bucket lower edges (mm/h),
@@ -77,7 +78,7 @@ export default function RainImpact({ data, loading, error, onRefetch }) {
                         callbacks: {
                             label: (item) => {
                                 const bucket = buckets[item.dataIndex]
-                                return `${item.parsed.y.toFixed(0)}% of dry-weather pace (${bucket.hoursCount.toLocaleString()} observed hours)`
+                                return `${item.parsed.y.toFixed(0)}% of dry-weather pace (${formatCount(bucket.hoursCount)} observed hours)`
                             },
                         },
                     },
@@ -117,7 +118,7 @@ export default function RainImpact({ data, loading, error, onRefetch }) {
 
     return (
         <div className="weather-deepdive-frame">
-            <p className="weather-deepdive-frame__title">Rain impact — ridership vs dry baseline</p>
+            <p className="weather-deepdive-frame__title">Rain impact - ridership vs dry baseline</p>
             <div className="weather-deepdive-plot">
                 {buckets.length > 0 || loading || error
                     ? <canvas ref={canvasRef} />

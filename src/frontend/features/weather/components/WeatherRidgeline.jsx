@@ -65,7 +65,7 @@ function WeatherRidgeline({ data, loading, error, onRefetch }) {
                         (dimension === "hour"
                             ? "Moment: <b>%{x:02d}:00</b><br>"
                             : "Moment: <b>%{x}</b><br>") +
-                        "Density: <b>%{customdata:.2f}</b><extra></extra>",
+                        "Density: <b>%{customdata:,.2f}</b><extra></extra>",
                     customdata: ridge.rawSeries,
                     showlegend: false,
                 };
@@ -120,6 +120,7 @@ function WeatherRidgeline({ data, loading, error, onRefetch }) {
                         layout={{
                             paper_bgcolor: PAPER_RAISED,
                             plot_bgcolor: PAPER_RAISED,
+                            separators: ".'",
                             margin: { l: 94, r: 24, t: 18, b: 52, pad: 10 },
                             hovermode: "closest",
                             dragmode: false,

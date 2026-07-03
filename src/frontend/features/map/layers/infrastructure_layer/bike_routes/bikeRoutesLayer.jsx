@@ -1,15 +1,15 @@
 import { GeoJsonLayer } from '@deck.gl/layers'
 
 /**
- * Color map for bike facility classes — editorial palette.
+ * Color map for bike facility classes - editorial palette.
  * Three clearly distinct hues, each carrying implicit meaning:
  * forest = segregated/safe, accent = primary network, amber = shared/caution.
  */
 export const FACILITY_COLORS = {
-    I:   [ 47, 125,  79, 255],   // forest — off-street path
-    II:  [ 25,  83, 216, 255],   // accent — dedicated lane
-    III: [200, 138,  26, 255],   // amber  — signed shared
-    _default: [110, 106, 98, 255], // ink-muted — unknown
+    I:   [ 47, 125,  79, 255],   // forest - off-street path
+    II:  [ 25,  83, 216, 255],   // accent - dedicated lane
+    III: [200, 138,  26, 255],   // amber  - signed shared
+    _default: [110, 106, 98, 255], // ink-muted - unknown
 }
 
 /**
@@ -23,7 +23,7 @@ export const FACILITY_LABELS = {
 }
 
 /**
- * CSS-friendly color strings, mirrored from FACILITY_COLORS — used by the
+ * CSS-friendly color strings, mirrored from FACILITY_COLORS - used by the
  * React legend component only (no deck.gl involvement).
 */
 export const FACILITY_CSS_COLORS = {
@@ -62,7 +62,7 @@ export function createBikeRoutesLayer({ routes, hoveredrouteID, onRoutePick }) {
             return f.routeID === hoveredrouteID
                 ? [255, 255, 255, 255]              // HIGHLIGHTED SEGMENTS
                 : [base[0], base[1], base[2], 255] // NOT SELECTED BIKE ROUTES
-            // No hover active — normal class-based colour
+            // No hover active - normal class-based colour
         },
         // Hover events
         pickable: true,
@@ -108,9 +108,9 @@ export function bikeRouteTooltip(object) {
 export function bikeRoutesLegend() {
     return {
         entries: [
-            { swatch: FACILITY_CSS_COLORS.I,   label: FACILITY_LABELS.I },
-            { swatch: FACILITY_CSS_COLORS.II,  label: FACILITY_LABELS.II },
-            { swatch: FACILITY_CSS_COLORS.III, label: FACILITY_LABELS.III },
+            { key: 'I',   swatch: FACILITY_CSS_COLORS.I,   label: FACILITY_LABELS.I },
+            { key: 'II',  swatch: FACILITY_CSS_COLORS.II,  label: FACILITY_LABELS.II },
+            { key: 'III', swatch: FACILITY_CSS_COLORS.III, label: FACILITY_LABELS.III },
         ],
     }
 }

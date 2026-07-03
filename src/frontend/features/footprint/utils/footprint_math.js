@@ -1,4 +1,5 @@
 import { CAR_G_PER_KM, SUBSTITUTION_RATE } from './emission_factors.js'
+import { formatCount, formatNumber } from '../../../utils/numberFormat.js'
 
 const GRAMS_PER_TONNE = 1_000_000
 
@@ -49,17 +50,12 @@ export function buildCumulativeAvoidedSeries(dateRows, substitutionRate) {
     return series
 }
 
-const COMPACT_FORMAT = new Intl.NumberFormat('en-US', { notation: 'compact', maximumFractionDigits: 1 })
-
-/** Compact human form for large counts: 22282082 -> "22.3M". */
-export function formatCompact(value) {
-    if (!Number.isFinite(value)) return '-'
-    return COMPACT_FORMAT.format(value)
-}
+// Single compact implementation lives in the shared util; re-exported for the tiles.
+export { formatCompact } from '../../../utils/numberFormat.js'
 
 /** Tonnes with sensible precision: whole numbers once past 100 t, one decimal below. */
 export function formatTonnes(tonnes) {
     if (!Number.isFinite(tonnes)) return '-'
-    if (tonnes >= 100) return Math.round(tonnes).toLocaleString('en-US')
-    return tonnes.toFixed(1)
+    if (tonnes >= 100) return formatCount(tonnes)
+    return formatNumber(tonnes, 1)
 }

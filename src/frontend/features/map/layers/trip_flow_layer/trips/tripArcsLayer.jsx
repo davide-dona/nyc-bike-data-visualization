@@ -4,15 +4,16 @@ import {
     ACCENT_INK_RGB,
     WARM_HIGHLIGHT_RGB,
 } from '../../../../../utils/editorialTokens.js'
+import { formatCount, formatNumber } from '../../../../../utils/numberFormat.js'
 
-// Arc styling — alpha and width ramps stay; palette is editorial.
+// Arc styling - alpha and width ramps stay; palette is editorial.
 const BASE_ALPHA = 80
 const MAX_ALPHA_RANGE = 175
 const BASE_WIDTH = 3
 const MAX_WIDTH_RANGE = 20
 const SOURCE_COLOR = ACCENT_RGB            // [25, 83, 216]
 const TARGET_COLOR = ACCENT_INK_RGB        // [10, 42, 122]
-const SELECTED_LINK_COLOR = WARM_HIGHLIGHT_RGB // [229, 140, 43] — pops against blue field
+const SELECTED_LINK_COLOR = WARM_HIGHLIGHT_RGB // [229, 140, 43] - pops against blue field
 
 /**
  * Normalizes trip usage to a 0–1 range
@@ -99,12 +100,12 @@ export function createTripsArcLayer({ trips, maxTripCount, selectedStationIds = 
 * @returns {string} The tooltip content.
 */
 export function tripArcsTooltip(object) {
-    const rides = Math.round(Number(object.total_daily_flow) || 0)
+    const rides = Number(object.total_daily_flow) || 0
     const from = object.start_station_name
     const to = object.end_station_name
-    const totalRides = object.total_rides
-    const a_to_b = Math.round(object.a_to_b_flow || 0)
-    const b_to_a = Math.round(object.b_to_a_flow || 0)
-    return `Trip: ${from} → ${to}\n Daily Rides: ${rides}\n Total Rides: ${totalRides}\n Daily Flow A→B: ${a_to_b.toFixed(2)}\n Daily Flow B→A: ${b_to_a.toFixed(2)}`
+    const totalRides = Number(object.total_rides) || 0
+    const a_to_b = Number(object.a_to_b_flow) || 0
+    const b_to_a = Number(object.b_to_a_flow) || 0
+    return `Trip: ${from} → ${to}\n Daily Rides: ${formatCount(rides)}\n Total Rides: ${formatCount(totalRides)}\n Daily Flow A→B: ${formatNumber(a_to_b, 2)}\n Daily Flow B→A: ${formatNumber(b_to_a, 2)}`
 }
 

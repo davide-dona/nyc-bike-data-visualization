@@ -167,11 +167,15 @@ function MapPage({ filters }) {
         currentTime,
         handleViewStateChange,
         hasAnimation,
+        hiddenHealthCategories,
+        hiddenRouteClasses,
         setActiveLayer,
         setCurrentTime,
         setShowBikeRoutes,
         setUsageMode,
         showBikeRoutes,
+        toggleHealthCategory,
+        toggleRouteClass,
         usageMode,
         viewState,
     } = useMapHandler()
@@ -186,7 +190,7 @@ function MapPage({ filters }) {
         resetSelectedStationIds,
         hasTripFlowSelection,
         selectedInfrastructureStations,
-    } = useBuildLayers({ filters, currentTime, activeLayer, showBikeRoutes, usageMode })
+    } = useBuildLayers({ filters, currentTime, activeLayer, showBikeRoutes, usageMode, hiddenHealthCategories, hiddenRouteClasses })
     const shouldShowMapUi = !error
     const shouldShowMapLegend = !loading && !error
     // Data can also be "not ready yet" without a query in flight (e.g. before
@@ -213,7 +217,7 @@ function MapPage({ filters }) {
         <section className="page-card">
             <header className="page-card__header">
                 <div className="page-card__heading">
-                    <span className="page-card__eyebrow">01 — Atlas</span>
+                    <span className="page-card__eyebrow">01 - Atlas</span>
                     <h2 className="page-card__title">The city, one ride at a time.</h2>
                     <p className="page-card__subtitle">
                         An interactive read of station usage, trip flows, and cycling
@@ -273,6 +277,10 @@ function MapPage({ filters }) {
                         <MapLegend
                             activeLayer={activeLayer}
                             showBikeRoutes={showBikeRoutes}
+                            hiddenHealthCategories={hiddenHealthCategories}
+                            hiddenRouteClasses={hiddenRouteClasses}
+                            onToggleHealthCategory={toggleHealthCategory}
+                            onToggleRouteClass={toggleRouteClass}
                         />
                     )}
                     <InfrastructureStationSidebar

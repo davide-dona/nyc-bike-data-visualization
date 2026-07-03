@@ -521,7 +521,21 @@
     }
 
     .surface-histogram-card__eyebrow {
-        @apply font-mono text-[11px] uppercase tracking-eyebrow text-ink-muted m-0;
+        @apply font-mono text-[11px] uppercase tracking-eyebrow text-ink-muted m-0
+               flex items-center gap-2;
+    }
+
+    /* Dismissable pin chip shown on the card that receives the slice overlay */
+    .surface-histogram-chip {
+        @apply font-mono text-[10px] uppercase tracking-eyebrow cursor-pointer
+               inline-flex items-center gap-1 px-2 py-0.5 border;
+        color: #e58c2b;
+        border-color: rgba(229, 140, 43, 0.55);
+        background: rgba(229, 140, 43, 0.10);
+    }
+
+    .surface-histogram-chip:hover {
+        background: rgba(229, 140, 43, 0.22);
     }
 
     .surface-histogram-chart {

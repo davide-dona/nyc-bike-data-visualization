@@ -1,9 +1,11 @@
+import { formatNumber } from '../../../utils/numberFormat.js'
+
 // Utility functions and configurations for formatting and retrieving metrics
 export const METRIC_FORMATTERS = {
-    total_rides: value => value.toFixed(1),
-    average_duration_minutes: value => value.toFixed(1) + " min",
-    average_distance: value => value.toFixed(1) + " km",
-    average_speed_kmh: value => value.toFixed(1) + " km/h",
+    total_rides: value => formatNumber(value, 2),
+    average_duration_minutes: value => formatNumber(value, 2) + " min",
+    average_distance: value => formatNumber(value, 2) + " km",
+    average_speed_kmh: value => formatNumber(value, 2) + " km/h",
 }
 
 function getRidesPerDay(row) {

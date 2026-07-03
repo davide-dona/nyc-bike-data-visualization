@@ -1,5 +1,6 @@
 import { HexagonLayer } from '@deck.gl/aggregation-layers'
 import { STATION_USAGE_COLOR_RANGE } from '../../../../utils/styling/map.ts'
+import { formatCount } from '../../../../utils/numberFormat.js'
 
 const LAYER_CONFIG = {
     radius: 150,
@@ -58,12 +59,12 @@ const MODE_TOOLTIP_LABELS = {
 export function stationUsageTooltip(object, usageMode = 'all') {
     const metricLabel = MODE_TOOLTIP_LABELS[usageMode] ?? MODE_TOOLTIP_LABELS.all
     if (Array.isArray(object.points) && object.points.length > 0) {
-        const totalUsage = Math.round(object.points.reduce((sum, p) => sum + (Number(p.usage) || 0), 0))
+        const totalUsage = object.points.reduce((sum, p) => sum + (Number(p.usage) || 0), 0)
         const ids = [...new Set(object.points.map((p) => p.stationId).filter(Boolean))]
-        return `Station(s): ${object.points.length}\n${metricLabel}: ${totalUsage}\nIDs: ${ids.slice(0, 4).join(', ')}${ids.length > 4 ? ', …' : ''}`
+        return `Station(s): ${formatCount(object.points.length)}\n${metricLabel}: ${formatCount(totalUsage)}\nIDs: ${ids.slice(0, 4).join(', ')}${ids.length > 4 ? ', …' : ''}`
     }
-    const totalUsage = Math.round(Number(object.elevationValue ?? object.colorValue ?? 0) || 0)
-    return `Station(s): ${Math.round(Number(object.count ?? 0) || 0)}\n${metricLabel}: ${totalUsage}`
+    const totalUsage = Number(object.elevationValue ?? object.colorValue ?? 0) || 0
+    return `Station(s): ${formatCount(Number(object.count ?? 0) || 0)}\n${metricLabel}: ${formatCount(totalUsage)}`
 }
 
 /**

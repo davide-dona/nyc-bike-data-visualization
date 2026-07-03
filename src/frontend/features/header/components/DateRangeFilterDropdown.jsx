@@ -161,7 +161,7 @@ export default function DateRangeFilterDropdown({ value, onCommit, disabled = fa
         if (startYear === null || startMonth === null || endYear === null || endMonth === null) {
             return 'Select dates'
         }
-        return `${MONTH_ORDER[startMonth]} ${startYear} — ${MONTH_ORDER[endMonth]} ${endYear}`
+        return `${MONTH_ORDER[startMonth]} ${startYear} - ${MONTH_ORDER[endMonth]} ${endYear}`
     }, [startYear, startMonth, endYear, endMonth])
 
     // Check loading and error states

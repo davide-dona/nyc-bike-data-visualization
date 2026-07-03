@@ -22,6 +22,26 @@ export function useMapHandler() {
     const [showBikeRoutes, setShowBikeRoutes] = useState(false)
     // Which metric the station usage layer encodes ('all' | 'incoming' | 'outgoing')
     const [usageMode, setUsageMode] = useState('all')
+    // Legend-driven visibility for the infrastructure layer. View preferences,
+    // so they persist across layer switches.
+    const [hiddenHealthCategories, setHiddenHealthCategories] = useState(() => new Set())
+    const [hiddenRouteClasses, setHiddenRouteClasses] = useState(() => new Set())
+
+    const toggleHealthCategory = useCallback((key) => {
+        setHiddenHealthCategories((prev) => {
+            const next = new Set(prev)
+            next.has(key) ? next.delete(key) : next.add(key)
+            return next
+        })
+    }, [])
+
+    const toggleRouteClass = useCallback((key) => {
+        setHiddenRouteClasses((prev) => {
+            const next = new Set(prev)
+            next.has(key) ? next.delete(key) : next.add(key)
+            return next
+        })
+    }, [])
 
     // Handler for view map changes
     const handleViewStateChange = useCallback(({ viewState: nextViewState }) => {
@@ -52,11 +72,15 @@ export function useMapHandler() {
         currentTime,
         handleViewStateChange,
         hasAnimation,
+        hiddenHealthCategories,
+        hiddenRouteClasses,
         setActiveLayer,
         setCurrentTime,
         setShowBikeRoutes,
         setUsageMode,
         showBikeRoutes,
+        toggleHealthCategory,
+        toggleRouteClass,
         usageMode,
         viewState,
     }

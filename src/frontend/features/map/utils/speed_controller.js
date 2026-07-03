@@ -37,7 +37,7 @@ export const speedToNonLinearPosition = (value) => {
 };
 
 /**
- * Inverse of `speedToNonLinearPosition` — takes a wheel ratio in [0, 1] and
+ * Inverse of `speedToNonLinearPosition` - takes a wheel ratio in [0, 1] and
  * returns the corresponding speed multiplier.
  * @param {number} ratio - Position ratio in [0, 1].
  * @returns {number} Speed multiplier in [MIN_SPEED, MAX_SPEED].

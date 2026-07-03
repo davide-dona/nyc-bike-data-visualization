@@ -11,6 +11,7 @@ import {
     PAPER_RAISED,
 } from "../../../utils/editorialTokens.js"
 import { SCATTER_BORDER_COLOR, SCATTER_BORDER_WIDTH, SCATTER_POINT_RADIUS } from "../../../utils/styling"
+import { formatCount, formatNumber } from "../../../utils/numberFormat.js"
 import StatusMessage from "../../../components/StatusMessage"
 
 /**
@@ -115,15 +116,15 @@ export default function ScatterPlot({ data, loading, error, onRefetch }) {
                             Activity
                         </div>
                         <div style="margin-bottom: 4px; font-family: ${FONT_MONO}; font-size: 11px;">
-                            <span style="color: ${PAPER_RAISED}; font-weight: 600;">${point.ridesPerHour.toFixed(0)}</span><span style="color: rgba(251, 248, 242, 0.7);">/h</span>${point.ridesPerHourSE != null ? `<span style="color: rgba(251, 248, 242, 0.55); margin-left: 4px;">± ${point.ridesPerHourSE.toFixed(1)}</span>` : ""}
+                            <span style="color: ${PAPER_RAISED}; font-weight: 600;">${formatNumber(point.ridesPerHour, 2)}</span><span style="color: rgba(251, 248, 242, 0.7);">/h</span>${point.ridesPerHourSE != null ? `<span style="color: rgba(251, 248, 242, 0.55); margin-left: 4px;">± ${formatNumber(point.ridesPerHourSE, 2)}</span>` : ""}
                         </div>
                         <div style="margin-bottom: 4px; font-family: ${FONT_MONO}; font-size: 11px;">
                             <span style="color: rgba(251, 248, 242, 0.7);">Volume:</span>
-                            <span style="color: ${PAPER_RAISED}; font-weight: 600; margin-left: 4px;">${point.totalRides.toLocaleString()}</span>
+                            <span style="color: ${PAPER_RAISED}; font-weight: 600; margin-left: 4px;">${formatCount(point.totalRides)}</span>
                         </div>
                         <div style="font-family: ${FONT_MONO}; font-size: 11px;">
                             <span style="color: rgba(251, 248, 242, 0.7);">Observed hours:</span>
-                            <span style="color: ${PAPER_RAISED}; font-weight: 600; margin-left: 4px;">${point.hoursCount}</span>
+                            <span style="color: ${PAPER_RAISED}; font-weight: 600; margin-left: 4px;">${formatCount(point.hoursCount)}</span>
                         </div>
                     </div>
                     <div style="padding: 8px 10px; border: 1px solid rgba(25, 83, 216, 0.22);">
@@ -132,15 +133,15 @@ export default function ScatterPlot({ data, loading, error, onRefetch }) {
                         </div>
                         <div style="margin-bottom: 4px; font-family: ${FONT_MONO}; font-size: 11px;">
                             <span style="color: rgba(251, 248, 242, 0.7);">Typical duration:</span>
-                            <span style="color: ${PAPER_RAISED}; font-weight: 600; margin-left: 4px;">${point.avgDurationMin.toFixed(2)}m</span>
+                            <span style="color: ${PAPER_RAISED}; font-weight: 600; margin-left: 4px;">${formatNumber(point.avgDurationMin, 2)}m</span>
                         </div>
                         <div style="margin-bottom: 4px; font-family: ${FONT_MONO}; font-size: 11px;">
                             <span style="color: rgba(251, 248, 242, 0.7);">Typical distance:</span>
-                            <span style="color: ${PAPER_RAISED}; font-weight: 600; margin-left: 4px;">${point.avgDistanceKm.toFixed(2)}km</span>
+                            <span style="color: ${PAPER_RAISED}; font-weight: 600; margin-left: 4px;">${formatNumber(point.avgDistanceKm, 2)}km</span>
                         </div>
                         <div style="font-family: ${FONT_MONO}; font-size: 11px;">
                             <span style="color: rgba(251, 248, 242, 0.7);">Typical speed:</span>
-                            <span style="color: ${PAPER_RAISED}; font-weight: 600; margin-left: 4px;">${point.avgSpeed.toFixed(2)}km/h</span>${point.avgSpeedSE != null ? `<span style="color: rgba(251, 248, 242, 0.55); margin-left: 4px;">± ${point.avgSpeedSE.toFixed(2)}</span>` : ""}
+                            <span style="color: ${PAPER_RAISED}; font-weight: 600; margin-left: 4px;">${formatNumber(point.avgSpeed, 2)}km/h</span>${point.avgSpeedSE != null ? `<span style="color: rgba(251, 248, 242, 0.55); margin-left: 4px;">± ${formatNumber(point.avgSpeedSE, 2)}</span>` : ""}
                         </div>
                     </div>
                 `

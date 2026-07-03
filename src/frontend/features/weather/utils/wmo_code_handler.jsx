@@ -38,10 +38,10 @@ export const GROUPED_WEATHER_CODES = {
   Cloudy:       [[2, 3], "#8b95a5"],                       // muted slate
   Foggy:        [[45, 48], "#c0bfb9"],                     // pale neutral
   Drizzle:      [[51, 53, 55, 56, 57], "#6aaad8"],         // light blue
-  Rain:         [[61, 63, 65, 66, 67], "#1953d8"],         // accent — primary rain
+  Rain:         [[61, 63, 65, 66, 67], "#1953d8"],         // accent - primary rain
   Snow:         [[71, 73, 75, 77, 85, 86], "#b5bac4"],     // paper-light (dark border in chart)
-  Showers:      [[80, 81, 82], "#0a2a7a"],                 // accent-ink — heavy rain
-  Thunderstorm: [[95, 96, 99], "#a32d2d"]                  // error — danger
+  Showers:      [[80, 81, 82], "#0a2a7a"],                 // accent-ink - heavy rain
+  Thunderstorm: [[95, 96, 99], "#a32d2d"]                  // error - danger
 }
 
 /**

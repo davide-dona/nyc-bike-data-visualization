@@ -12,6 +12,10 @@ import StatusMessage from "../../../components/StatusMessage"
  * @param {boolean} loading - Whether temporal data is loading.
  * @param {Error|null} error - Error state for temporal data fetch.
  * @param {Function} onRefetch - Callback to trigger a retry after error.
+ * @param {Object} pinnedSlice - The pinned bar ({ type: 'day'|'hour', index, label }) or null.
+ * @param {Object} overlay - The derived overlay series ({ target, label, data }) or null; drawn on the opposite card.
+ * @param {Function} onBarClick - (type, index, label) callback when a histogram bar is clicked; absent while comparing.
+ * @param {Function} onClearPin - Callback for the overlay chip's dismiss button.
  * @returns
  */
 export default function SurfaceHistograms({
@@ -24,6 +28,10 @@ export default function SurfaceHistograms({
     onRefetch,
     compareMode = false,
     layers = [],
+    pinnedSlice = null,
+    overlay = null,
+    onBarClick = null,
+    onClearPin = null,
 }) {
     const metric = getMetricConfig(activeMetric)
     const showOverlay = loading || error
@@ -33,6 +41,7 @@ export default function SurfaceHistograms({
     // Configuration for the two histogram cards, one for day of week and one for hour of day, including the data, labels, and which value to highlight based on the hovered coordinates from the surface graph
     const cards = [
         {
+            type: "day",
             label: "by day of week",
             data: metricDayData,
             labels: DAY_LABELS,
@@ -41,6 +50,7 @@ export default function SurfaceHistograms({
             xLabelStep: 1,
         },
         {
+            type: "hour",
             label: "by hour of day",
             data: metricHourData,
             labels: HOUR_LABELS,
@@ -68,29 +78,47 @@ export default function SurfaceHistograms({
     return (
         <div className={`surface-histograms-grid${showOverlay ? ' surface-histograms-grid--hidden' : ''}`}>
             {/*Iterate over the histogram cards and render each one */}
-            {cards.map(({ label, data, labels, highlight, xAxisTitle, xLabelStep }) => (
-                <div key={label} className="surface-histogram-card">
-                    <p className="surface-histogram-card__eyebrow">
-                        {metric.label} {label}
-                    </p>
+            {cards.map(({ type, label, data, labels, highlight, xAxisTitle, xLabelStep }) => {
+                const isOverlayTarget = overlay?.target === type
+                const selectedLabel = pinnedSlice?.type === type ? pinnedSlice.label : null
 
-                    <div className="surface-histogram-chart">
-                        <BarChart
-                            data={data}
-                            labels={labels}
-                            format={metric.format}
-                            highlight={highlight}
-                            xAxisTitle={xAxisTitle}
-                            yAxisTitle={metric.label}
-                            unit={metric.unit}
-                            xLabelStep={xLabelStep}
-                            compareDatasets={compareDatasetsByCard?.[xAxisTitle]}
-                        />
+                return (
+                    <div key={label} className="surface-histogram-card">
+                        <p className="surface-histogram-card__eyebrow">
+                            {metric.label} {label}
+                            {isOverlayTarget && (
+                                <button
+                                    type="button"
+                                    className="surface-histogram-chip"
+                                    onClick={onClearPin ?? undefined}
+                                    aria-label={`Remove ${overlay.label} overlay`}
+                                >
+                                    {overlay.label} <span aria-hidden="true">×</span>
+                                </button>
+                            )}
+                        </p>
+
+                        <div className="surface-histogram-chart">
+                            <BarChart
+                                data={data}
+                                labels={labels}
+                                format={metric.format}
+                                highlight={highlight}
+                                xAxisTitle={xAxisTitle}
+                                yAxisTitle={metric.label}
+                                unit={metric.unit}
+                                xLabelStep={xLabelStep}
+                                compareDatasets={compareDatasetsByCard?.[xAxisTitle]}
+                                onBarClick={onBarClick ? (index, barLabel) => onBarClick(type, index, barLabel) : null}
+                                overlayDataset={isOverlayTarget ? { label: overlay.label, data: overlay.data } : null}
+                                selectedLabel={selectedLabel}
+                            />
+                        </div>
+
+                        {showOverlay && <StatusMessage loading={loading} error={error} onRefetch={onRefetch} />}
                     </div>
-
-                    {showOverlay && <StatusMessage loading={loading} error={error} onRefetch={onRefetch} />}
-                </div>
-            ))}
+                )
+            })}
         </div>
     )
 }

@@ -2,7 +2,7 @@ import { useCallback, useMemo, useRef, useState } from "react"
 import Plot from "react-plotly.js"
 import { HOUR_LABELS, DAY_LABELS } from "../../../utils/config.jsx"
 import StatusMessage from "../../../components/StatusMessage"
-import { PAPER_RAISED, FONT_MONO, INK } from "../../../utils/editorialTokens.js"
+import { PAPER_RAISED, FONT_MONO, INK, WARM_HIGHLIGHT } from "../../../utils/editorialTokens.js"
 import { EDITORIAL_COLORSCALE, editorialAxis } from "../../../utils/styling"
 import { getMetricConfig } from "../utils/metric_formatter.jsx"
 
@@ -76,6 +76,8 @@ function buildSurfaceMatrix(data, metricGetter) {
  * @param {boolean} loading - Whether the temporal data is currently loading.
  * @param {Error|null} error - Error state for temporal data fetch.
  * @param {Function} onRefetch - Callback to trigger a retry after error.
+ * @param {Object} pinnedSlice - The pinned bar ({ type: 'day'|'hour', index, label }) or null; draws an amber slice line on the surface.
+ * @param {Array} sliceValues - The pinned slice's metric values (24 for a day pin, 7 for an hour pin).
  * @returns
  */
 function SurfaceGraph({
@@ -87,6 +89,8 @@ function SurfaceGraph({
     onRefetch,
     compareMode = false,
     layers = [],
+    pinnedSlice = null,
+    sliceValues = null,
 }) {
     const safeData = Array.isArray(data) ? data : []
     const isInteractionDisabled = Boolean(loading)
@@ -113,7 +117,7 @@ function SurfaceGraph({
             "<b>Weekly Pulse</b><br>" +
             "Day: <b>%{y}</b><br>" +
             "Hour: <b>%{x}</b><br>" +
-            `Rhythm: <b>%{z}</b> ${metric.unit}<extra></extra>`,
+            `Rhythm: <b>%{z:,.2f}</b> ${metric.unit}<extra></extra>`,
         [metric.unit]
     )
 
@@ -151,7 +155,7 @@ function SurfaceGraph({
                 `<b>${layer.label}</b><br>` +
                 "Day: <b>%{y}</b><br>" +
                 "Hour: <b>%{x}</b><br>" +
-                `Rhythm: <b>%{z}</b> ${metric.unit}<extra></extra>`
+                `Rhythm: <b>%{z:,.2f}</b> ${metric.unit}<extra></extra>`
 
             return {
                 type: "surface",
@@ -195,6 +199,27 @@ function SurfaceGraph({
 
         return zMax
     }, [traces])
+
+    // Amber slice line for the pinned day/hour, lifted slightly above the
+    // surface to avoid z-fighting. Never shown while comparing surfaces.
+    const sliceTrace = useMemo(() => {
+        if (compareMode || !pinnedSlice || !Array.isArray(sliceValues)) return null
+
+        const lift = maxZ * 0.01
+        const isDayPin = pinnedSlice.type === "day"
+        return {
+            type: "scatter3d",
+            mode: "lines",
+            x: isDayPin ? HOUR_LABELS : Array(7).fill(HOUR_LABELS[pinnedSlice.index]),
+            y: isDayPin ? Array(24).fill(DAY_LABELS[pinnedSlice.index]) : DAY_LABELS,
+            z: sliceValues.map((value) => (Number(value) || 0) + lift),
+            line: { color: WARM_HIGHLIGHT, width: 6 },
+            showlegend: false,
+            hovertemplate: hoverTemplate,
+        }
+    }, [compareMode, pinnedSlice, sliceValues, maxZ, hoverTemplate])
+
+    const plotTraces = sliceTrace ? [...traces, sliceTrace] : traces
 
     const handlePointerDown = useCallback((event) => {
         if (isInteractionDisabled) return
@@ -309,10 +334,11 @@ function SurfaceGraph({
         >
             {hasTraces && (
                 <Plot
-                    data={traces}
+                    data={plotTraces}
                     layout={{
                         paper_bgcolor: PAPER_RAISED,
                         plot_bgcolor: PAPER_RAISED,
+                        separators: ".'",
                         transition: {
                             duration: 420,
                             easing: "cubic-in-out",
@@ -345,7 +371,7 @@ function SurfaceGraph({
                         scrollZoom: false,
                         staticPlot: !canSelectPoints,
                     }}
-                    revision={traces.length}
+                    revision={plotTraces.length}
                     useResizeHandler
                     className="w-full h-full"
                     onClick={canSelectPoints ? handleSurfaceClick : undefined}

@@ -16,6 +16,8 @@ import {
     buildLayerLabel,
     stripClassFilters,
 } from "./utils/compare_layers.js";
+import { buildSliceOverlay } from "./utils/slice_overlay.js";
+import { getMetricConfig } from "./utils/metric_formatter.jsx";
 
 /**
  * Component for the temporal stats page, which includes a metric selector, the surface graph itself, and accompanying histograms.
@@ -44,6 +46,9 @@ function TemporalPage({ filters, onCompareModeChange }) {
         bike_type: "",
     });
     const [compareLayers, setCompareLayers] = useState([]);
+    // Click-to-pin slice: a single pinned day XOR hour bar, overlaid on the
+    // opposite histogram and on the 3D surface. Never active while comparing.
+    const [pinnedSlice, setPinnedSlice] = useState(null);
     const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
     const [showTooltip, setShowTooltip] = useState(false);
     const previousFiltersRef = useRef(filters);
@@ -242,6 +247,25 @@ function TemporalPage({ filters, onCompareModeChange }) {
         setIsCompareHovered(false);
     };
 
+    const handleSliceBarClick = (type, index, label) => {
+        setPinnedSlice((prev) =>
+            prev && prev.type === type && prev.index === index
+                ? null
+                : { type, index, label },
+        );
+    };
+
+    const handleClearPin = () => setPinnedSlice(null);
+
+    const sliceOverlay = useMemo(() => {
+        if (hasPinnedCompareLayers) return null;
+        return buildSliceOverlay(
+            dayHourStats,
+            pinnedSlice,
+            getMetricConfig(activeMetric).get,
+        );
+    }, [hasPinnedCompareLayers, dayHourStats, pinnedSlice, activeMetric]);
+
     const handleResetCompare = () => {
         setCompareLayers([]);
         setPendingLayerFilters({ user_type: "", bike_type: "" });
@@ -297,6 +321,7 @@ function TemporalPage({ filters, onCompareModeChange }) {
         if (!filtersChanged) return;
 
         previousFiltersRef.current = filters;
+        setPinnedSlice(null);
 
         if (!isCompareMode && compareLayers.length === 0) return;
 
@@ -304,6 +329,11 @@ function TemporalPage({ filters, onCompareModeChange }) {
         setCompareLayers([]);
         setPendingLayerFilters({ user_type: "", bike_type: "" });
     }, [filters, isCompareMode, compareLayers.length]);
+
+    // Pinned compare layers take over the charts; drop the slice pin
+    useEffect(() => {
+        if (hasPinnedCompareLayers) setPinnedSlice(null);
+    }, [hasPinnedCompareLayers]);
 
     useEffect(() => {
         if (!isCompareMode) return;
@@ -404,7 +434,7 @@ function TemporalPage({ filters, onCompareModeChange }) {
         <section className="page-card">
             <header className="page-card__header">
                 <div className="page-card__heading">
-                    <span className="page-card__eyebrow">02 — Rhythms</span>
+                    <span className="page-card__eyebrow">02 - Rhythms</span>
                     <h2 className="page-card__title">
                         The week, hour by hour.
                     </h2>
@@ -435,6 +465,8 @@ function TemporalPage({ filters, onCompareModeChange }) {
                         onRefetch={surfaceState.refetch}
                         compareMode={hasPinnedCompareLayers}
                         layers={activeLayers}
+                        pinnedSlice={hasPinnedCompareLayers ? null : pinnedSlice}
+                        sliceValues={sliceOverlay?.data ?? null}
                     />
 
 
@@ -641,6 +673,10 @@ function TemporalPage({ filters, onCompareModeChange }) {
                     onRefetch={histogramsState.refetch}
                     compareMode={hasPinnedCompareLayers}
                     layers={activeLayers}
+                    pinnedSlice={hasPinnedCompareLayers ? null : pinnedSlice}
+                    overlay={sliceOverlay}
+                    onBarClick={hasPinnedCompareLayers ? null : handleSliceBarClick}
+                    onClearPin={handleClearPin}
                 />
 
                 <SurfaceLineChart

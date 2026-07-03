@@ -5,6 +5,7 @@ import {
     UNKNOWN_RGB,
     ACCENT_RGB,
 } from '../../../../../utils/editorialTokens.js'
+import { formatCount } from '../../../../../utils/numberFormat.js'
 import { HEALTH_CATEGORY } from './stationAvailabilitySelector.js'
 
 /**
@@ -64,10 +65,10 @@ function getStationColor(category) {
 export function stationAvailabilityTooltip( object ) {
     return `${object.name}\n
             Status: ${HEALTH_CATEGORY_LABELS[object.health_category] ?? 'Offline'}
-            Available Classical Bikes: ${object.classicalBikes}
-            Available Electric Bikes: ${object.electricBikes}
-            Available Docks: ${object.available_docks}
-            Total Capacity: ${object.capacity}`
+            Available Classical Bikes: ${formatCount(object.classicalBikes)}
+            Available Electric Bikes: ${formatCount(object.electricBikes)}
+            Available Docks: ${formatCount(object.available_docks)}
+            Total Capacity: ${formatCount(object.capacity)}`
 }
 
 /**
@@ -78,10 +79,10 @@ export function stationAvailabilityTooltip( object ) {
 export function stationAvailabilityLegend({ showBikeRoutes = false } = {}) {
     return {
         entries: [
-            { swatch: 'rgb(47, 125, 79)', label: 'Healthy', hint: 'bikes and docks available' },
-            { swatch: 'rgb(163, 45, 45)', label: 'Empty risk', hint: 'few or no bikes to rent' },
-            { swatch: 'rgb(25, 83, 216)', label: 'Full risk', hint: 'few or no docks to return' },
-            { swatch: 'rgb(110, 106, 98)', label: 'Offline', hint: 'no live data' },
+            { key: HEALTH_CATEGORY.HEALTHY, swatch: 'rgb(47, 125, 79)', label: 'Healthy', hint: 'bikes and docks available' },
+            { key: HEALTH_CATEGORY.EMPTY_RISK, swatch: 'rgb(163, 45, 45)', label: 'Empty risk', hint: 'few or no bikes to rent' },
+            { key: HEALTH_CATEGORY.FULL_RISK, swatch: 'rgb(25, 83, 216)', label: 'Full risk', hint: 'few or no docks to return' },
+            { key: HEALTH_CATEGORY.UNKNOWN, swatch: 'rgb(110, 106, 98)', label: 'Offline', hint: 'no live data' },
         ],
         includeBikeRoutes: showBikeRoutes,
     }

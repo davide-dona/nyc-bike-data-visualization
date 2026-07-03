@@ -10,7 +10,7 @@ import WeatherPage from '../features/weather/WeatherPage.jsx'
 import FootprintPage from '../features/footprint/FootprintPage.jsx'
 import App from '../App.jsx'
 
-// Stub axios via apiClient — all hooks use apiClient.get()
+// Stub axios via apiClient - all hooks use apiClient.get()
 vi.mock('../api-data/apiClient', () => ({
     default: {
         get: vi.fn().mockResolvedValue({ data: {} }),

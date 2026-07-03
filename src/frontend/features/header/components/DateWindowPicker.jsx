@@ -65,7 +65,7 @@ export default function DateWindowPicker({ value, onCommit, disabled = false }) 
             if (needStart) setStart(newStart)
             if (needEnd) setEnd(newEnd)
 
-            // Do not force visibleYear while modal is open — keep user's current view
+            // Do not force visibleYear while modal is open - keep user's current view
             if (visibleYear === null || openFor === null) {
                 setVisibleYear(newStart.year)
             }

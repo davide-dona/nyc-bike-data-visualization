@@ -35,7 +35,7 @@ export function buildLayerLabel(layerFilters = {}) {
 }
 
 /**
- * Stable cache key for a layer's class filters — used to detect duplicates
+ * Stable cache key for a layer's class filters - used to detect duplicates
  * against the base layer and other pinned comparison layers.
  * @param {{ user_type?: string, bike_type?: string }} layerFilters - Layer filters.
  * @returns {string} Pipe-delimited key (e.g. "member|classic_bike").
@@ -56,7 +56,7 @@ export function stripClassFilters(filters = {}) {
 }
 
 /**
- * Whether the provided filter object has both ends of a date range set —
+ * Whether the provided filter object has both ends of a date range set -
  * used as an `enabled` guard for comparison queries.
  * @param {object} filters - Filter object.
  * @returns {boolean} True when both `start_date` and `end_date` are truthy.

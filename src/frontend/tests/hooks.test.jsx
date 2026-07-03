@@ -13,7 +13,7 @@ import useWeatherStats from '../features/weather/hooks/useWeatherStats.js'
 import useTemperatureResponse from '../features/weather/hooks/useTemperatureResponse.js'
 import useRainImpact from '../features/weather/hooks/useRainImpact.js'
 
-// Stub axios via apiClient — all hooks use apiClient.get(), which returns { data: ... }
+// Stub axios via apiClient - all hooks use apiClient.get(), which returns { data: ... }
 vi.mock('../clients/apiClient.js', () => ({
     default: {
         get: vi.fn().mockResolvedValue({ data: {} }),

@@ -15,7 +15,7 @@ import { useInfrastructureStationSelection } from '../layers/infrastructure_laye
 
 import { useMemo, useState } from 'react'
 
-// CartoDB Positron — subdued paper/grey basemap that lets the data layers carry
+// CartoDB Positron - subdued paper/grey basemap that lets the data layers carry
 // the color weight. Same provider as Voyager, no API key required.
 const BASE_TILE_URL = 'https://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png'
 
@@ -26,7 +26,7 @@ const BASE_TILE_URL = 'https://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png
  * @param {string} activeLayer - The currently active map layer to determine which layers to build.
  * @returns {Object} The built layers and their status.
  */
-export function useBuildLayers({ filters, currentTime, activeLayer, showBikeRoutes, usageMode }) {
+export function useBuildLayers({ filters, currentTime, activeLayer, showBikeRoutes, usageMode, hiddenHealthCategories, hiddenRouteClasses }) {
     // Fetch and process data
     const { frameStations, maxUsage, maxDelta, loading: stationLoading, error: stationError, refetch: stationRefetch } = useStationUsageLayer({ filters: filters, currentTime, usageMode })
     const { selectedStationIds, onStationPick, resetSelectedStationIds } = useTripStationSelection() // Manage station selection state for trip flow layer
@@ -83,11 +83,21 @@ export function useBuildLayers({ filters, currentTime, activeLayer, showBikeRout
         }
         if (activeLayer === 'infrastructure') {
             if (!availabilityLoading && !availabilityError) {
-                if (showBikeRoutes && bikeRoutes.length > 0) {
-                    base.push(createBikeRoutesLayer({ routes: bikeRoutes, hoveredrouteID: hoveredrouteID, onRoutePick: handleRoutePick }))
+                // Legend toggles hide categories/classes from the map only; the
+                // stateLayers hasData flags above keep reading the unfiltered
+                // arrays so hiding everything never re-triggers the loading overlay.
+                // Route segments without a legend row (unknown class) stay visible.
+                const visibleStations = hiddenHealthCategories?.size
+                    ? stations.filter((s) => !hiddenHealthCategories.has(s.health_category))
+                    : stations
+                const visibleRoutes = hiddenRouteClasses?.size
+                    ? bikeRoutes.filter((f) => !hiddenRouteClasses.has(f.facilityClass))
+                    : bikeRoutes
+                if (showBikeRoutes && visibleRoutes.length > 0) {
+                    base.push(createBikeRoutesLayer({ routes: visibleRoutes, hoveredrouteID: hoveredrouteID, onRoutePick: handleRoutePick }))
                 }
                 base.push(createStationAvailabilityLayer({
-                    stations,
+                    stations: visibleStations,
                     selectedStationIds: selectedInfrastructureStationIds,
                     onStationPick: onInfrastructureStationPick,
                 }))
@@ -95,7 +105,7 @@ export function useBuildLayers({ filters, currentTime, activeLayer, showBikeRout
         }
 
         return base
-    }, [frameStations, maxUsage, maxDelta, trips, maxTripFlow, tripStations, selectedStationIds, hoveredTripStationId, onStationPick, stations, activeLayer, stationLoading, stationError, tripLoading, tripError, availabilityLoading, availabilityError, bikeRoutes, showBikeRoutes, hoveredrouteID, selectedInfrastructureStationIds, onInfrastructureStationPick])
+    }, [frameStations, maxUsage, maxDelta, trips, maxTripFlow, tripStations, selectedStationIds, hoveredTripStationId, onStationPick, stations, activeLayer, stationLoading, stationError, tripLoading, tripError, availabilityLoading, availabilityError, bikeRoutes, showBikeRoutes, hoveredrouteID, selectedInfrastructureStationIds, onInfrastructureStationPick, hiddenHealthCategories, hiddenRouteClasses])
 
     // Consider the loading, error, and data states of only the active layer for the overall status
     const activeLayerState = stateLayers.find(layer => layer.layer === activeLayer)

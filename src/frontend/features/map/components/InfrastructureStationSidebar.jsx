@@ -1,13 +1,9 @@
 import { useMemo } from 'react'
 import useInfrastructureStationSidebarData from '../layers/infrastructure_layer/stations/useInfrastructureStationSidebarData.js'
+import { formatCompact, formatCount, formatNumber } from '../../../utils/numberFormat.js'
 
 const DAY_ORDER = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 const DAY_FULL = ['Mondays', 'Tuesdays', 'Wednesdays', 'Thursdays', 'Fridays', 'Saturdays', 'Sundays']
-
-function formatAvg(value) {
-    if (!Number.isFinite(value)) return '0'
-    return value < 10 ? value.toFixed(1) : Math.round(value).toLocaleString()
-}
 
 // Round up to 1/2/5 × 10^k so axis ticks land on clean values
 function niceCeil(value) {
@@ -42,7 +38,7 @@ function HorizontalBarRow({ label, value, maxValue, tone = 'neutral' }) {
             <div className="infra-sidebar__bar-track" aria-hidden="true">
                 <div className={`infra-sidebar__bar-fill tone-${tone}`} style={{ width: `${width}%` }} />
             </div>
-            <span className="infra-sidebar__bar-value">{value.toLocaleString()}</span>
+            <span className="infra-sidebar__bar-value">{formatCount(value)}</span>
         </div>
     )
 }
@@ -54,8 +50,8 @@ function VerticalBarChart({ title, rows, labelKey, valueKey, unit }) {
             <div className="infra-sidebar__section-heading">{title}</div>
             <div className="infra-sidebar__chart-body">
                 <div className="infra-sidebar__y-axis" aria-hidden="true">
-                    <span className="infra-sidebar__y-tick">{formatAvg(axisMax)}</span>
-                    <span className="infra-sidebar__y-tick">{formatAvg(axisMax / 2)}</span>
+                    <span className="infra-sidebar__y-tick">{formatCompact(axisMax)}</span>
+                    <span className="infra-sidebar__y-tick">{formatCompact(axisMax / 2)}</span>
                     <span className="infra-sidebar__y-tick">0</span>
                 </div>
                 <div className="infra-sidebar__chart-area">
@@ -67,7 +63,7 @@ function VerticalBarChart({ title, rows, labelKey, valueKey, unit }) {
                             const value = Number(row?.[valueKey] ?? 0)
                             const height = (value / axisMax) * 100
                             return (
-                                <div key={row[labelKey]} className="infra-sidebar__vbar-wrap" title={`${row.tooltip_label ?? row.label} — ${formatAvg(value)} ${unit}`}>
+                                <div key={row[labelKey]} className="infra-sidebar__vbar-wrap" title={`${row.tooltip_label ?? row.label} - ${formatNumber(value, 2)} ${unit}`}>
                                     <div className="infra-sidebar__vbar-track">
                                         <div className="infra-sidebar__vbar-fill" style={{ height: `${height}%` }} />
                                     </div>
@@ -99,9 +95,9 @@ function DivergingHourChart({ title, rows }) {
             </div>
             <div className="infra-sidebar__chart-body">
                 <div className="infra-sidebar__y-axis" aria-hidden="true">
-                    <span className="infra-sidebar__y-tick">{formatAvg(axisMax)}</span>
+                    <span className="infra-sidebar__y-tick">{formatCompact(axisMax)}</span>
                     <span className="infra-sidebar__y-tick">0</span>
-                    <span className="infra-sidebar__y-tick">{formatAvg(axisMax)}</span>
+                    <span className="infra-sidebar__y-tick">{formatCompact(axisMax)}</span>
                 </div>
                 <div className="infra-sidebar__chart-area">
                     <div className="infra-sidebar__gridlines" aria-hidden="true">
@@ -112,7 +108,7 @@ function DivergingHourChart({ title, rows }) {
                             const incoming = Number(row?.avg_incoming ?? 0)
                             const outgoing = Number(row?.avg_outgoing ?? 0)
                             return (
-                                <div key={row.hour} className="infra-sidebar__vbar-wrap" title={`${row.label}:00 — in ${formatAvg(incoming)}/h · out ${formatAvg(outgoing)}/h`}>
+                                <div key={row.hour} className="infra-sidebar__vbar-wrap" title={`${row.label}:00 - in ${formatNumber(incoming, 2)}/h · out ${formatNumber(outgoing, 2)}/h`}>
                                     <div className="infra-sidebar__dvbar-track">
                                         <div className="infra-sidebar__dvbar-top">
                                             <div className="infra-sidebar__dvbar-fill tone-accent" style={{ height: `${(incoming / axisMax) * 100}%` }} />
@@ -173,7 +169,7 @@ export default function InfrastructureStationSidebar({ selectedStations = [], fi
                     <p className="infra-sidebar__subtitle">
                         {isGrouped
                             ? 'Grouped station selection with aggregated live capacity and ride statistics.'
-                            : `Station ${primaryStation.id} — live availability plus historical ride and flow statistics.`}
+                            : `Station ${primaryStation.id} - live availability plus historical ride and flow statistics.`}
                     </p>
                 </div>
                 <button type="button" className="infra-sidebar__close" onClick={onClose} aria-label="Close station sidebar">
@@ -182,11 +178,11 @@ export default function InfrastructureStationSidebar({ selectedStations = [], fi
             </div>
 
             <section className="infra-sidebar__metrics-grid">
-                <MetricCard label="Capacity" value={liveTotals.actualCapacity.toLocaleString()} hint="effective docks" />
-                <MetricCard label="Docks" value={liveTotals.availableDocks.toLocaleString()} hint="available now" />
-                <MetricCard label="Classic bikes" value={liveTotals.classicBikes.toLocaleString()} hint="available now" />
-                <MetricCard label="E-bikes" value={liveTotals.electricBikes.toLocaleString()} hint="available now" />
-                <MetricCard label="Disabled" value={liveTotals.disabledBikes.toLocaleString()} hint="out of service" />
+                <MetricCard label="Capacity" value={formatCount(liveTotals.actualCapacity)} hint="effective docks" />
+                <MetricCard label="Docks" value={formatCount(liveTotals.availableDocks)} hint="available now" />
+                <MetricCard label="Classic bikes" value={formatCount(liveTotals.classicBikes)} hint="available now" />
+                <MetricCard label="E-bikes" value={formatCount(liveTotals.electricBikes)} hint="available now" />
+                <MetricCard label="Disabled" value={formatCount(liveTotals.disabledBikes)} hint="out of service" />
             </section>
 
             {!stationData.loading && !stationData.error && <section className="infra-sidebar__section">
@@ -194,15 +190,15 @@ export default function InfrastructureStationSidebar({ selectedStations = [], fi
                 <ul className="infra-sidebar__highlights">
                     <li className="infra-sidebar__highlight-row">
                         <span className="infra-sidebar__highlight-label">Avg {DAY_FULL[todayDow]}</span>
-                        <strong className="infra-sidebar__highlight-value">~{formatAvg(todayRow.avg_rides)} rides</strong>
+                        <strong className="infra-sidebar__highlight-value">~{formatNumber(todayRow.avg_rides, 2)} rides</strong>
                     </li>
                     <li className="infra-sidebar__highlight-row">
                         <span className="infra-sidebar__highlight-label">Peak hour</span>
-                        <strong className="infra-sidebar__highlight-value">{peakHour.label}:00 (~{formatAvg(peakHour.avg_rides)} rides/h)</strong>
+                        <strong className="infra-sidebar__highlight-value">{peakHour.label}:00 (~{formatNumber(peakHour.avg_rides, 2)} rides/h)</strong>
                     </li>
                     <li className="infra-sidebar__highlight-row">
                         <span className="infra-sidebar__highlight-label">Busiest day</span>
-                        <strong className="infra-sidebar__highlight-value">{DAY_FULL[busiestDay.day_of_week]} (~{formatAvg(busiestDay.avg_rides)} rides)</strong>
+                        <strong className="infra-sidebar__highlight-value">{DAY_FULL[busiestDay.day_of_week]} (~{formatNumber(busiestDay.avg_rides, 2)} rides)</strong>
                     </li>
                     <li className="infra-sidebar__highlight-row">
                         <span className="infra-sidebar__highlight-label">Flow balance</span>

@@ -52,7 +52,7 @@ export default function CumulativeAvoidedBand({
             x: series.dates,
             y: series.low,
             line: { color: BAND_EDGE, width: 1 },
-            hovertemplate: `Low (${lowPct}%): <b>%{y:.0f}</b> t<extra></extra>`,
+            hovertemplate: `Low (${lowPct}%): <b>%{y:,.2f}</b> t<extra></extra>`,
         },
         {
             type: 'scatter',
@@ -63,7 +63,7 @@ export default function CumulativeAvoidedBand({
             line: { color: BAND_EDGE, width: 1 },
             fill: 'tonexty',
             fillcolor: BAND_FILL,
-            hovertemplate: `High (${highPct}%): <b>%{y:.0f}</b> t<extra></extra>`,
+            hovertemplate: `High (${highPct}%): <b>%{y:,.2f}</b> t<extra></extra>`,
         },
         {
             type: 'scatter',
@@ -72,7 +72,7 @@ export default function CumulativeAvoidedBand({
             x: series.dates,
             y: series.mid,
             line: { color: ACCENT, width: 1.6, dash: 'dot' },
-            hovertemplate: `At ${ratePct}%: <b>%{y:.0f}</b> t<extra></extra>`,
+            hovertemplate: `At ${ratePct}%: <b>%{y:,.2f}</b> t<extra></extra>`,
         },
     ], [series, ratePct, lowPct, highPct])
 
@@ -86,6 +86,7 @@ export default function CumulativeAvoidedBand({
                         layout={{
                             paper_bgcolor: PAPER_RAISED,
                             plot_bgcolor: PAPER_RAISED,
+                            separators: ".'",
                             margin: { l: 52, r: 16, t: 8, b: 40 },
                             showlegend: true,
                             legend: {

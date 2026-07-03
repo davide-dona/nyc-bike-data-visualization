@@ -10,7 +10,8 @@ import {
 import { BAR_SOLID, BAR_NEUTRAL } from '../../../utils/styling'
 import StatusMessage from '../../../components/StatusMessage.jsx'
 import { COMPARISON_MODES } from '../utils/emission_factors.js'
-import { kmToCo2Tonnes, formatTonnes } from '../utils/footprint_math.js'
+import { kmToCo2Tonnes } from '../utils/footprint_math.js'
+import { formatNumber } from '../../../utils/numberFormat.js'
 
 /**
  * Horizontal bars re-expressing the period's total ridden distance as the CO2
@@ -62,7 +63,7 @@ export default function ModeComparisonBar({ totals, loading, error, onRefetch })
                         callbacks: {
                             label: (item) => {
                                 const bar = bars[item.dataIndex]
-                                const amount = bar.tonnes < 0.5 ? '≈ 0 t CO2e' : `${formatTonnes(bar.tonnes)} t CO2e`
+                                const amount = bar.tonnes < 0.5 ? '≈ 0 t CO2e' : `${formatNumber(bar.tonnes, 2)} t CO2e`
                                 return `${amount} if the same km were by ${bar.label.toLowerCase()} (${bar.gPerKm} g/km)`
                             },
                         },

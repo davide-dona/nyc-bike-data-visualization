@@ -8,6 +8,7 @@ import {
     FONT_DISPLAY,
     FONT_MONO,
 } from "../../../utils/editorialTokens.js"
+import { formatNumber } from "../../../utils/numberFormat.js"
 import StatusMessage from "../../../components/StatusMessage"
 
 // Bins observed for fewer hours than this are dropped: a 1-hour extreme
@@ -78,7 +79,7 @@ export default function TemperatureResponse({ series, loading, error, onRefetch 
                     tooltip: {
                         callbacks: {
                             title: (items) => `${items[0].parsed.x} to ${items[0].parsed.x + BIN_WIDTH}°C`,
-                            label: (item) => `${item.dataset.label}: ${item.parsed.y.toFixed(0)} rides/h`,
+                            label: (item) => `${item.dataset.label}: ${formatNumber(item.parsed.y, 2)} rides/h`,
                         },
                     },
                 },
@@ -124,7 +125,7 @@ export default function TemperatureResponse({ series, loading, error, onRefetch 
 
     return (
         <div className="weather-deepdive-frame">
-            <p className="weather-deepdive-frame__title">Temperature response — avg rides per hour</p>
+            <p className="weather-deepdive-frame__title">Temperature response - avg rides per hour</p>
             <div className="weather-deepdive-plot">
                 {hasData || loading || error
                     ? <canvas ref={canvasRef} />

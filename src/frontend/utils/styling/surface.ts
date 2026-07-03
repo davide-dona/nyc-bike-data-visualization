@@ -21,7 +21,7 @@ export const EDITORIAL_COLORSCALE = [
     [1.00, ACCENT_INK],
 ]
 
-// Shared axis factory — every axis uses the same typography and rule tones,
+// Shared axis factory - every axis uses the same typography and rule tones,
 // so x/y/z stay visually parallel even when their labels differ.
 export const editorialAxis = (title: string) => ({
     title: { text: title, font: { family: FONT_DISPLAY, color: INK, size: 14 } },

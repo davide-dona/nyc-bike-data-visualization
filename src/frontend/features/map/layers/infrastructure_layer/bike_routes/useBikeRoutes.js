@@ -3,7 +3,7 @@ import useApiQueryWithFilters from '../../../../../clients/baseApiQuery.js'
 
 /**
  * Custom hook to fetch NYC bike route GeoJSON segments.
- * Routes are cached for the session — they change very rarely.
+ * Routes are cached for the session - they change very rarely.
  * @returns {{ bikeRoutes: Array, loading: boolean, error: string|null }}
  */
 export default function useBikeRoutes() {

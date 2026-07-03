@@ -209,7 +209,7 @@ export default function DateRangeFilter({ value, onCommit, disabled = false }) {
                     '--date-range-filter-selection-span': selectionView.monthCount,
                 }}
             >
-                {/* Year labels — float above the track */}
+                {/* Year labels - float above the track */}
                 {yearLabels.length > 1 && yearLabels.map(({ year, left }) => (
                     <div
                         key={year}

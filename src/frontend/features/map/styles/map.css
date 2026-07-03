@@ -84,6 +84,22 @@
     @apply text-white/55 font-sans text-[11px] normal-case;
   }
 
+  /* Interactive legend rows (infrastructure layer): the whole row is a toggle */
+  .map-legend__row-toggle {
+    @apply flex items-center gap-2 w-full p-0 m-0 border-0 bg-transparent
+           font-mono text-[11px] text-white/85 text-left cursor-pointer;
+  }
+
+  .map-legend__row-toggle:hover .map-legend__label {
+    @apply text-white;
+  }
+
+  .map-legend__row--hidden .map-legend__swatch,
+  .map-legend__row--hidden .map-legend__label,
+  .map-legend__row--hidden .map-legend__hint {
+    opacity: 0.35;
+  }
+
   .map-legend__section {
     @apply mt-3 pt-3 border-t border-rule-invert;
   }

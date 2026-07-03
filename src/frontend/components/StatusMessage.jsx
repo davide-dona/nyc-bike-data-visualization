@@ -28,7 +28,7 @@ function StatusMessage({ loading, error, onRefetch }) {
                     <circle cx="8" cy="8" r="7" stroke="currentColor" strokeWidth="1.5" />
                     <path d="M8 4.5v4M8 10.5v1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
                 </svg>
-                <span className="status-text">Could not load data — please try again.</span>
+                <span className="status-text">Could not load data - please try again.</span>
                 <button type="button" className="status-refetch-btn" onClick={handleRefetch}>
                     Refetch
                 </button>

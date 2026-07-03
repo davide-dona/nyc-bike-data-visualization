@@ -11,7 +11,7 @@ export const HEALTH_CATEGORY = {
 }
 
 // A side (bikes or docks) is "at risk" below 15% of usable capacity, but never
-// below 2 units — a single remaining bike/dock is not a dependable resource.
+// below 2 units - a single remaining bike/dock is not a dependable resource.
 const LOW_SIDE_FRACTION = 0.15
 const LOW_SIDE_MIN = 2
 
