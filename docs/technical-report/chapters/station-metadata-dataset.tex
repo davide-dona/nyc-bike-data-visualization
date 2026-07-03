@@ -1,0 +1,41 @@
+\section{Station Metadata Dataset (GBFS)}
+Our fourth source of data is current station information and live availability from the Lyft General Bikeshare Feed Specification (GBFS) feed\footnote{\url{https://gbfs.lyft.com/gbfs/2.3/bkn/en/gbfs.json}} - the same feed used by the backend.
+Two endpoints are merged: \texttt{station\_information} (static: name, location, capacity) and \texttt{station\_status} (live: bikes/docks available, operational flags).
+
+\subsection{Dataset Structure}
+% Mirror the "Dataset Structure" schema used in city-bike.tex: a short intro
+% paragraph, then an itemized "Original Structure" list, split by endpoint:
+%   From station_information (static):
+%     - Station ID (numeric, GBFS-specific) and Short Name (the public identifier
+%       used in the Citi Bike trip data - see the cross-dataset note below)
+%     - Name, Latitude, Longitude
+%     - Capacity (number of docks)
+%   From station_status (live):
+%     - Bikes/docks available
+%     - Operational flags: is_installed, is_renting, is_returning
+% Consider whether an "Extracted Features" subsubsection is warranted (e.g. an
+% "active" flag derived from the three operational flags, as used in the notebook's
+% data-quality checks).
+
+\subsection{Analysis and Insights}
+\begin{comment}
+    Follows notebook 4.1 "Capacity and Live Availability" and 4.2 "Station Map".
+    Per the exam requirements (Deliverable 2 - EDA criterion), show:
+      - Distribution of station capacity, and of current bikes/docks available.
+      - A map of stations (using lat/lon), sized or colored by capacity or live
+        availability, previewing how this dataset will support the visualization.
+\end{comment}
+
+\subsection{Data Quality}
+\begin{comment}
+    Follows notebook 4.3 "Data Quality". Per the exam requirements (Deliverable 2 -
+    data quality criterion), discuss:
+      - Count of inactive stations (not installed/renting/returning) that need to be
+        filtered out of live views.
+      - Stations missing capacity or coordinates.
+      - Cross-dataset consistency issue: the numeric station_id (GBFS) differs from
+        the public short_name used in the Citi Bike trip files, so joins between
+        live station data and historical trips must go through short_name rather
+        than station_id. This connects back to the "Missing Values and
+        Inconsistencies" discussion in the City Bike chapter.
+\end{comment}

@@ -1,0 +1,32 @@
+\section{Bike Lanes Dataset}
+Our third source of data is NYC's bike-route network, published by NYC OpenData\footnote{\url{https://data.cityofnewyork.us/d/mzxg-pwib}} as dataset \texttt{mzxg-pwib}.
+It is used to render bike infrastructure (lanes, paths, and their protection level) in the visualization.
+
+\subsection{Dataset Structure}
+% Mirror the "Dataset Structure" schema used in city-bike.tex: a short intro
+% paragraph, then an itemized "Original Structure" list. Each row is a route
+% segment identified by "the_geom" (a line geometry). Cover at minimum:
+%   - Segment ID and Bike ID
+%   - Status (current vs. retired) and installation/retirement dates
+%   - the_geom: the geometry of the segment, used to draw it on a map
+%   - Street, From Street, To Street: the segment's location
+%   - Facility Class: the level of protection (e.g. protected path vs. shared/sharrow
+%     lane) - matters for how the network is rendered
+%   - Borough
+% Also mention (briefly, as a data-quality-adjacent note or in "Data Quality" below)
+% that a handful of columns from the raw CSV (prevbikeid, gwsys2, spur, ft2facilit,
+% tf2facilit) were dropped as not needed for the analysis.
+
+\subsection{Analysis and Insights}
+\begin{comment}
+    Follows notebook 3.1 "Breakdowns", 3.2 "Installation Timeline", and 3.3 "Map of
+    the Network". Per the exam requirements (Deliverable 2 - EDA criterion), show:
+      - Breakdown of segments by borough and by status (current vs. retired):
+        segments concentrate in Manhattan and Brooklyn, and most are current.
+      - Breakdown by facility class, and why it matters for rendering the network.
+      - Installation timeline: how the network has grown year over year.
+      - A map of the network (using the_geom), which is the main visual asset this
+        dataset contributes to the final visualization.
+\end{comment}
+
+\subsection{Data Quality}

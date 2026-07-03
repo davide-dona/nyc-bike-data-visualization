@@ -1,0 +1,37 @@
+\section{Weather Dataset}
+Our second source of data is hourly NYC weather, fetched live from the Open-Meteo archive API\footnote{\url{https://open-meteo.com/}}.
+
+\subsection{Dataset Structure}
+% Mirror the "Dataset Structure" schema used in city-bike.tex: a short intro paragraph
+% followed by an itemized list of the columns returned by the API (notebook 2.1
+% "Structure and Summary"). Cover, at minimum:
+%   - the hourly timestamp (datetime) and how it is aligned to America/New_York
+%   - temperature_2m (deg C)
+%   - precipitation (mm)
+%   - weather_code (WMO code)
+%   - wind_speed_10m (km/h)
+% Unlike the City Bike dataset, there are no "Extracted Features" here beyond the
+% year column used for parquet partitioning, so a single "Original Structure"
+% subsubsection is probably enough - only add "Extracted Features" if the notebook
+% ends up deriving something (e.g. a discretized weather bucket).
+
+\subsection{Analysis and Insights}
+\begin{comment}
+    Follows notebook 2.2 "Distributions and Seasonality" and 2.3 "Ridership vs. Weather".
+    Per the exam requirements (Deliverable 2 - EDA criterion: "appropriate descriptive
+    statistics, visual summaries, and initial insights"), this section should show:
+      - Distribution/seasonality plots for temperature and precipitation. Note
+        precipitation is zero for most hours with occasional spikes (right-skewed),
+        so the histogram should focus on non-zero values.
+      - A plot relating ridership to temperature (and/or other weather variables),
+        with the insight that ridership rises with temperature up to a comfortable
+        range and drops off in the cold - the main justification for including this
+        dataset in the project.
+\end{comment}
+
+\subsection{Data Quality}
+\begin{comment}
+    No missing data, seem to be good quality. Only potential bias is that we use a single 
+    weather station (Central Park) to represent all of NYC, but this is a common approach and
+    should be fine for our purposes.
+\end{comment}
