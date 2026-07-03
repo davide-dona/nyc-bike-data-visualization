@@ -48,6 +48,14 @@
   captionpos=b, % Position of the caption
 }
 
+\RequirePackage{geometry}
+\geometry{
+    left=3.5cm,
+    right=3.5cm,
+    top=2.5cm,
+    bottom=2.5cm
+}
+
 % Header configuration
 \pagestyle{fancy}
 \fancyhf{} % Clean header and footer

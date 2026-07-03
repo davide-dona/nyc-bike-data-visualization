@@ -5,8 +5,8 @@ However, we found that many of these datasets were either incomplete, not regula
 After careful consideration, we decided to focus on the \texttt{Citi Bike} System Data for New York City, which is well maintained and reflects the complexity of the city.
 
 \subsection{Citi Bike System Data}
-The \href{https://citibikenyc.com/system-data}{\underline{Citi Bike System Data}} is published by \textit{Lyft}, a company that operates the bike-sharing service in New York City.
-Trip records, dating back to 2013, are released monthly as open data, and they are available for download in CSV format.
+The \href{https://citibikenyc.com/system-data}{Citi Bike System Data} is published monthly by \textit{Lyft}, the operator of New York City's bike-sharing service.
+Available for download in CSV format, these open-data trip records date back to 2013.
 
 Each trip record includes key attributes such as start and end timestamps, start and end stations, and user type.
 These variables allow us to analyze both temporal and spatial patterns in bike usage.
@@ -14,32 +14,26 @@ These variables allow us to analyze both temporal and spatial patterns in bike u
 We can also access real-time bike availability and station status via public APIs and integrate it into our dashboard for up-to-date insights.
 
 \subsection{Weather Data}
-Weather conditions significantly influence urban mobility. To better understand how factors such as temperature, 
-precipitation, and wind affect ridership, we will incorporate historical weather data into our analysis.
+Weather conditions significantly influence urban mobility.
 
 We will utilize the \href{https://open-meteo.com/}{\underline{Open-Meteo}} API, which provides historical weather data for any location worldwide, including New York City.
 
 The dataset covers more than 80 years of observations with hourly temporal resolution and a spatial resolution between 1 and 11 km.
-As an open-source service, Open-Meteo offers a comprehensive set of variables, enabling us to better evaluate the impact of environmental conditions on the system.
+As an open-source service, \textit{Open-Meteo} offers a comprehensive set of variables, enabling us to better evaluate the impact of environmental conditions on the system.
 
 \subsection{New York City Datasets}
 During our exploration, we also considered various datasets available on the \href{https://opendata.cityofnewyork.us/}{\underline{NYC Open Data}} platform.
 It offers a wide range of datasets, dashboards, and maps related to the city's transportation system, including bike lanes, traffic data, and other contextual information.
 
-However, we want to keep our analysis focused on the bike-sharing system, and the \texttt{Citi Bike} System Data already provides a comprehensive view of the city's bike rental patterns.
-Therefore, we decided to avoid adding unnecessary complexity by incorporating additional datasets from NYC Open Data, unless they are needed to provide further context or support specific insights.
+However, to maintain focus on the core dynamics of the bike-sharing system, we rely primarily on the \texttt{Citi Bike} System Data, which inherently provides a comprehensive view of local rental patterns.
+To avoid introducing unnecessary complexity, supplementary datasets from NYC Open Data are excluded unless required for essential context or to support specific insights.
 
 \subsection{Datasets Limitations}
-
 Another important aspect concerns the quality and consistency of the available data.
 Historical \texttt{Citi Bike} records were collected over multiple years, and they may contain missing values, inconsistencies, or differences in formatting and schema across datasets.
-For this reason, a careful preprocessing phase is required to clean, standardize, and integrate the data before any reliable analysis can be performed.
 
-Beyond simple cleaning, extracting new features is essential for uncovering meaningful insights. 
-Transforming raw timestamps into categorical variables, calculating distance from coordinates  or computing advanced statistics 
-allows us to capture patterns that aren't immediately visible in the original dataset.
+Beyond simple cleaning, extracting new features is essential for uncovering meaningful insights, such as calculating trip durations, distances, or aggregating data.
 
 Then, the integration of weather data also introduces challenges, as it requires aligning granularity in both time and space with the bike trip records.
 
-Finally, the large size of the dataset introduces additional technical challenges.
-Efficient aggregation, filtering, and data handling strategies must be implemented to manage the volume of information effectively. 
+Finally, the large size of the dataset introduces technical challenges that require efficient data handling strategies to manage the volume of information effectively.

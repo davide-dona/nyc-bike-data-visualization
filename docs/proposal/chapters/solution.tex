@@ -2,7 +2,7 @@
 \subsection{Vision}
 We deliver an interactive web-based dashboard as the primary output.
 This allows all users to explore mobility patterns through a unified, user-friendly interface.
-Our design approach is to present clear, immediate insights at first impactful while also allowing deeper exploration for users who want to examine the details.
+Our design approach is to present clear, immediate insights at first glance while also allowing deeper exploration for users who want to examine the details.
 
 Regarding the update frequency, we expect the dashboard to be refreshed automatically on a monthly basis, coinciding with the release of new data from the provider.
 This ensures that the insights remain useful and relevant over time, while also enabling historical analysis and comparisons across different periods.
@@ -15,51 +15,24 @@ Our visualization prioritizes clarity and analytical depth over visual polish.
 We employ a dual-level approach: high-level dashboards present immediate summary insights (e.g., daily ridership totals, top stations), while detailed views enable granular exploration (e.g., hourly breakdowns, user type comparisons).
 All design choices remain data-centric, avoiding decorative elements or misleading visual encodings that could obscure underlying patterns.
 
-\begin{comment}
-    Some of these proposal should be updated.
-    No need to perfectly reflect the final design, but at least making them consistent with the graphical mockups
-\end{comment}
 \subsection{Early Design Considerations}
-While specific chart types and encodings will be refined during development, a few design decisions follow directly from the editorial choices above:
+While specific chart types and encodings will be refined during development, a few design decisions follow directly from the editorial choices above.
 \begin{itemize}
   \item \textbf{Map-centric spatial view}: Spatial data is inherently geographic, so an interactive map is the natural primary choice for our project.
-  A heatmap overlay can show station-level demand, while flow lines can illustrate the most common routes between stations; a first sketch of this view is given in Figure~\ref{fig:mockup-spatial}.
+  A heatmap overlay can show station-level demand (Figures~\ref{fig:mockup-heatmap}), while flow lines can illustrate the most common routes between stations (Figure~\ref{fig:mockup-trip-layer}).
   \item \textbf{Faceted temporal charts}: Temporal data will be used mainly to compare behavior across different time periods, so faceted line charts or 
-  small multiples will allow us to compare patterns across days of the week, hours of the day, or seasons without overwhelming the viewer with too much information in a single chart.
+  small multiples will allow us to compare patterns across days of the week, hours of the day, or seasons without overwhelming the viewer with too much information in a single chart (Figure~\ref{fig:mockup-surface-graph}).
+  \item \textbf{Weather and environmental context}: Incorporating weather data will allow us to analyze how environmental conditions affect bike usage patterns, using ridge plots such as the one sketched in Figure~\ref{fig:mockup-ridge-graph}.
+  \item \textbf{Footprint and carbon impact}: We will provide a simple metric to quantify the environmental benefits of bike-sharing, such as estimated CO2 emissions saved by replacing car trips with bike trips.
   \item \textbf{User and rideable type breakdowns}: Bar charts or stacked area charts can effectively show the distribution of user types and rideable types, supporting comparisons across different contexts (e.g., time of day, weather conditions).
   \item \textbf{Interactive filtering over static views}: Rather than producing separate dashboards for each dimension, we favour cross-filtering: selecting a time range, station, or user type in one chart updates the others, supporting exploratory analysis without overwhelming the interface.
 \end{itemize}
 Regarding focus, the map-centric spatial view serves as the primary entry point, offering the most intuitive and immediate reading of the data.
-Temporal and user/rideable breakdowns take a supporting role, enriching the analysis without cluttering the interface.
-
-\begin{comment}
-    I think this could also be removed! Was introduced for the message, but since we are not enforcing a single message, it is not needed.
-\end{comment}
-\subsection{Exploration Perspectives}
-The considerations above describe the exploratory backbone of the dashboard.
-To make free exploration productive rather than dispersive, we plan to organize the interface around a small set of \emph{perspectives}: thematic lenses that make each family of conclusions introduced in the Context section reachable, without prescribing what the user should conclude.
-\begin{itemize}
-  \item \textbf{Weather perspective}: ridership placed side by side with weather conditions.
-  We envision views comparing how rides distribute under different conditions, tracing how demand responds to temperature for members and casual riders separately, and measuring the impact of rain against dry days as a baseline (Figure~\ref{fig:mockup-weather}).
-  Which specific encodings survive (scatter plots, distribution ridges, binned response curves) will be decided against the real data during development.
-  \item \textbf{Commute and leisure perspective}: the temporal and spatial structure of usage.
-  An hour-by-weekday view, for instance a heatmap or a small-multiple grid, could expose the weekday double peak of commuters against the midday swell of weekend leisure (Figure~\ref{fig:mockup-temporal}), while member vs.\@ casual breakdowns and station-to-station flows on the map suggest where each behavior concentrates.
-  \item \textbf{Green mobility perspective}: the environmental reading of the same data.
-  We propose a ``same kilometres, different footprint'' comparison: the total distance ridden in the selected period, re-expressed as the \(\text{CO}_2\) that the same travel would emit by car, taxi, bus, or subway.
-  Alongside it, a cumulative estimate of the \(\text{CO}_2\) avoided over time, computed as
-  \[
-    \text{CO}_2\ \text{avoided} = \text{kilometres ridden} \times \text{substitution rate} \times \text{emission factor},
-  \]
-  where the car-substitution rate is the most uncertain term.
-  Rather than present a single, potentially misleading figure, we would render the estimate as a low/mid/high band accompanied by an explicit statement of its assumptions, turning it into a transparent, defensible range that the user can inspect and adjust.
-  Figure sketches a possible layout of this perspective as a dedicated dashboard section.
-\end{itemize}
-Each perspective is an entry point, not a conclusion: the cross-filtering described above lets users move between perspectives, drill down, and combine views to answer questions of their own.
+Other views will take a supporting role in secondary entries, enriching the analysis without cluttering the interface.
 
 \subsection{Constraints}
 In general, obtaining the most value from the data while respecting project constraints is a key challenge.
 The project must balance the ambition of performing meaningful analyses with practical limitations such as time availability, data quality, and implementation complexity. 
-Since the final deliverable is scheduled for June, it is necessary to keep the feature scope focused and prioritize analyses that can provide the most relevant and actionable insights.
 
 In order to manage both data processing and dashboard development within the project timeline, we want to leverage our programming skills to build a tech stack defined as follows:
 \begin{itemize}[beginpenalty=10000]
