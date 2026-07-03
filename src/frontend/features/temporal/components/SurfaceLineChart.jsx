@@ -3,11 +3,9 @@ import Plot from "react-plotly.js";
 import StatusMessage from "../../../components/StatusMessage.jsx";
 import { getMetricConfig } from "../utils/metric_formatter.jsx";
 import {
-    INK,
     INK_MUTED,
     PAPER_RAISED,
     FONT_MONO,
-    RULE,
     RULE_STRONG,
     FONT_DISPLAY,
 } from "../../../utils/editorialTokens.js";
@@ -139,7 +137,6 @@ function SurfaceLineChart({
                                     font: { family: FONT_DISPLAY, size: 11, color: INK_MUTED },
                                 },
                                 tickfont: { family: FONT_MONO, size: 10, color: INK_MUTED },
-                                // gridcolor: RULE,
                                 gridcolor: "transparent",
                                 zerolinecolor: RULE_STRONG,
                             },
@@ -149,7 +146,6 @@ function SurfaceLineChart({
                                     font: { family: FONT_DISPLAY, size: 11, color: INK_MUTED },
                                 },
                                 tickfont: { family: FONT_MONO, size: 10, color: INK_MUTED },
-                                // gridcolor: RULE,
                                 zerolinecolor: RULE_STRONG,
                             },
                             hoverlabel: {

@@ -13,7 +13,7 @@ import StatusMessage from "../../../components/StatusMessage"
 // Bins observed for fewer hours than this are dropped: a 1-hour extreme
 // temperature bin would otherwise produce a wild point at the curve's edge.
 const MIN_HOURS = 5
-const BIN_WIDTH = 2 // °C, must match the backend bucketing
+const BIN_WIDTH = 2 // °C, must match _WEATHER_EXPRS in src/backend/services/ride_stats.py
 
 const USER_TYPE_LABELS = { member: "Member", casual: "Casual" }
 const USER_TYPE_COLORS = { member: ACCENT, casual: "#c24747" }

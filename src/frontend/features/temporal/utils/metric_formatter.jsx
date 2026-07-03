@@ -1,9 +1,7 @@
 // Utility functions and configurations for formatting and retrieving metrics
 export const METRIC_FORMATTERS = {
     total_rides: value => value.toFixed(1),
-    total_duration_minutes: value => value.toFixed(1) + " min",
     average_duration_minutes: value => value.toFixed(1) + " min",
-    total_distance: value => value.toFixed(1) + " km",
     average_distance: value => value.toFixed(1) + " km",
     average_speed_kmh: value => value.toFixed(1) + " km/h",
 }
@@ -16,9 +14,9 @@ function getRidesPerDay(row) {
         return 0
     }
 
-    // day_of_week buckets include all 24 hours for each matching weekday.
-    // hour and day+hour buckets contain one hour slot per day occurrence.
-    const daysCount = row?.day_of_week != null && row?.hour == null
+    // Buckets without an hour dimension (date, day_of_week, ungrouped) span
+    // all 24 hours of each day they cover; hour buckets hold one slot per day.
+    const daysCount = row?.hour == null
         ? hoursCount / 24
         : hoursCount
 

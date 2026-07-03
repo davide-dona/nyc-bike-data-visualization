@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useRef, useState } from "react"
 import Plot from "react-plotly.js"
-import { HOUR_LABELS, DAY_LABELS, normalizeDay } from "../../../utils/config.jsx"
+import { HOUR_LABELS, DAY_LABELS } from "../../../utils/config.jsx"
 import StatusMessage from "../../../components/StatusMessage"
 import { PAPER_RAISED, FONT_MONO, INK } from "../../../utils/editorialTokens.js"
 import { EDITORIAL_COLORSCALE, editorialAxis } from "../../../utils/styling"
@@ -59,7 +59,8 @@ function buildSurfaceMatrix(data, metricGetter) {
 
     for (let i = 0; i < data.length; i++) {
         const row = data[i]
-        const day = normalizeDay(row.day_of_week)
+        // Backend day_of_week is already 0=Monday .. 6=Sunday, matching DAY_LABELS
+        const day = row.day_of_week
         const value = Number(metricGetter(row))
         grid[day][row.hour] = Number.isFinite(value) ? value : 0
     }
@@ -113,7 +114,7 @@ function SurfaceGraph({
             "Day: <b>%{y}</b><br>" +
             "Hour: <b>%{x}</b><br>" +
             `Rhythm: <b>%{z}</b> ${metric.unit}<extra></extra>`,
-        [metric.label]
+        [metric.unit]
     )
 
     const updateCoordinatesFromEvent = useCallback((eventData) => {

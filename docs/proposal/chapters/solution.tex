@@ -15,11 +15,15 @@ Our visualization prioritizes clarity and analytical depth over visual polish.
 We employ a dual-level approach: high-level dashboards present immediate summary insights (e.g., daily ridership totals, top stations), while detailed views enable granular exploration (e.g., hourly breakdowns, user type comparisons).
 All design choices remain data-centric, avoiding decorative elements or misleading visual encodings that could obscure underlying patterns.
 
+\begin{comment}
+    Some of these proposal should be updated.
+    No need to perfectly reflect the final design, but at least making them consistent with the graphical mockups
+\end{comment}
 \subsection{Early Design Considerations}
 While specific chart types and encodings will be refined during development, a few design decisions follow directly from the editorial choices above:
 \begin{itemize}
   \item \textbf{Map-centric spatial view}: Spatial data is inherently geographic, so an interactive map is the natural primary choice for our project.
-  A heatmap overlay can show station-level demand, while flow lines can illustrate the most common routes between stations.
+  A heatmap overlay can show station-level demand, while flow lines can illustrate the most common routes between stations; a first sketch of this view is given in Figure~\ref{fig:mockup-spatial}.
   \item \textbf{Faceted temporal charts}: Temporal data will be used mainly to compare behavior across different time periods, so faceted line charts or 
   small multiples will allow us to compare patterns across days of the week, hours of the day, or seasons without overwhelming the viewer with too much information in a single chart.
   \item \textbf{User and rideable type breakdowns}: Bar charts or stacked area charts can effectively show the distribution of user types and rideable types, supporting comparisons across different contexts (e.g., time of day, weather conditions).
@@ -28,23 +32,29 @@ While specific chart types and encodings will be refined during development, a f
 Regarding focus, the map-centric spatial view serves as the primary entry point, offering the most intuitive and immediate reading of the data.
 Temporal and user/rideable breakdowns take a supporting role, enriching the analysis without cluttering the interface.
 
-\subsection{Message-Driven Views}
-The considerations above describe the exploratory layer of the dashboard.
-On top of it, three guided views carry the narrative defined by our driving questions, each pairing a question with a deliberate encoding:
+\begin{comment}
+    I think this could also be removed! Was introduced for the message, but since we are not enforcing a single message, it is not needed.
+\end{comment}
+\subsection{Exploration Perspectives}
+The considerations above describe the exploratory backbone of the dashboard.
+To make free exploration productive rather than dispersive, we plan to organize the interface around a small set of \emph{perspectives}: thematic lenses that make each family of conclusions introduced in the Context section reachable, without prescribing what the user should conclude.
 \begin{itemize}
-  \item \textbf{Adoption view (growth)}: a stacked area chart of monthly trip volume since 2013, split by rideable type (classic vs.\@ electric) to expose the shift towards e-bikes.
-  We deliberately plot raw counts and annotate that part of the rise reflects fleet and station expansion rather than demand alone, so the trend is not over-interpreted.
-  \item \textbf{Two-ridership view (weather split)}: a scatter plot of daily ridership against temperature, with separate regression lines for members and casual riders, faceted by season and filterable by precipitation.
-  The contrast in the two slopes \emph{is} the message: casual demand is weather-elastic, while commuter demand stays comparatively flat.
-  \item \textbf{Green-dividend view (headline)}: a cumulative area chart of estimated car-kilometres displaced and \(\text{CO}_2\) avoided over time.
-  We compute it as
+  \item \textbf{Weather perspective}: ridership placed side by side with weather conditions.
+  We envision views comparing how rides distribute under different conditions, tracing how demand responds to temperature for members and casual riders separately, and measuring the impact of rain against dry days as a baseline (Figure~\ref{fig:mockup-weather}).
+  Which specific encodings survive (scatter plots, distribution ridges, binned response curves) will be decided against the real data during development.
+  \item \textbf{Commute and leisure perspective}: the temporal and spatial structure of usage.
+  An hour-by-weekday view, for instance a heatmap or a small-multiple grid, could expose the weekday double peak of commuters against the midday swell of weekend leisure (Figure~\ref{fig:mockup-temporal}), while member vs.\@ casual breakdowns and station-to-station flows on the map suggest where each behavior concentrates.
+  \item \textbf{Green mobility perspective}: the environmental reading of the same data.
+  We propose a ``same kilometres, different footprint'' comparison: the total distance ridden in the selected period, re-expressed as the \(\text{CO}_2\) that the same travel would emit by car, taxi, bus, or subway.
+  Alongside it, a cumulative estimate of the \(\text{CO}_2\) avoided over time, computed as
   \[
-    \text{CO}_2\ \text{avoided} = \text{trips} \times \text{avg.\ distance} \times \text{substitution rate} \times \text{emission factor},
+    \text{CO}_2\ \text{avoided} = \text{kilometres ridden} \times \text{substitution rate} \times \text{emission factor},
   \]
   where the car-substitution rate is the most uncertain term.
-  Rather than present a single, potentially misleading figure, we render the result as a low/mid/high band controlled by a slider and accompanied by an explicit assumptions box, turning an estimate into a transparent, defensible range.
+  Rather than present a single, potentially misleading figure, we would render the estimate as a low/mid/high band accompanied by an explicit statement of its assumptions, turning it into a transparent, defensible range that the user can inspect and adjust.
+  Figure sketches a possible layout of this perspective as a dedicated dashboard section.
 \end{itemize}
-These guided views act as the immediate, high-level entry points of the dual-level design, while the map, faceted temporal charts, and cross-filtering described above let users drill down once a message has caught their attention.
+Each perspective is an entry point, not a conclusion: the cross-filtering described above lets users move between perspectives, drill down, and combine views to answer questions of their own.
 
 \subsection{Constraints}
 In general, obtaining the most value from the data while respecting project constraints is a key challenge.

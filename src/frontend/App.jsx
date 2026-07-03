@@ -4,6 +4,7 @@ import AppHeader from './features/header/AppHeader.jsx'
 import MapPage from './features/map/MapPage.jsx'
 import TemporalPage from './features/temporal/TemporalPage.jsx'
 import WeatherPage from './features/weather/WeatherPage.jsx'
+import FootprintPage from './features/footprint/FootprintPage.jsx'
 
 /**
  * App component that sets up the main structure of the application, including routing and layout. 
@@ -37,6 +38,7 @@ function App() {
                                 }
                             />
                             <Route path="/weather" element={<WeatherPage filters={filters} />} />
+                            <Route path="/footprint" element={<FootprintPage filters={filters} />} />
                         </Routes>
                     </div>
                 </main>

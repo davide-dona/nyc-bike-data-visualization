@@ -34,9 +34,6 @@ function WeatherPage({ filters = {} }) {
         refetch: refetchRain,
     } = useRainImpact(filters)
 
-    const loadingAll = loading || ridgelineLoading || temperatureLoading || rainLoading
-    const errorAll = error || ridgelineError || temperatureError || rainError
-    const refetchAll = () => Promise.all([refetch(), refetchRidgeline(), refetchTemperature(), refetchRain()])
 
     return (
         <section className="page-card">
@@ -53,30 +50,30 @@ function WeatherPage({ filters = {} }) {
             <div className="page-card__body">
                 <ScatterPlot
                     data={weatherStats}
-                    loading={loadingAll}
-                    error={errorAll}
-                    onRefetch={refetchAll}
+                    loading={loading}
+                    error={error}
+                    onRefetch={refetch}
                 />
 
                 <WeatherRidgeline
                     data={ridgelineStats}
-                    loading={loadingAll}
-                    error={errorAll}
-                    onRefetch={refetchAll}
+                    loading={ridgelineLoading}
+                    error={ridgelineError}
+                    onRefetch={refetchRidgeline}
                 />
 
                 <div className="weather-deepdive-grid">
                     <TemperatureResponse
                         series={temperatureSeries}
-                        loading={loadingAll}
-                        error={errorAll}
-                        onRefetch={refetchAll}
+                        loading={temperatureLoading}
+                        error={temperatureError}
+                        onRefetch={refetchTemperature}
                     />
                     <RainImpact
                         data={rainStats}
-                        loading={loadingAll}
-                        error={errorAll}
-                        onRefetch={refetchAll}
+                        loading={rainLoading}
+                        error={rainError}
+                        onRefetch={refetchRain}
                     />
                 </div>
 

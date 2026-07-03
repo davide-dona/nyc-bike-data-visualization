@@ -36,17 +36,18 @@ export default function RiderBikeFilter({ value = {}, onChange, disabled = false
         <div className="rider-filter-group" key={key}>
           <div className="rider-filter-label-wrap">
             <span className="rider-filter-label">{label}</span>
-            <span
+            <button
+              type="button"
               className="rider-filter-help"
-              tabIndex={0}
-              role="note"
               aria-label={`${label} filter info`}
+              aria-describedby={`rider-filter-hint-${key}`}
+              disabled={disabled}
             >
               ?
-              <span className="rider-filter-tooltip" role="tooltip">
+              <span id={`rider-filter-hint-${key}`} className="rider-filter-tooltip" role="tooltip">
                 {FILTER_HINTS[key]}
               </span>
-            </span>
+            </button>
           </div>
           <ScrollableButtonRow disabled={disabled}>
             <button

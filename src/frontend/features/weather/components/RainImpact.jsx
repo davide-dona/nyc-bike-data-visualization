@@ -10,7 +10,8 @@ import {
 import { BAR_SOLID, BAR_MUTED } from "../../../utils/styling"
 import StatusMessage from "../../../components/StatusMessage"
 
-// Labels keyed on the backend bucket lower edges (mm/h).
+// Labels keyed on the backend bucket lower edges (mm/h),
+// must match _WEATHER_EXPRS in src/backend/services/ride_stats.py.
 const RAIN_BUCKETS = [
     { bin: 0, label: "Dry" },
     { bin: 0.1, label: "Trace (<0.5)" },

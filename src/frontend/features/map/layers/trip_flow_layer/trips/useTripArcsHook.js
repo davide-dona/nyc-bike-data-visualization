@@ -45,9 +45,9 @@ export function useTripArcsLayer({ filters, selectedStationIds }) {
         }
         return Array.from(pairMap.values())
     }, [tripCountQueries, selectedStationIds.length])
-    // Determine the loading state by checking if any of the queries are still loading or fetching
-    //#TODO: For now placeholder for new loading component
-    const loading = false//tripCountQueries.some((query) => query.isLoading || query.isFetching)
+    // Only initial loads count: background refetches keep the cached arcs
+    // visible instead of flashing the loading overlay on every station click
+    const loading = tripCountQueries.some((query) => query.isLoading)
     const error = tripCountQueries.find((query) => query.error)?.error || null
     const refetch = () => Promise.all(tripCountQueries.map((query) => query.refetch()))
     // Process the combined trip count data to select trips that meet the criteria and calculate the maximum flow for scaling the visualization

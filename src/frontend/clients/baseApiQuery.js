@@ -24,7 +24,7 @@ function useApiQueryWithFilters({
     queryKey,                   
     fetcher,                    
     filters = {},               
-    enabledWhen = hasDateRange || hasUserFilters,  // Default to enabling if there's a valid date range or user filters
+    enabledWhen = filters => hasDateRange(filters) || hasUserFilters(filters),  // Default to enabling if there's a valid date range or user filters
     staleTime,                  // Undefined by default -> falls back to QueryClient defaults
     gcTime,                     // Undefined by default -> falls back to QueryClient defaults
     fallbackData = [],

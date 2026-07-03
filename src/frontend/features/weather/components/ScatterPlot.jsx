@@ -103,8 +103,8 @@ export default function ScatterPlot({ data, loading, error, onRefetch }) {
                 const html = `
                     <div style="margin-bottom: 12px; padding-bottom: 10px; border-bottom: 1px solid rgba(25, 83, 216, 0.38);">
                         <div style="display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 13px; color: ${PAPER_RAISED}; font-family: ${FONT_MONO}; letter-spacing: 0.02em;">
-                            <span style="font-size: 14px; line-height: 1;">${weatherIcon}</span>
-                            <span>${point.weatherLabel}</span>
+                            <span style="font-size: 14px; line-height: 1;" aria-hidden="true">${weatherIcon}</span>
+                            <span>${point.weatherLabel ?? point.weatherGroup}</span>
                         </div>
                         <div style="font-weight: 400; color: rgba(251, 248, 242, 0.6); font-size: 10px; font-family: ${FONT_MONO}; letter-spacing: 0.04em; margin-top: 2px; text-transform: uppercase;">
                             ${point.weatherGroup}
@@ -200,7 +200,7 @@ export default function ScatterPlot({ data, loading, error, onRefetch }) {
         if (!canvasRef.current) return
         chartRef.current?.destroy()
 
-        const ctx = canvasRef.current.getContext("2d", { willReadFrequently: true })
+        const ctx = canvasRef.current.getContext("2d")
         if (!ctx) return
 
         chartRef.current = new Chart(ctx, {
@@ -210,7 +210,7 @@ export default function ScatterPlot({ data, loading, error, onRefetch }) {
                     label: point.weatherGroup,
                     // y = rides per hour, x = average speed, color = weather group
                     data: [{ x: point.avgSpeed, y: point.ridesPerHour, ...point }],
-                    backgroundColor: GROUPED_WEATHER_CODES[point.weatherGroup]?.[1],
+                    backgroundColor: GROUPED_WEATHER_CODES[point.weatherGroup]?.[1] ?? "#6e6a62",
                     borderColor: SCATTER_BORDER_COLOR,
                     borderWidth: SCATTER_BORDER_WIDTH,
                     pointRadius: SCATTER_POINT_RADIUS,

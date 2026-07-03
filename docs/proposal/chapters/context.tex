@@ -40,23 +40,25 @@ flows and modal patterns, which can inform infrastructure investment and urban p
 For the general public, it can raise awareness of urban mobility and sustainable transportation alternatives,
 fostering a more informed and engaged community.
 
-\subsection{Intended Message and Driving Questions}
-Beyond exposing the data for free exploration, our visualization argues a specific thesis:
+\begin{comment}
+    I would probably heavily shorten this section, focusing only on the intended message and supported insights. 
+\end{comment}
+\subsection{Intended Message and Supported Insights}
+Ours is an exploratory visualization system, and this shapes what ``message'' means for the project.
+We do not enforce a single conclusion on the user: the interface exposes the data through complementary perspectives, and each user is free to explore, form hypotheses, and reach their own conclusions.
+If there is an intended message, it sits one level higher:
 \begin{quote}
-\textit{Citi Bike has grown into a year-round engine of low-carbon mobility in New York City, and the size of that climate dividend depends on who is riding and on the weather.}
+\textit{New York City's bike-sharing data, once joined with weather and urban context, is rich enough for anyone (an analyst, a planner, or a curious citizen) to discover how the city moves and to draw their own, evidence-based conclusions about it.}
 \end{quote}
 
-This message is supported by three driving questions, ordered so that the narrative builds from scale, to nuance, to payoff:
+At the same time, exploration is not unguided.
+Through the choice of views and defaults, the design deliberately makes three families of conclusions reachable:
 \begin{enumerate}
-  \item \textbf{Adoption: is bike usage growing?}
-  We trace ridership since 2013 to show whether \texttt{Citi Bike} is becoming a more established part of the city's mobility, and whether the recent growth is increasingly electric.
-  We report raw ride volumes while being explicit that part of any rise reflects fleet and station expansion, not demand alone.
-  \item \textbf{Two riderships: who keeps riding when the weather turns?}
-  We contrast members (largely commuters) with casual riders (largely leisure and tourism) to test the hypothesis that commuter demand is weather-resilient while casual demand is fair-weather, varying sharply with temperature, precipitation, and season.
-  \item \textbf{Green dividend: how much car travel does this displace?}
-  As the headline of the project, we translate ridership into an estimate of car-kilometres avoided and the associated \(\text{CO}_2\) savings, making the sustainability argument concrete.
-  Because this estimate depends on an assumed car-substitution rate, we communicate it transparently as a range rather than a single figure.
+  \item \textbf{Weather and riders: how does weather shape cycling?}
+  By pairing ridership with temperature, precipitation, and general conditions, users can investigate how demand reacts to weather, and whether members (largely commuters) and casual riders (largely leisure and tourism) respond differently.
+  \item \textbf{Commute and leisure: how is the service actually used?}
+  Temporal and spatial patterns (rush-hour peaks, weekday flows between stations, weekend activity) let users distinguish commuting behavior from leisure and tourism, and see where and when each of the two dominates.
+  \item \textbf{Green mobility: how sustainable is riding compared to the alternatives?}
+  By translating the kilometres actually ridden into environmental terms, users can compare cycling with other means of transport (car, taxi, bus, subway) and judge for themselves how green the service is.
 \end{enumerate}
-
-These questions nest rather than compete: the green dividend (Q3) scales with the volume established by adoption (Q1) and is modulated by the seasonal and user-type split revealed in (Q2).
-This thesis-driven framing guides our default views, while the underlying exploratory interface still lets users investigate the data on their own terms.
+These families are starting points rather than a script: the same interface that supports them also supports questions we have not anticipated, which is precisely the value of an exploratory design.

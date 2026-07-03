@@ -31,6 +31,14 @@ function buildHighlightColors(labels, highlight, solidColor, mutedColor) {
     return labels.map((label) => (label === highlight ? solidColor : mutedColor))
 }
 
+function buildDatasetColors(labels, highlight, compareDatasets, datasetIndex) {
+    if (!compareDatasets) {
+        return buildHighlightColors(labels, highlight, BAR_SOLID, BAR_MUTED)
+    }
+    const baseColor = compareDatasets[datasetIndex]?.color ?? BAR_SOLID
+    return buildHighlightColors(labels, highlight, toRgba(baseColor, 0.86), toRgba(baseColor, 0.32))
+}
+
 
 /**
  * Component for rendering a bar chart using Chart.js, with support for highlighting a specific bar based on the provided highlight value.
@@ -53,58 +61,57 @@ export default function BarChart({
 }) {
     const canvasRef = useRef(null)
     const chartRef = useRef(null)
-    const hasCompareDatasets = Array.isArray(compareDatasets) && compareDatasets.length > 0
-    const colors = buildHighlightColors(labels, highlight, BAR_SOLID, BAR_MUTED)
-    const isHourChart = xAxisTitle === "Hour of Day"
-    const isDayChart = xAxisTitle === "Day of Week"
-    const tooltipLabelCallback = (ctx) => {
-        const valueLabel = formatTooltipLabel(format, ctx)
-        if (!hasCompareDatasets) return `Rhythm: ${valueLabel.trim()}`
-        return `${ctx.dataset.label} \u00b7 Rhythm: ${valueLabel.trim()}`
-    }
-    const tooltipTitleCallback = (items) => {
-        if (!items?.length) return ""
-        const hourLabel = String(items?.[0]?.label ?? "")
-        if (!isHourChart) return `Moment: ${hourLabel}`
-        return `Moment: Hour ${hourLabel.padStart(2, "0")}`
-    }
-    const tooltipAfterTitleCallback = (items) => {
-        if (!isDayChart) return ""
-        const dayLabel = String(items?.[0]?.label ?? "")
-        return `Day: ${dayLabel}`
-    }
-    const yAxisTickCallback = formatYAxisTick.bind(null, unit)
+    // Highlight changes are applied in place (see the effect below), so the
+    // chart-creation effect reads the current value through a ref instead of
+    // depending on it and recreating the whole chart on every hover.
+    const highlightRef = useRef(highlight)
+    highlightRef.current = highlight
+    // Tracks the highlight the chart currently displays, so the repaint
+    // effect can skip the render right after (re)creation
+    const paintedHighlightRef = useRef(highlight)
 
     useEffect(() => {
-        const ctx = canvasRef.current?.getContext("2d", { willReadFrequently: true })
+        const ctx = canvasRef.current?.getContext("2d")
         if (!ctx) return
 
-        const datasets = hasCompareDatasets
-            ? compareDatasets.map((dataset, index) => {
-                const baseColor = dataset.color ?? BAR_SOLID
-                const emphasized = toRgba(baseColor, 0.86)
-                const softened = toRgba(baseColor, 0.32)
+        const hasCompareDatasets = Array.isArray(compareDatasets) && compareDatasets.length > 0
+        const compareList = hasCompareDatasets ? compareDatasets : null
+        const isHourChart = xAxisTitle === "Hour of Day"
+        const isDayChart = xAxisTitle === "Day of Week"
+        const tooltipLabelCallback = (tooltipCtx) => {
+            const valueLabel = formatTooltipLabel(format, tooltipCtx)
+            if (!hasCompareDatasets) return `Rhythm: ${valueLabel.trim()}`
+            return `${tooltipCtx.dataset.label} · Rhythm: ${valueLabel.trim()}`
+        }
+        const tooltipTitleCallback = (items) => {
+            if (!items?.length) return ""
+            const hourLabel = String(items?.[0]?.label ?? "")
+            if (!isHourChart) return `Moment: ${hourLabel}`
+            return `Moment: Hour ${hourLabel.padStart(2, "0")}`
+        }
+        const yAxisTickCallback = formatYAxisTick.bind(null, unit)
 
-                return {
-                    label: dataset.label,
-                    data: dataset.data,
-                    backgroundColor: buildHighlightColors(labels, highlight, emphasized, softened),
-                    borderColor: toRgba(baseColor, 0.95),
-                    borderWidth: 1,
-                    borderRadius: 0,
-                    borderSkipped: false,
-                    barPercentage: 0.86,
-                    categoryPercentage: 0.7,
-                    order: index,
-                }
-            })
+        const datasets = hasCompareDatasets
+            ? compareDatasets.map((dataset, index) => ({
+                label: dataset.label,
+                data: dataset.data,
+                backgroundColor: buildDatasetColors(labels, highlightRef.current, compareList, index),
+                borderColor: toRgba(dataset.color ?? BAR_SOLID, 0.95),
+                borderWidth: 1,
+                borderRadius: 0,
+                borderSkipped: false,
+                barPercentage: 0.86,
+                categoryPercentage: 0.7,
+                order: index,
+            }))
             : [{
                 data,
-                backgroundColor: colors,
+                backgroundColor: buildDatasetColors(labels, highlightRef.current, null, 0),
                 borderRadius: 0,
                 borderSkipped: false,
             }]
 
+        paintedHighlightRef.current = highlightRef.current
         chartRef.current = new Chart(ctx, {
             type: "bar",
             data: {
@@ -186,18 +193,27 @@ export default function BarChart({
     }, [
         data,
         labels,
-        colors,
+        format,
         compareDatasets,
-        hasCompareDatasets,
-        highlight,
-        isHourChart,
-        isDayChart,
-        tooltipLabelCallback,
         xAxisTitle,
         yAxisTitle,
-        yAxisTickCallback,
+        unit,
         xLabelStep,
     ])
+
+    // Repaint highlight colors in place instead of recreating the chart
+    useEffect(() => {
+        const chart = chartRef.current
+        if (!chart || paintedHighlightRef.current === highlight) return
+
+        const hasCompareDatasets = Array.isArray(compareDatasets) && compareDatasets.length > 0
+        const compareList = hasCompareDatasets ? compareDatasets : null
+        chart.data.datasets.forEach((dataset, index) => {
+            dataset.backgroundColor = buildDatasetColors(labels, highlight, compareList, index)
+        })
+        paintedHighlightRef.current = highlight
+        chart.update("none")
+    }, [highlight, labels, compareDatasets])
 
     return <canvas ref={canvasRef} />
 }

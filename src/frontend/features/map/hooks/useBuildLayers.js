@@ -49,11 +49,14 @@ export function useBuildLayers({ filters, currentTime, activeLayer, showBikeRout
         setHoveredTripStationId(info?.object?.id ?? null)
     }
 
-    // Combine loading and error states for easier handling in the component
+    // Combine loading, error, and data-arrival states for easier handling in the component.
+    // hasData is derived from the source arrays (not the deck.gl layer instances) so the
+    // page can tell "still waiting on data" apart from "loaded but layer not built yet".
+    // Trip flow counts as ready once its clickable stations exist: arcs need a selection.
     const stateLayers = [
-        { layer: 'station_usage', loading: stationLoading, error: stationError, refetch: stationRefetch },
-        { layer: 'trip_flow', loading: tripLoading, error: tripError, refetch: tripRefetch },
-        { layer: 'infrastructure', loading: availabilityLoading, error: availabilityError, refetch: availabilityRefetch }
+        { layer: 'station_usage', loading: stationLoading, error: stationError, refetch: stationRefetch, hasData: frameStations.length > 0 },
+        { layer: 'trip_flow', loading: tripLoading, error: tripError, refetch: tripRefetch, hasData: tripStations.length > 0 },
+        { layer: 'infrastructure', loading: availabilityLoading, error: availabilityError, refetch: availabilityRefetch, hasData: stations.length > 0 }
     ]
 
     // Build layers based on active layer and data
@@ -94,16 +97,19 @@ export function useBuildLayers({ filters, currentTime, activeLayer, showBikeRout
         return base
     }, [frameStations, maxUsage, maxDelta, trips, maxTripFlow, tripStations, selectedStationIds, hoveredTripStationId, onStationPick, stations, activeLayer, stationLoading, stationError, tripLoading, tripError, availabilityLoading, availabilityError, bikeRoutes, showBikeRoutes, hoveredrouteID, selectedInfrastructureStationIds, onInfrastructureStationPick])
 
-    // Consider the loading and error states of only the active layer for the overall status
-    const loading = stateLayers.find(layer => layer.layer === activeLayer)?.loading || false
-    const error = stateLayers.find(layer => layer.layer === activeLayer)?.error || null
-    const refetch = stateLayers.find(layer => layer.layer === activeLayer)?.refetch ?? (() => {})
+    // Consider the loading, error, and data states of only the active layer for the overall status
+    const activeLayerState = stateLayers.find(layer => layer.layer === activeLayer)
+    const loading = activeLayerState?.loading || false
+    const error = activeLayerState?.error || null
+    const refetch = activeLayerState?.refetch ?? (() => {})
+    const hasData = activeLayerState?.hasData ?? false
     const hasTripFlowSelection = selectedStationIds.length > 0
 
     return {
         layers,
         loading: loading,
         error: error,
+        hasData,
         refetch,
         resetSelectedStationIds,
         hasTripFlowSelection,

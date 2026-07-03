@@ -11,6 +11,5 @@ export async function fetchStatsByWeather(filters = {}) {
     const { data } = await apiClient.get(ENDPOINTS.statsByWeather(), {
         params: filters,
     })
-    // Convert durations from seconds to minutes for display purposes
     return data
 }

@@ -1,0 +1,101 @@
+@layer components {
+  .footprint-tiles {
+    @apply relative grid grid-cols-1 gap-4 sm:grid-cols-3;
+  }
+
+  .footprint-tile {
+    @apply border-t border-ink border-x border-b border-rule bg-paper-raised p-5;
+  }
+
+  .footprint-tile__value {
+    @apply m-0 font-display text-2xl tracking-display text-ink;
+  }
+
+  .footprint-tile__label {
+    @apply m-0 mt-2 font-mono text-[11px] uppercase tracking-eyebrow text-ink-muted;
+  }
+
+  .footprint-tile__hint {
+    @apply m-0 mt-1 font-sans text-xs text-ink-soft;
+  }
+
+  .footprint-grid {
+    @apply grid grid-cols-1 gap-4 lg:grid-cols-2;
+  }
+
+  .footprint-frame {
+    @apply relative w-full border-t border-ink border-x border-b border-rule bg-paper-raised p-5;
+  }
+
+  .footprint-frame__title {
+    @apply m-0 mb-4 font-mono text-[11px] uppercase tracking-eyebrow text-ink-muted;
+  }
+
+  .footprint-plot {
+    @apply relative w-full h-[34vh] min-h-[260px];
+  }
+
+  .footprint-empty {
+    @apply w-full h-full border border-rule bg-paper text-ink-muted font-mono text-[11px] uppercase tracking-eyebrow;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 0.75rem;
+  }
+
+  .footprint-rate {
+    @apply flex items-center gap-3 mt-4;
+  }
+
+  .footprint-rate__label {
+    @apply font-mono text-[11px] uppercase tracking-eyebrow text-ink-muted whitespace-nowrap;
+  }
+
+  .footprint-rate__slider {
+    @apply flex-1 h-1 cursor-pointer;
+    accent-color: #1953d8;
+  }
+
+  .footprint-rate__slider:disabled {
+    @apply cursor-not-allowed opacity-50;
+  }
+
+  .footprint-rate__value {
+    @apply font-mono text-[11px] text-ink w-[3ch] text-right;
+  }
+
+  .footprint-assumptions {
+    @apply border-t border-ink border-x border-b border-rule bg-paper p-5;
+  }
+
+  .footprint-assumptions__title {
+    @apply m-0 mb-4 font-mono text-[11px] uppercase tracking-eyebrow text-ink-muted;
+  }
+
+  .footprint-assumptions__grid {
+    @apply grid grid-cols-1 gap-6 lg:grid-cols-2;
+  }
+
+  .footprint-assumptions__heading {
+    @apply m-0 mb-2 font-display text-sm text-ink;
+  }
+
+  .footprint-assumptions__heading + .footprint-assumptions__heading,
+  .footprint-assumptions__text + .footprint-assumptions__heading,
+  .footprint-assumptions__list + .footprint-assumptions__heading {
+    @apply mt-4;
+  }
+
+  .footprint-assumptions__text {
+    @apply m-0 font-sans text-xs leading-relaxed text-ink-soft;
+  }
+
+  .footprint-assumptions__list {
+    @apply m-0 list-disc pl-4 font-sans text-xs leading-relaxed text-ink-soft;
+  }
+
+  .footprint-assumptions__list li + li {
+    @apply mt-1;
+  }
+}

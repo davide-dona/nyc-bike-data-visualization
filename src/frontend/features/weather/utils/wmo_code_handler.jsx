@@ -1,5 +1,5 @@
-//#TODO: Check codes
-// World Meteorological Organization (WMO) weather codes and their descriptions
+// World Meteorological Organization (WMO) weather codes and their descriptions,
+// matching the code set documented by the Open-Meteo API
 export const WMO_WEATHER_CODES = {
     0: "Clear sky",
     1: "Mainly clear",
@@ -29,8 +29,7 @@ export const WMO_WEATHER_CODES = {
     95: "Thunderstorm",
     96: "Thunderstorm with slight hail",
     99: "Thunderstorm with heavy hail"
-}   
-//#TODO: Revise grouping
+}
 /**
  * Groups weather codes into broader categories, assigning a label and color to each group
  */
@@ -54,4 +53,5 @@ export function getWeatherGroup(code) {
     for (const [group, [codes]] of Object.entries(GROUPED_WEATHER_CODES)) {
         if (codes.includes(code)) return group
     }
+    return "Other"
 }

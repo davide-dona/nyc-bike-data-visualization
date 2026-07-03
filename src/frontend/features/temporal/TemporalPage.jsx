@@ -35,7 +35,7 @@ function TemporalPage({ filters, onCompareModeChange }) {
         dateStats,
         loading,
         error,
-        refetch,
+        queries,
     } = useTemporalState(filters);
     const [isCompareMode, setIsCompareMode] = useState(false);
     const [isCompareHovered, setIsCompareHovered] = useState(false);
@@ -125,11 +125,22 @@ function TemporalPage({ filters, onCompareModeChange }) {
     const mergedError = error || (hasPinnedCompareLayers ? compareError : null);
     const isActionsDisabled = mergedLoading || mergedError;
 
-    const handleRefetchAll = () =>
-        Promise.all([
-            refetch(),
-            hasPinnedCompareLayers ? refetchCompare() : Promise.resolve(),
-        ]);
+    // Per-chart states: each chart merges only its own queries with the
+    // compare-layer queries it renders, so one failed request does not blank
+    // the other charts.
+    const withCompare = (chartQueries) => ({
+        loading: chartQueries.some((q) => q.loading) || (hasPinnedCompareLayers && compareLoading),
+        error: chartQueries.find((q) => q.error)?.error
+            ?? (hasPinnedCompareLayers ? compareError : null),
+        refetch: () =>
+            Promise.all([
+                ...chartQueries.map((q) => q.refetch()),
+                hasPinnedCompareLayers ? refetchCompare() : Promise.resolve(),
+            ]),
+    });
+    const surfaceState = withCompare([queries.dayHour]);
+    const histogramsState = withCompare([queries.day, queries.hour]);
+    const lineChartState = withCompare([queries.date]);
 
     const handleCompareToggle = () => {
         // If the panel is currently closed but hovered, open it without toggling (to prevent accidental close when moving mouse between button and panel)
@@ -419,9 +430,9 @@ function TemporalPage({ filters, onCompareModeChange }) {
                         data={baseLayer.dayHourStats}
                         activeMetric={activeMetric}
                         setCoordinates={setCoordinates}
-                        loading={mergedLoading}
-                        error={mergedError}
-                        onRefetch={handleRefetchAll}
+                        loading={surfaceState.loading}
+                        error={surfaceState.error}
+                        onRefetch={surfaceState.refetch}
                         compareMode={hasPinnedCompareLayers}
                         layers={activeLayers}
                     />
@@ -625,9 +636,9 @@ function TemporalPage({ filters, onCompareModeChange }) {
                     dayData={baseLayer.dayStats}
                     activeMetric={activeMetric}
                     coordinates={coordinates}
-                    loading={mergedLoading}
-                    error={mergedError}
-                    onRefetch={handleRefetchAll}
+                    loading={histogramsState.loading}
+                    error={histogramsState.error}
+                    onRefetch={histogramsState.refetch}
                     compareMode={hasPinnedCompareLayers}
                     layers={activeLayers}
                 />
@@ -635,9 +646,9 @@ function TemporalPage({ filters, onCompareModeChange }) {
                 <SurfaceLineChart
                     dateData={baseLayer.dateStats}
                     activeMetric={activeMetric}
-                    loading={mergedLoading}
-                    error={mergedError}
-                    onRefetch={handleRefetchAll}
+                    loading={lineChartState.loading}
+                    error={lineChartState.error}
+                    onRefetch={lineChartState.refetch}
                     compareMode={hasPinnedCompareLayers}
                     layers={activeLayers}
                 />

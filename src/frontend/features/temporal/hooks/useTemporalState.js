@@ -41,7 +41,7 @@ export default function useTemporalState(filters) {
         refetch: refetchDateStats,
     } = useDateStats(filters)
 
-    // Aggregate states
+    // Aggregate states, for page-level concerns (controls gating, compare layers)
     const loading = loadingDayHourStats || loadingDayStats || loadingHourStats || loadingDateStats
     const error = errorDayHourStats || errorDayStats || errorHourStats || errorDateStats
     const refetch = () => Promise.all([
@@ -50,6 +50,14 @@ export default function useTemporalState(filters) {
         refetchHourStats(),
         refetchDateStats(),
     ])
+
+    // Per-breakdown states, so each chart reflects only its own queries
+    const queries = {
+        dayHour: { loading: loadingDayHourStats, error: errorDayHourStats, refetch: refetchDayHourStats },
+        day: { loading: loadingDayStats, error: errorDayStats, refetch: refetchDayStats },
+        hour: { loading: loadingHourStats, error: errorHourStats, refetch: refetchHourStats },
+        date: { loading: loadingDateStats, error: errorDateStats, refetch: refetchDateStats },
+    }
 
     return {
         activeMetric,
@@ -63,5 +71,6 @@ export default function useTemporalState(filters) {
         loading,
         error,
         refetch,
+        queries,
     }
 }

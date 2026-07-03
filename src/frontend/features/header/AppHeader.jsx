@@ -11,6 +11,7 @@ const PAGES = [
     { to: "/map", label: "Map", icon: "fa-solid fa-map-location-dot" },
     { to: "/temporal", label: "Temporal", icon: "fa-solid fa-clock" },
     { to: "/weather", label: "Weather", icon: "fa-solid fa-cloud-sun" },
+    { to: "/footprint", label: "Footprint", icon: "fa-solid fa-leaf" },
 ];
 
 /**

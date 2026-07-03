@@ -116,7 +116,6 @@ const MAP_LAYER_GUIDES = {
 }
 
 function MapPage({ filters }) {
-    const [showInitialLoadingOverlay, setShowInitialLoadingOverlay] = useState(true)
     const [isHoveringPoint, setIsHoveringPoint] = useState(false)
     const [isFullscreen, setIsFullscreen] = useState(false)
     const mapShellRef = useRef(null)
@@ -137,16 +136,6 @@ function MapPage({ filters }) {
         if (isHoveringPoint) return 'pointer'
         return 'grab'
     }, [isHoveringPoint])
-
-    useEffect(() => {
-        const timeoutId = setTimeout(() => {
-            setShowInitialLoadingOverlay(false)
-        }, 220)
-
-        return () => {
-            clearTimeout(timeoutId)
-        }
-    }, [])
 
     useEffect(() => {
         const syncFullscreenState = () => {
@@ -191,6 +180,7 @@ function MapPage({ filters }) {
         layers,
         loading,
         error,
+        hasData,
         clearInfrastructureSelection,
         refetch,
         resetSelectedStationIds,
@@ -199,8 +189,10 @@ function MapPage({ filters }) {
     } = useBuildLayers({ filters, currentTime, activeLayer, showBikeRoutes, usageMode })
     const shouldShowMapUi = !error
     const shouldShowMapLegend = !loading && !error
-    const hasLayersData = layers.length > 0 && layers.some(layer => Array.isArray(layer.data) && layer.data.length > 0)
-    const shouldShowStatusOverlay = showInitialLoadingOverlay || loading || error || !hasLayersData
+    // Data can also be "not ready yet" without a query in flight (e.g. before
+    // the date range seeds the filters), so missing data reads as loading
+    const isAwaitingData = !error && !hasData
+    const shouldShowStatusOverlay = loading || error || isAwaitingData
     const guide = MAP_LAYER_GUIDES[activeLayer] ?? MAP_LAYER_GUIDES.station_usage
 
     const handleMapClick = useCallback((info) => {
@@ -290,7 +282,7 @@ function MapPage({ filters }) {
                     />
                     {shouldShowStatusOverlay && (
                         <StatusMessage
-                            loading={showInitialLoadingOverlay || loading}
+                            loading={loading || isAwaitingData}
                             error={error}
                             onRefetch={refetch}
                         />

@@ -143,3 +143,56 @@ describe('stationCharacter', () => {
         expect(stationCharacter(hourSeriesWith({})).label).toBe('Balanced')
     })
 })
+
+// --- Footprint math ---
+
+import {
+    kmToCo2Tonnes,
+    avoidedCo2Tonnes,
+    avoidedCo2Range,
+    buildCumulativeAvoidedSeries,
+} from '../features/footprint/utils/footprint_math.js'
+import { CAR_G_PER_KM, SUBSTITUTION_RATE } from '../features/footprint/utils/emission_factors.js'
+
+describe('footprint math', () => {
+    it('converts km to tonnes for a per-km factor', () => {
+        // 1,000,000 km at 251 g/km is exactly 251 t
+        expect(kmToCo2Tonnes(1_000_000, 251)).toBeCloseTo(251)
+        expect(kmToCo2Tonnes(0, 251)).toBe(0)
+    })
+
+    it('discounts avoided CO2 by the substitution rate against the car factor', () => {
+        expect(avoidedCo2Tonnes(1_000_000, 0.5)).toBeCloseTo(kmToCo2Tonnes(500_000, CAR_G_PER_KM))
+    })
+
+    it('always returns a low < high avoided range', () => {
+        const range = avoidedCo2Range(1_000_000)
+        expect(range.low).toBeLessThan(range.high)
+        expect(range.low).toBeCloseTo(avoidedCo2Tonnes(1_000_000, SUBSTITUTION_RATE.low))
+        expect(range.high).toBeCloseTo(avoidedCo2Tonnes(1_000_000, SUBSTITUTION_RATE.high))
+    })
+
+    it('builds a date-sorted cumulative series with mid inside the band', () => {
+        const rows = [
+            { date: '2026-04-02', total_distance_km: 200 },
+            { date: '2026-04-01', total_distance_km: 100 },
+        ]
+        const series = buildCumulativeAvoidedSeries(rows, SUBSTITUTION_RATE.mid)
+
+        expect(series.dates).toEqual(['2026-04-01', '2026-04-02'])
+        // Cumulative: day 2 covers 300 km total
+        expect(series.mid[1]).toBeCloseTo(avoidedCo2Tonnes(300, SUBSTITUTION_RATE.mid))
+        series.dates.forEach((_, index) => {
+            expect(series.low[index]).toBeLessThanOrEqual(series.mid[index])
+            expect(series.mid[index]).toBeLessThanOrEqual(series.high[index])
+        })
+    })
+
+    it('drops rows without a date or a numeric distance', () => {
+        const series = buildCumulativeAvoidedSeries(
+            [{ date: null, total_distance_km: 10 }, { date: '2026-04-01', total_distance_km: 'n/a' }],
+            SUBSTITUTION_RATE.mid,
+        )
+        expect(series.dates).toEqual([])
+    })
+})
