@@ -1,5 +1,5 @@
 \section{Station Metadata Dataset (GBFS)}
-Our fourth source of data is current station information and live availability from the Lyft General Bikeshare Feed Specification (GBFS) feed\footnote{\url{https://gbfs.lyft.com/gbfs/2.3/bkn/en/gbfs.json}} - the same feed used by the backend.
+Our fourth source of data is current station information and live availability from the Lyft General Bikeshare Feed Specification (GBFS) feed\footnote{\url{https://gbfs.lyft.com/gbfs/2.3/bkn/en/gbfs.json}}, ie.\@ the same feed used by the backend.
 Two endpoints are merged: \texttt{station\_information} (static: name, location, capacity) and \texttt{station\_status} (live: bikes/docks available, operational flags).
 
 \subsection{Dataset Structure}
@@ -17,25 +17,122 @@ Two endpoints are merged: \texttt{station\_information} (static: name, location,
 % "active" flag derived from the three operational flags, as used in the notebook's
 % data-quality checks).
 
+The station metadata feed combines two GBFS endpoints into a single table used by the backend. The static endpoint provides the descriptive properties of each station, while the live endpoint reports the current availability and operational state.
+
+\subsubsection{Original Structure}
+The merged dataset is organized as follows:
+\begin{itemize}
+    \item \textbf{From \texttt{station\_information} (static):}
+    \begin{itemize}
+        \item \textbf{Station ID}: a numeric GBFS identifier unique to the feed.
+        \item \textbf{Short Name}: the public station identifier used in the Citi Bike trip data, which is the key needed for cross-dataset joins.
+        \item \textbf{Name}: the full station name.
+        \item \textbf{Latitude} and \textbf{Longitude}: the station coordinates.
+        \item \textbf{Capacity}: the total number of docks at the station.
+    \end{itemize}
+    \item \textbf{From \texttt{station\_status} (live):}
+    \begin{itemize}
+        \item \textbf{Bikes available}: the current number of bikes that can be rented.
+        \item \textbf{Docks available}: the current number of empty docks.
+        \item \textbf{Operational flags}: \texttt{is\_installed}, \texttt{is\_renting}, and \texttt{is\_returning}, which indicate whether the station is active and usable.
+    \end{itemize}
+\end{itemize}
+
+\subsubsection{Extracted Features}
+The backend also derives an \texttt{active} indicator from \texttt{is\_installed}, \texttt{is\_renting}, and \texttt{is\_returning}. This feature is useful for filtering out inactive stations in live views and for avoiding stations that are temporarily unavailable.
+
 \subsection{Analysis and Insights}
-\begin{comment}
-    Follows notebook 4.1 "Capacity and Live Availability" and 4.2 "Station Map".
-    Per the exam requirements (Deliverable 2 - EDA criterion), show:
-      - Distribution of station capacity, and of current bikes/docks available.
-      - A map of stations (using lat/lon), sized or colored by capacity or live
-        availability, previewing how this dataset will support the visualization.
-\end{comment}
+% Follows notebook 4.1 "Capacity and Live Availability" and 4.2 "Station Map".
+% Per the exam requirements (Deliverable 2 - EDA criterion), the exploration below
+% expands on three complementary perspectives: provisioning (capacity), current
+% state (live bikes/docks), and spatial distribution (map). Each perspective
+% connects directly to visualization design decisions for the final dashboard.
+
+The exploratory analysis of the station metadata is organised around three
+questions: how station sizes are provisioned, how availability varies in
+real-time, and how stations are distributed geographically. The capacity
+distribution reveals whether the network relies on many small stations or a
+smaller number of large hubs; this informs aggregation choices and marker
+scaling in map views. The live availability metrics (bikes and docks available)
+reveal temporal imbalance and saturation: a high fraction of empty or full
+stations indicates a redistribution need and suggests using saturation-aware
+color scales or alerts in the dashboard. Finally, plotting coordinates on a
+city map exposes spatial clustering, gaps in coverage, and the relationship
+between station capacity and surrounding infrastructure.
+
+Figure~1 summarises the numeric distributions used in the analysis  : the
+histogram of station capacities, and paired distributions for bikes and docks
+available at query time. These plots are used to select sensible axis limits,
+bin widths, and outlier-handling rules for the final figures.
+
+\begin{figure}[ptb]
+    \centering
+    \includegraphics[width=\textwidth]{../media/station_capacity.png}
+    \caption{Distribution of station capacity (number of docks) and live availability (bikes and docks available).}
+\end{figure}
+
+The spatial view is equally important. Mapping station points with size or
+color encoding for capacity or current availability reveals both macro-level
+patterns (e.g. densification in central boroughs) and micro-level issues
+(isolated large stations, small stations adjacent to each other). In the
+analysis this map is used iteratively to validate joins with trip data,
+identify coordinate errors, and decide on spatial binning strategies for
+aggregate views.
+
+\begin{figure}[ptb]
+    \centering
+    % \includegraphics[width=\textwidth]{../media/station_map.png}
+    \caption{Map of stations in New York City, colored by their active state.}
+\end{figure}
+
+Beyond static summarisation, the analysis also inspects temporal snapshots and
+short time-series aggregated at the station level. These lightweight
+time-series highlight rapid depletion or replenishment events and are useful
+for designing live-updating widgets or simple predictive indicators in the
+final dashboard.
 
 \subsection{Data Quality}
-\begin{comment}
-    Follows notebook 4.3 "Data Quality". Per the exam requirements (Deliverable 2 -
-    data quality criterion), discuss:
-      - Count of inactive stations (not installed/renting/returning) that need to be
-        filtered out of live views.
-      - Stations missing capacity or coordinates.
-      - Cross-dataset consistency issue: the numeric station_id (GBFS) differs from
-        the public short_name used in the Citi Bike trip files, so joins between
-        live station data and historical trips must go through short_name rather
-        than station_id. This connects back to the "Missing Values and
-        Inconsistencies" discussion in the City Bike chapter.
-\end{comment}
+
+% Follows notebook 4.3 "Data Quality". Per the exam requirements (Deliverable 2 -
+% data quality criterion), discuss:
+%   - Count of inactive stations (not installed/renting/returning) that need to be
+%     filtered out of live views.
+%   - Stations missing capacity or coordinates.
+%   - Cross-dataset consistency issue: the numeric station_id (GBFS) differs from
+%     the public short_name used in the Citi Bike trip files, so joins between
+%     live station data and historical trips must go through short_name rather
+%     than station_id. This connects back to the "Missing Values and
+%     Inconsistencies" discussion in the City Bike chapter.
+
+The main data-quality issues found in practice fall into three categories:
+operational flags, missing attributes, and identifier consistency.
+
+Operational flags: a portion of stations are reported in the feed but are
+effectively unusable because one or more of \texttt{is\_installed},
+\texttt{is\_renting}, or \texttt{is\_returning} are false. The analysis
+quantifies these cases and shows how an \texttt{active} boolean (derived from
+the three flags) reduces noise in live dashboards. For live monitoring the
+recommended approach is to filter by \texttt{active==true} and surface a
+count of inactive stations to the operator.
+
+Missing attributes: a small number of records lack capacity or coordinate
+values. Missing capacity prevents inclusion in capacity histograms or in size
+encodings on the map, while missing coordinates render a station unusable for
+spatial overlays. The analysis documents the frequency of these gaps and
+applies conservative filters: stations without coordinates are excluded from
+map layers, and stations without capacity are retained only for non-capacity
+analyses or imputed when appropriate.
+
+Identifier consistency: joins across datasets require care. The feed exposes a
+numeric \texttt{station\_id} and a public-facing \texttt{short\_name}. Historical
+trip data use the \texttt{short\_name}, so all cross-dataset joins in the
+analysis are performed on \texttt{short\_name} after validating uniqueness and
+normalising formatting. This mirrors the inconsistency discussed in the City
+Bike chapter and motivates adding a small mapping table in the backend to
+ensure stable joins over time.
+
+Other considerations noted in the analysis include transient measurement error
+during feed outages (which appear as sudden drops in reported availability),
+clock skew across sources, and duplicate short names caused by legacy station
+renames. Each of these issues is handled through clear preprocessing steps and
+documented thresholds so that the visualization remains reliable.

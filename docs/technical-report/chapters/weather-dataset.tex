@@ -2,18 +2,24 @@
 Our second source of data is hourly NYC weather, fetched live from the Open-Meteo archive API\footnote{\url{https://open-meteo.com/}}.
 
 \subsection{Dataset Structure}
-% Mirror the "Dataset Structure" schema used in city-bike.tex: a short intro paragraph
-% followed by an itemized list of the columns returned by the API (notebook 2.1
-% "Structure and Summary"). Cover, at minimum:
-%   - the hourly timestamp (datetime) and how it is aligned to America/New_York
-%   - temperature_2m (deg C)
-%   - precipitation (mm)
-%   - weather_code (WMO code)
-%   - wind_speed_10m (km/h)
-% Unlike the City Bike dataset, there are no "Extracted Features" here beyond the
-% year column used for parquet partitioning, so a single "Original Structure"
-% subsubsection is probably enough - only add "Extracted Features" if the notebook
-% ends up deriving something (e.g. a discretized weather bucket).
+
+The weather dataset captures hourly atmospheric conditions across New York City and serves as a proxy for environmental factors that influence cycling demand. Each record represents a one-hour observation aligned to Eastern Time (America/New\_York), ensuring consistency with trip timestamps across the analysis.
+
+\subsubsection{Original Structure}
+
+The dataset from the Open-Meteo API includes the following core fields:
+\begin{itemize}
+  \item \textbf{Timestamp}: the hourly observation time, localized to America/New\_York timezone.
+  \item \textbf{Temperature (temperature\_2m)}: ambient air temperature at 2 metres above ground level, measured in degrees Celsius.
+  \item \textbf{Precipitation}: the cumulative precipitation during the hour, measured in millimetres. Most hours report zero; nonzero values are sparse.
+  \item \textbf{Weather Code}: the WMO weather code, a standardized numeric classification that encodes condition types (clear, cloudy, rain, snow, etc.).
+  \item \textbf{Wind Speed (wind\_speed\_10m)}: instantaneous wind speed at 10 metres above ground level, measured in kilometres per hour.
+  \item \textbf{Year}: the year of the observation, used for partitioning the dataset into annual Parquet files.
+\end{itemize}
+
+Unlike the City Bike dataset, where extracted features such as trip duration categories are derived during preprocessing, the weather dataset is used largely in its raw form. The year column is the only structural addition, used for file partitioning rather than analysis. If additional discretized weather categories emerge during exploration (e.g., temperature bins for ``cold,'' ``comfortable,'' ``hot''), they will be noted in the sections below.
+
+Data are fetched from the Open-Meteo ``archive'' endpoint for the calendar year covering the ride data. The API request uses the NYC coordinates (\texttt{lat}: $40.7823234$, \texttt{lon}: $-73.9654161$), requests hourly \texttt{fields\ temperature\_2m}, \texttt{precipitation}, \texttt{weather\_code} and \texttt{wind\_speed\_10m}, and sets \texttt{timezone} to America/New\_York and \texttt{wind\_speed\_unit} kmh. The returned hourly time series is parsed into a dataframe with a datetime column and inspected for completeness (hours expected vs present).
 
 \subsection{Analysis and Insights}
 \begin{comment}
@@ -29,9 +35,54 @@ Our second source of data is hourly NYC weather, fetched live from the Open-Mete
         dataset in the project.
 \end{comment}
 
+The exploratory analysis of the weather dataset is organised around two core
+questions: how weather variables are distributed and seasonal over time, and how
+they relate to ridership. The first perspective summarises hourly temperature,
+precipitation, wind, and the WMO weather codes using distributions and
+seasonality plots. Temperature exhibits a clear annual cycle with daily and
+seasonal variation; precipitation is highly skewed with most hours reporting
+zero and occasional spikes that drive short-term drops in ridership. Wind shows
+moderate variation and can amplify the perceived discomfort at low temperatures.
+
+The second perspective connects weather to demand. Simple aggregated plots
+relating average hourly ridership to binned temperature reveal the expected
+pattern: ridership increases with temperature up to a comfortable range and
+declines in cold conditions. Precipitation hours show a consistent reduction in
+ridership, with heavier hourly totals producing larger drops. Weather codes can
+be used as categorical annotations (clear, rain, snow) to summarise combined
+effects: rainy or snowy hours have lower ridership even at similar temperatures.
+
+Operationally, hourly ridership is computed by flooring trip start times to the hour and counting rides per hour. This rides-per-hour series is inner-joined to the weather hourly dataframe on the matching datetime; temperature is grouped into 5°C bins (e.g. 0–4°C, 5–9°C) to compute mean rides per bin and visualise the non-linear relation between temperature and demand.
+
+These analyses justify including the weather dataset: it provides explanatory
+variables that help account for systematic variation in cycling demand and
+improves the interpretability of temporal ridership patterns.
+
 \subsection{Data Quality}
 \begin{comment}
-    No missing data, seem to be good quality. Only potential bias is that we use a single 
-    weather station (Central Park) to represent all of NYC, but this is a common approach and
-    should be fine for our purposes.
+  No missing data, seem to be good quality. Only potential bias is that we use a single 
+  weather station (Central Park) to represent all of NYC, but this is a common approach and
+  should be fine for our purposes.
 \end{comment}
+
+Overall the archived hourly feed is high quality: timestamps are complete and
+consistently aligned to America/New\_York, and the core variables are recorded
+at regular hourly intervals. Important caveats remain. The feed effectively
+represents a single observation point (Central Park or the archive's chosen
+station), so it may not capture microclimate variation across the five boroughs.
+This spatial simplification can introduce bias when local weather differs from
+the station's measurements, but it is a pragmatic choice for citywide analysis.
+
+Precipitation is sparse and right-skewed: many hours report zero and a few
+hours contain most of the cumulative rainfall. When plotting histograms or
+computing summary statistics, non-zero precipitation should be examined
+separately to avoid misleading central tendencies. Temperature and wind are
+continuous and well-behaved, but gusts or short anomalies can appear and should
+be checked against outlier thresholds if they drive unusual model behaviour.
+
+Practical notes from the exploration: histograms show temperature and wind distributions across the year; precipitation plots focus on non-zero hours to avoid the mass at zero. Mean monthly temperature plots clearly show the annual cycle. When joining to rides the notebook confirms a rise in mean hourly ridership with temperature up to a comfortable band and a drop in cold hours; rainy or snowy weather corresponds to lower ridership at similar temperatures.
+
+Finally, the year column is an engineered field used for partitioning Parquet
+files and does not affect analysis directly. If derived categorical features
+(e.g. temperature bins or precipitation intensity classes) are created they
+should be documented and justified in the analysis methods.
