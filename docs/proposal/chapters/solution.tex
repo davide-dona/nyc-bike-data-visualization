@@ -1,18 +1,18 @@
 \section{Solution}
 \subsection{Vision}
-We deliver an interactive web-based dashboard as the primary output.
-This allows all users to explore mobility patterns through a unified, user-friendly interface.
+We deliver an interactive web-based dashboard as the primary output. 
+This allows all users to explore mobility patterns through a unified, user-friendly interface. 
 Our design approach is to present clear, immediate insights at first glance while also allowing deeper exploration for users who want to examine the details.
 
-Regarding the update frequency, we expect the dashboard to be refreshed automatically on a monthly basis, coinciding with the release of new data from the provider.
-This ensures that the insights remain useful and relevant over time, while also enabling historical analysis and comparisons across different periods.
+The dashboard will automatically refresh on a monthly basis, coinciding with the release of new data from the provider. 
+This ensures that the insights remain accurate and relevant over time, while also enabling historical analysis and comparisons across different periods.
 
-Regarding framing, we aim to expose all available features, giving users the freedom to explore in depth and draw their own conclusions.
+Our framing strategy aims to expose all available features, giving users the freedom to explore in depth and draw their own conclusions. 
 However, we also provide some guidance through the design of the interface and the choice of default views.
 
 \subsection{Design Philosophy}
 Our visualization prioritizes clarity and analytical depth over visual polish.
-We employ a dual-level approach: high-level dashboards present immediate summary insights (e.g., daily ridership totals, top stations), while detailed views enable granular exploration (e.g., hourly breakdowns, user type comparisons).
+We employ a dual-level approach: high-level dashboards present summary insights (e.g., daily ridership totals, top stations), while detailed views enable granular exploration (e.g., hourly breakdowns, user type comparisons).
 All design choices remain data-centric, avoiding decorative elements or misleading visual encodings that could obscure underlying patterns.
 
 \subsection{Early Design Considerations}
@@ -22,12 +22,12 @@ While specific chart types and encodings will be refined during development, a f
   A heatmap overlay can show station-level demand (Figures~\ref{fig:mockup-heatmap}), while flow lines can illustrate the most common routes between stations (Figure~\ref{fig:mockup-trip-layer}).
   \item \textbf{Faceted temporal charts}: Temporal data will be used mainly to compare behavior across different time periods, so faceted line charts or 
   small multiples will allow us to compare patterns across days of the week, hours of the day, or seasons without overwhelming the viewer with too much information in a single chart (Figure~\ref{fig:mockup-surface-graph}).
-  \item \textbf{Weather and environmental context}: Incorporating weather data will allow us to analyze how environmental conditions affect bike usage patterns, using ridge plots such as the one sketched in Figure~\ref{fig:mockup-ridge-graph}.
+  \item \textbf{Weather and environmental context}: Incorporating weather data lets us analyze how environmental conditions affect bike usage patterns, using ridge plots such as the one sketched in Figure~\ref{fig:mockup-ridge-graph}.
   \item \textbf{Footprint and carbon impact}: We will provide a simple metric to quantify the environmental benefits of bike-sharing, such as estimated CO2 emissions saved by replacing car trips with bike trips.
   \item \textbf{User and rideable type breakdowns}: Bar charts or stacked area charts can effectively show the distribution of user types and rideable types, supporting comparisons across different contexts (e.g., time of day, weather conditions).
   \item \textbf{Interactive filtering over static views}: Rather than producing separate dashboards for each dimension, we favour cross-filtering: selecting a time range, station, or user type in one chart updates the others, supporting exploratory analysis without overwhelming the interface.
 \end{itemize}
-Regarding focus, the map-centric spatial view serves as the primary entry point, offering the most intuitive and immediate reading of the data.
+Regarding focus, the map-centric spatial view serves as the main entry point, offering the most intuitive and immediate reading of the data.
 Other views will take a supporting role in secondary entries, enriching the analysis without cluttering the interface.
 
 \subsection{Constraints}
@@ -38,6 +38,6 @@ In order to manage both data processing and dashboard development within the pro
 \begin{itemize}[beginpenalty=10000]
   \item \textbf{Backend (Python + Polars)}: efficient data processing, cleaning, and REST API development via FastAPI;
   \item \textbf{Frontend (React + D3.js/Deck.gl)}: custom, interactive visualizations tailored to mobility pattern analysis.
-  Deck.gl will be used for the map-centric spatial view, while D3.js will handle temporal and categorical charts. 
+  Deck.gl will handle the map-centric spatial view, while D3.js will handle temporal and categorical charts.
 \end{itemize}
 This modular architecture enables rapid iteration during development while remaining scalable as data volumes grow.
