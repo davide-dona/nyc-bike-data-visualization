@@ -10,6 +10,7 @@ import InfrastructureStationSidebar from './components/InfrastructureStationSide
 import StatusMessage from '../../components/StatusMessage.jsx'
 import Tooltip from './components/Tooltip.jsx'
 import VisualizationGuide from '../../components/VisualizationGuide.jsx'
+import MapInsightsPanel from './insights/MapInsightsPanel.jsx'
 
 // List of available map layers
 export const LAYER_OPTIONS = [
@@ -194,6 +195,7 @@ function MapPage({ filters }) {
         hasTripFlowSelection,
         selectedInfrastructureStations,
         bikeRoutes,
+        insights,
     } = useBuildLayers({ filters, currentTime, activeLayer, showBikeRoutes, usageMode, hiddenHealthCategories, hiddenRouteClasses, selectedYear })
     const yearBounds = useMemo(() => getRouteYearBounds(bikeRoutes), [bikeRoutes])
     const shouldShowMapUi = !error
@@ -304,6 +306,17 @@ function MapPage({ filters }) {
                         />
                     )}
                 </div>
+
+                <MapInsightsPanel
+                    activeLayer={activeLayer}
+                    insights={insights}
+                    usageMode={usageMode}
+                    currentTime={currentTime}
+                    setCurrentTime={setCurrentTime}
+                    selectedYear={selectedYear}
+                    setSelectedYear={setSelectedYear}
+                    yearBounds={yearBounds}
+                />
 
                 <VisualizationGuide
                     mapName={guide.mapName}

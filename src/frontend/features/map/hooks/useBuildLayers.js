@@ -29,11 +29,11 @@ const BASE_TILE_URL = 'https://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png
  */
 export function useBuildLayers({ filters, currentTime, activeLayer, showBikeRoutes, usageMode, hiddenHealthCategories, hiddenRouteClasses, selectedYear }) {
     // Fetch and process data
-    const { frameStations, maxUsage, maxDelta, loading: stationLoading, error: stationError, refetch: stationRefetch } = useStationUsageLayer({ filters: filters, currentTime, usageMode })
+    const { stations: usageStations, frameStations, maxUsage, maxDelta, loading: stationLoading, error: stationError, refetch: stationRefetch } = useStationUsageLayer({ filters: filters, currentTime, usageMode })
     const { selectedStationIds, onStationPick, resetSelectedStationIds } = useTripStationSelection() // Manage station selection state for trip flow layer
     const [hoveredTripStationId, setHoveredTripStationId] = useState(null)
     const { trips, maxTripFlow, stations: tripStations, loading: tripLoading, error: tripError, refetch: tripRefetch } = useTripFlowLayer({ filters, selectedStationIds })
-    const { stations, bikeRoutes, loading: availabilityLoading, error: availabilityError, refetch: availabilityRefetch } = useInfrastructureLayer({ showBikeRoutes })
+    const { stations, bikeRoutes, loading: availabilityLoading, error: availabilityError, refetch: availabilityRefetch, routesLoading, routesError, refetchRoutes } = useInfrastructureLayer({ showBikeRoutes })
     const {
         clearSelectedStations: clearInfrastructureSelection,
         onStationPick: onInfrastructureStationPick,
@@ -114,6 +114,37 @@ export function useBuildLayers({ filters, currentTime, activeLayer, showBikeRout
         return base
     }, [frameStations, maxUsage, maxDelta, trips, maxTripFlow, tripStations, selectedStationIds, hoveredTripStationId, onStationPick, stations, activeLayer, stationLoading, stationError, tripLoading, tripError, availabilityLoading, availabilityError, yearFilteredRoutes, showBikeRoutes, hoveredrouteID, selectedInfrastructureStationIds, onInfrastructureStationPick, hiddenHealthCategories, hiddenRouteClasses])
 
+    // Per-layer data slices for the insights panel under the map. Memoized as
+    // one stable bundle so consumers can depend on it without new object
+    // identities leaking into other hooks' dependency arrays every render.
+    const insights = useMemo(() => ({
+        stationUsage: {
+            stations: usageStations,
+            loading: stationLoading,
+            error: stationError,
+            refetch: stationRefetch,
+        },
+        tripFlow: {
+            trips,
+            hasSelection: selectedStationIds.length > 0,
+            loading: tripLoading,
+            error: tripError,
+            refetch: tripRefetch,
+        },
+        infrastructure: {
+            routes: bikeRoutes,
+            yearFilteredRoutes,
+            // Route-only states, so the panel works while showBikeRoutes is off
+            loading: routesLoading,
+            error: routesError,
+            refetch: refetchRoutes,
+        },
+    }), [
+        usageStations, stationLoading, stationError, stationRefetch,
+        trips, selectedStationIds.length, tripLoading, tripError, tripRefetch,
+        bikeRoutes, yearFilteredRoutes, routesLoading, routesError, refetchRoutes,
+    ])
+
     // Consider the loading, error, and data states of only the active layer for the overall status
     const activeLayerState = stateLayers.find(layer => layer.layer === activeLayer)
     const loading = activeLayerState?.loading || false
@@ -134,5 +165,7 @@ export function useBuildLayers({ filters, currentTime, activeLayer, showBikeRout
         clearInfrastructureSelection,
         // Unfiltered routes, for deriving the year slider bounds
         bikeRoutes,
+        // Per-layer data slices for the insights panel
+        insights,
     }
 }

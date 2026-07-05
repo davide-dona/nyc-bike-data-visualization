@@ -9,6 +9,7 @@ export const FACILITY_COLORS = {
     I:   [ 47, 125,  79, 255],   // forest - off-street path
     II:  [ 25,  83, 216, 255],   // accent - dedicated lane
     III: [200, 138,  26, 255],   // amber  - signed shared
+    L:   [110, 106, 98, 255],    // ink-muted - sharrow, lowest protection
     _default: [110, 106, 98, 255], // ink-muted - unknown
 }
 
@@ -19,6 +20,7 @@ export const FACILITY_LABELS = {
     I:   'Off-street Path',
     II:  'Dedicated Lane',
     III: 'Signed Shared Lane',
+    L:   'Shared Lane Marking',
     _default: 'Unknown'
 }
 
@@ -30,6 +32,7 @@ export const FACILITY_CSS_COLORS = {
     I:   'rgb(47, 125, 79)',
     II:  'rgb(25, 83, 216)',
     III: 'rgb(200, 138, 26)',
+    L:   'rgb(110, 106, 98)',
     _default: 'rgb(110, 106, 98)',
 }
 

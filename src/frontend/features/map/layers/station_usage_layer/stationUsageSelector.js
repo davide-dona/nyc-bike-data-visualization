@@ -29,18 +29,23 @@ export function selectStations(stationUsageCounts) {
                     if (!Number.isInteger(hour) || hour < 0 || hour >= HOURS_IN_DAY) return
                     if (!Number.isFinite(hoursCount) || hoursCount <= 0) return
 
-                    const daysCount = hoursCount / HOURS_IN_DAY
+                    // For hour buckets, hours_count counts the occurrences of
+                    // that hour of day in the range - i.e. the days covered -
+                    // so dividing by it yields the average rides per day at
+                    // this hour (same convention as the infrastructure
+                    // sidebar's hourly averages).
                     USAGE_MODES.forEach((mode) => {
                         // Guard per mode: incoming can be 0 while outgoing is positive.
                         const rides = Number(group[MODE_FIELDS[mode]])
                         if (!Number.isFinite(rides) || rides <= 0) return
-                        hourlyByMode[mode][hour] += rides / daysCount
+                        hourlyByMode[mode][hour] += rides / hoursCount
                     })
                 }
                 )
             }
             return {
                 stationId: station.station_id,
+                name: station.station_name,
                 lat: station.lat,
                 lon: station.lon,
                 hourlyByMode,       // Per mode, array of average rides for each hour

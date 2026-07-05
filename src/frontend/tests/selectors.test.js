@@ -13,14 +13,15 @@ import {
 } from '../features/map/layers/infrastructure_layer/stations/stationAvailabilitySelector.js'
 import { stationCharacter } from '../features/map/layers/infrastructure_layer/stations/useInfrastructureStationSidebarData.js'
 
-// One observed day (hours_count 24 => daysCount 1) so averages equal raw counts
+// One observed day: each hour-of-day bucket occurred once (hours_count 1),
+// so the per-day averages equal the raw counts
 const USAGE_FIXTURE = [{
     station_id: 'S1',
     lat: 40.75,
     lon: -73.97,
     groups: [
-        { hour: 8, outgoing_rides: 10, incoming_rides: 2, total_rides: 12, hours_count: 24 },
-        { hour: 17, outgoing_rides: 0, incoming_rides: 9, total_rides: 9, hours_count: 24 },
+        { hour: 8, outgoing_rides: 10, incoming_rides: 2, total_rides: 12, hours_count: 1 },
+        { hour: 17, outgoing_rides: 0, incoming_rides: 9, total_rides: 9, hours_count: 1 },
     ],
 }]
 

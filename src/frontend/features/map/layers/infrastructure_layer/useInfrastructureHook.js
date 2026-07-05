@@ -36,5 +36,10 @@ export function useInfrastructureLayer({ showBikeRoutes = false } = {}) {
         loading,
         error,
         refetch,
+        // Route-only states, ungated by showBikeRoutes: the insights panel
+        // charts routes even while the map's route toggle is off.
+        routesLoading,
+        routesError,
+        refetchRoutes,
     }
 }

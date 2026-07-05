@@ -37,5 +37,7 @@ export function useStationUsageLayer({ filters, currentTime, usageMode = 'all' }
     const maxUsage = useMemo(() => getMaxUsage(stations, usageMode), [stations, usageMode])
     const maxDelta = useMemo(() => getMaxDelta(stations, usageMode), [stations, usageMode])
 
-    return { frameStations, maxUsage, maxDelta, loading, error, refetch }
+    // The full station list (hourly series per mode) is exposed alongside the
+    // per-frame slice so the insights panel can aggregate without refetching.
+    return { stations, frameStations, maxUsage, maxDelta, loading, error, refetch }
 }

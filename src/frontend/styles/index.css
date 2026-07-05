@@ -2,6 +2,7 @@
 @import './layout.css';
 @import './controls.css';
 @import '../features/map/styles/map.css';
+@import '../features/map/styles/insights.css';
 @import '../features/weather/styles/charts.css';
 @import '../features/header/styles/date-range-filter.css';
 @import '../features/header/styles/date-range-filter-dropdown.css';
