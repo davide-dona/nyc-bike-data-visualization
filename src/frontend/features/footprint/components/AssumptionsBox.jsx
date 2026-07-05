@@ -14,8 +14,8 @@ export default function AssumptionsBox() {
     const highPct = Math.round(SUBSTITUTION_RATE.high * 100)
 
     return (
-        <aside className="footprint-assumptions">
-            <p className="footprint-assumptions__title">Assumptions, stated explicitly</p>
+        <aside className="panel-frame footprint-assumptions">
+            <p className="panel-frame__title">Assumptions, stated explicitly</p>
             <div className="footprint-assumptions__grid">
                 <section>
                     <p className="footprint-assumptions__heading">Emission factors (g CO2e per km)</p>

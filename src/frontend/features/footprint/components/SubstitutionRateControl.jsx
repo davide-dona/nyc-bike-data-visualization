@@ -18,7 +18,7 @@ export default function SubstitutionRateControl({ value, onChange, disabled = fa
             <span className="footprint-rate__label">Car-substitution rate</span>
             <input
                 type="range"
-                className="footprint-rate__slider"
+                className="range-slider"
                 min={MIN_PCT}
                 max={MAX_PCT}
                 step={1}

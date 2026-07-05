@@ -26,6 +26,8 @@ export function useMapHandler() {
     // so they persist across layer switches.
     const [hiddenHealthCategories, setHiddenHealthCategories] = useState(() => new Set())
     const [hiddenRouteClasses, setHiddenRouteClasses] = useState(() => new Set())
+    // Historical year for the bike-route network; null means "present"
+    const [selectedYear, setSelectedYear] = useState(null)
 
     const toggleHealthCategory = useCallback((key) => {
         setHiddenHealthCategories((prev) => {
@@ -74,8 +76,10 @@ export function useMapHandler() {
         hasAnimation,
         hiddenHealthCategories,
         hiddenRouteClasses,
+        selectedYear,
         setActiveLayer,
         setCurrentTime,
+        setSelectedYear,
         setShowBikeRoutes,
         setUsageMode,
         showBikeRoutes,

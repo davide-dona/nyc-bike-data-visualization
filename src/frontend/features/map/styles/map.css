@@ -1,41 +1,17 @@
 @layer components {
-  .layer-selector {
-    @apply flex flex-wrap gap-px border border-rule p-px bg-rule;
+  /* Historical year slider: in-map chip next to the routes toggle, shown
+     only while bike routes are visible on the infrastructure layer */
+  .year-slider {
+    @apply flex items-center gap-3 w-96 max-w-full px-3 py-1.5
+           bg-paper-raised border border-rule border-ink/20 backdrop-blur-sm;
   }
 
-  .layer-selector-btn {
-    @apply inline-flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-eyebrow px-3 py-1.5
-           text-ink-muted transition-colors duration-150
-           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent
-           cursor-pointer;
-    line-height: 1;
+  .year-slider__label {
+    @apply font-mono text-[11px] uppercase tracking-eyebrow text-ink-muted whitespace-nowrap;
   }
 
-  .layer-selector-btn__icon {
-    @apply inline-flex items-center justify-center w-4 h-4 text-[12px] text-current;
-    line-height: 1;
-    flex-shrink: 0;
-  }
-
-  .layer-selector-btn__icon::before {
-    display: block;
-    line-height: 1;
-  }
-
-  .layer-selector-btn:hover {
-    @apply text-ink;
-  }
-
-  .layer-selector-btn:disabled {
-    @apply opacity-55 cursor-not-allowed;
-  }
-
-  .layer-selector-btn:disabled:hover {
-    @apply text-ink-muted;
-  }
-
-  .layer-selector-btn.active {
-    @apply bg-ink text-white;
+  .year-slider__value {
+    @apply font-mono text-[11px] text-ink w-[14ch] text-right whitespace-nowrap tabular-nums;
   }
 
   .map-shell {
@@ -496,11 +472,6 @@
     border-color: rgba(11, 12, 14, 0.22);
   }
 
-  .map-speed-controls__speed-selector:hover,
-  .map-speed-controls__speed-selector:focus-within {
-    cursor: ew-resize;
-  }
-
   .map-speed-controls__speed-selector.is-disabled,
   .map-speed-controls__speed-selector.is-disabled:hover,
   .map-speed-controls__speed-selector.is-disabled:focus-within {
@@ -527,6 +498,18 @@
   .map-speed-controls__speed-summary {
     @apply absolute left-1/2 top-1/2 z-[4] flex -translate-x-1/2 -translate-y-1/2 items-center justify-center text-center;
     pointer-events: none;
+    transition: opacity 220ms cubic-bezier(0.22, 0.61, 0.36, 1);
+  }
+
+  /* The collapsed summary yields to the step buttons while expanded */
+  .map-speed-controls__speed-selector:hover .map-speed-controls__speed-summary,
+  .map-speed-controls__speed-selector:focus-within .map-speed-controls__speed-summary {
+    opacity: 0;
+  }
+
+  .map-speed-controls__speed-selector.is-disabled:hover .map-speed-controls__speed-summary,
+  .map-speed-controls__speed-selector.is-disabled:focus-within .map-speed-controls__speed-summary {
+    opacity: 1;
   }
 
   .map-speed-controls__speed-wheel {
@@ -555,39 +538,32 @@
   }
 
   .map-speed-controls__speed-wheel-rail {
-    @apply relative h-full w-full bg-paper-raised overflow-hidden;
+    @apply relative flex h-full w-full bg-paper-raised overflow-hidden;
   }
 
-  .map-speed-controls__speed-wheel-overlay {
-    @apply absolute inset-y-0 left-0 z-[2] bg-ink/10 pointer-events-none;
+  .map-speed-controls__speed-step {
+    @apply relative z-[5] flex-1 h-full flex items-center justify-center
+           font-mono text-[10px] uppercase text-ink/55
+           transition-colors duration-150
+           hover:text-ink hover:bg-ink/5
+           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent;
+    letter-spacing: 0.08em;
   }
 
-  .map-speed-controls__speed-wheel-marks {
-    @apply absolute inset-y-0 left-2 right-2 z-[4];
+  .map-speed-controls__speed-step + .map-speed-controls__speed-step {
+    @apply border-l border-rule;
   }
 
-  .map-speed-controls__speed-wheel-guides {
-    @apply absolute inset-0 z-[3] pointer-events-none;
+  .map-speed-controls__speed-step.is-active {
+    @apply bg-ink text-white;
   }
 
-  .map-speed-controls__speed-wheel-guide {
-    @apply absolute inset-y-0 w-px -translate-x-1/2 bg-ink/10;
+  .map-speed-controls__speed-step.is-active:hover {
+    @apply bg-ink text-white;
   }
 
-  .map-speed-controls__speed-wheel-mark {
-    @apply absolute inset-y-0 flex items-center -translate-x-1/2 pointer-events-none;
-  }
-
-  .map-speed-controls__speed-wheel-mark:first-child {
-    transform: translateX(0);
-  }
-
-  .map-speed-controls__speed-wheel-mark:last-child {
-    transform: translateX(-100%);
-  }
-
-  .map-speed-controls__speed-wheel-mark-label {
-    @apply inline-flex items-center font-mono text-[11px] leading-none text-ink/55;
+  .map-speed-controls__speed-step:disabled {
+    @apply cursor-not-allowed;
   }
 
   .map-time-wheel {
@@ -632,38 +608,36 @@
     @apply inline-flex items-center pt-1 pb-1 font-mono text-[10px] leading-none text-ink/70;
   }
 
-  .map-time-wheel__tick-next-day {
-    @apply inline-block ml-px text-[8px] leading-none font-semibold text-ink/30;
-  }
-
+  /* Responsive tick decimation keys on the hour itself (minor = odd hour,
+     major = every 6th) so the periodic strip stays stable while it moves */
   @media (max-width: 1024px) {
-    .map-time-wheel__tick:nth-child(odd):not(:last-child) {
+    .map-time-wheel__tick--minor {
       opacity: 0.18;
     }
 
-    .map-time-wheel__tick:nth-child(odd):not(:last-child) .map-time-wheel__tick-line {
+    .map-time-wheel__tick--minor .map-time-wheel__tick-line {
       @apply w-px;
     }
 
-    .map-time-wheel__tick:nth-child(odd):not(:last-child) .map-time-wheel__tick-label {
+    .map-time-wheel__tick--minor .map-time-wheel__tick-label {
       @apply text-[9px];
     }
   }
 
   @media (max-width: 640px) {
-    .map-time-wheel__tick:nth-child(odd):not(:last-child) {
+    .map-time-wheel__tick:not(.map-time-wheel__tick--major) {
       opacity: 0;
     }
 
-    .map-time-wheel__tick:nth-child(6n):not(:last-child) {
+    .map-time-wheel__tick--major {
       opacity: 0.22;
     }
 
-    .map-time-wheel__tick:nth-child(6n):not(:last-child) .map-time-wheel__tick-line {
+    .map-time-wheel__tick--major .map-time-wheel__tick-line {
       @apply w-px;
     }
 
-    .map-time-wheel__tick:nth-child(6n):not(:last-child) .map-time-wheel__tick-label {
+    .map-time-wheel__tick--major .map-time-wheel__tick-label {
       @apply text-[9px];
     }
   }

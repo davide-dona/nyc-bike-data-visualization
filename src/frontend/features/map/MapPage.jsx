@@ -1,7 +1,8 @@
 import DeckGL from '@deck.gl/react'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useMapHandler } from './hooks/useMapHandler.js'
 import { useBuildLayers } from './hooks/useBuildLayers.js'
+import { getRouteYearBounds } from './utils/routeYearFilter.js'
 import MapController from './components/MapController.jsx'
 import MapLegend from './components/MapLegend.jsx'
 import LayerSelector from './components/LayerSelector.jsx'
@@ -169,8 +170,10 @@ function MapPage({ filters }) {
         hasAnimation,
         hiddenHealthCategories,
         hiddenRouteClasses,
+        selectedYear,
         setActiveLayer,
         setCurrentTime,
+        setSelectedYear,
         setShowBikeRoutes,
         setUsageMode,
         showBikeRoutes,
@@ -190,7 +193,9 @@ function MapPage({ filters }) {
         resetSelectedStationIds,
         hasTripFlowSelection,
         selectedInfrastructureStations,
-    } = useBuildLayers({ filters, currentTime, activeLayer, showBikeRoutes, usageMode, hiddenHealthCategories, hiddenRouteClasses })
+        bikeRoutes,
+    } = useBuildLayers({ filters, currentTime, activeLayer, showBikeRoutes, usageMode, hiddenHealthCategories, hiddenRouteClasses, selectedYear })
+    const yearBounds = useMemo(() => getRouteYearBounds(bikeRoutes), [bikeRoutes])
     const shouldShowMapUi = !error
     const shouldShowMapLegend = !loading && !error
     // Data can also be "not ready yet" without a query in flight (e.g. before
@@ -270,6 +275,9 @@ function MapPage({ filters }) {
                             setUsageMode={setUsageMode}
                             resetSelectedStationIds={resetSelectedStationIds}
                             hasTripFlowSelection={hasTripFlowSelection}
+                            selectedYear={selectedYear}
+                            setSelectedYear={setSelectedYear}
+                            yearBounds={yearBounds}
                             disabled={loading}
                         />
                     )}

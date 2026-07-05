@@ -5,6 +5,7 @@ import FootprintTiles from './components/FootprintTiles.jsx'
 import ModeComparisonBar from './components/ModeComparisonBar.jsx'
 import CumulativeAvoidedBand from './components/CumulativeAvoidedBand.jsx'
 import AssumptionsBox from './components/AssumptionsBox.jsx'
+import SubstitutionRateControl from './components/SubstitutionRateControl.jsx'
 import VisualizationGuide from '../../components/VisualizationGuide.jsx'
 import { SUBSTITUTION_RATE } from './utils/emission_factors.js'
 
@@ -36,6 +37,13 @@ function FootprintPage({ filters = {} }) {
                         range, never a single number, with every assumption stated.
                     </p>
                 </div>
+                <div className="page-card__actions">
+                    <SubstitutionRateControl
+                        value={substitutionRate}
+                        onChange={setSubstitutionRate}
+                        disabled={dailyLoading || Boolean(dailyError)}
+                    />
+                </div>
             </header>
             <div className="page-card__body">
                 <FootprintTiles
@@ -56,7 +64,6 @@ function FootprintPage({ filters = {} }) {
                     <CumulativeAvoidedBand
                         dailyStats={dailyStats}
                         substitutionRate={substitutionRate}
-                        onSubstitutionRateChange={setSubstitutionRate}
                         loading={dailyLoading}
                         error={dailyError}
                         onRefetch={refetchDaily}

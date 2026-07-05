@@ -31,14 +31,14 @@ export default function MapLegend({
         <div className={`map-legend-${activeLayerLabel == "Station usage" ? "bottom-right" : "top-left"}${className ? ` ${className}` : ''}`}>
             <p className="map-legend-title">{activeLayerLabel}</p>
             <ul className="map-legend__list">
-                {legend.entries.map((entry) => (
+                {legend.entries.map(({ key, ...entry }) => (
                     <LegendRow
-                        key={entry.label}
+                        key={key ?? entry.label}
                         {...entry}
                         onToggle={isInfrastructure && onToggleHealthCategory
-                            ? () => onToggleHealthCategory(entry.key)
+                            ? () => onToggleHealthCategory(key)
                             : undefined}
-                        isHidden={Boolean(hiddenHealthCategories?.has(entry.key))}
+                        isHidden={Boolean(hiddenHealthCategories?.has(key))}
                     />
                 ))}
             </ul>
@@ -46,14 +46,14 @@ export default function MapLegend({
                 <div className="map-legend__section">
                     <small className="map-legend__section-label">Bike routes</small>
                     <ul className="map-legend__list">
-                        {bikeRoutesLegend().entries.map((entry) => (
+                        {bikeRoutesLegend().entries.map(({ key, ...entry }) => (
                             <LegendRow
-                                key={entry.label}
+                                key={key}
                                 {...entry}
                                 onToggle={isInfrastructure && onToggleRouteClass
-                                    ? () => onToggleRouteClass(entry.key)
+                                    ? () => onToggleRouteClass(key)
                                     : undefined}
-                                isHidden={Boolean(hiddenRouteClasses?.has(entry.key))}
+                                isHidden={Boolean(hiddenRouteClasses?.has(key))}
                             />
                         ))}
                     </ul>

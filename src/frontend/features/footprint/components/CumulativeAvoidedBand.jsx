@@ -1,7 +1,6 @@
 import { useMemo } from 'react'
 import Plot from 'react-plotly.js'
 import StatusMessage from '../../../components/StatusMessage.jsx'
-import SubstitutionRateControl from './SubstitutionRateControl.jsx'
 import { SUBSTITUTION_RATE } from '../utils/emission_factors.js'
 import { buildCumulativeAvoidedSeries } from '../utils/footprint_math.js'
 import {
@@ -22,7 +21,6 @@ const BAND_EDGE = 'rgba(25, 83, 216, 0.35)'
  * user-selected rate is deliberately secondary to it.
  * @param {Array} dailyStats - GroupedStats rows from /stats/?group_by=date
  * @param {number} substitutionRate - Selected car-substitution rate (fraction)
- * @param {Function} onSubstitutionRateChange - Setter for the selected rate
  * @param {boolean} loading - Whether data is loading
  * @param {Error|null} error - Fetch error
  * @param {Function} onRefetch - Callback to trigger a retry after error
@@ -30,7 +28,6 @@ const BAND_EDGE = 'rgba(25, 83, 216, 0.35)'
 export default function CumulativeAvoidedBand({
     dailyStats,
     substitutionRate,
-    onSubstitutionRateChange,
     loading,
     error,
     onRefetch,
@@ -77,8 +74,8 @@ export default function CumulativeAvoidedBand({
     ], [series, ratePct, lowPct, highPct])
 
     return (
-        <div className="footprint-frame">
-            <p className="footprint-frame__title">Cumulative CO2 avoided, low/high band</p>
+        <div className="panel-frame">
+            <p className="panel-frame__title">Cumulative CO2 avoided, low/high band</p>
             <div className="footprint-plot">
                 {hasData ? (
                     <Plot
@@ -138,11 +135,6 @@ export default function CumulativeAvoidedBand({
                     <StatusMessage loading={loading} error={error} onRefetch={onRefetch} />
                 )}
             </div>
-            <SubstitutionRateControl
-                value={substitutionRate}
-                onChange={onSubstitutionRateChange}
-                disabled={loading || Boolean(error)}
-            />
         </div>
     )
 }

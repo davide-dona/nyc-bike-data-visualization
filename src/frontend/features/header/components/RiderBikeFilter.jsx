@@ -1,4 +1,5 @@
 import ScrollableButtonRow from './ScrollableButtonRow.jsx';
+import SegmentedControl from '../../../components/SegmentedControl.jsx';
 
 export const FILTERS = {
   user_type: { label: 'User Type', options: ['member', 'casual'] },
@@ -50,25 +51,18 @@ export default function RiderBikeFilter({ value = {}, onChange, disabled = false
             </button>
           </div>
           <ScrollableButtonRow disabled={disabled}>
-            <button
-              className={`rider-filter-btn${!value[key] ? ' active' : ''}`}
+            <SegmentedControl
+              framed={false}
+              variant="dark"
+              size="sm"
+              options={[
+                { value: '', label: 'All', icon: getFilterIcon('all') },
+                ...options.map((opt) => ({ value: opt, label: formatLabel(opt), icon: getFilterIcon(opt) })),
+              ]}
+              value={value[key] ?? ''}
+              onChange={(selected) => onChange({ ...value, [key]: selected || undefined })}
               disabled={disabled}
-              onClick={() => onChange({ ...value, [key]: undefined })}
-            >
-              <i className={`rider-filter-btn-icon ${getFilterIcon('all')}`} aria-hidden="true" />
-              All
-            </button>
-            {options.map((opt) => (
-              <button
-                key={opt}
-                className={`rider-filter-btn${value[key] === opt ? ' active' : ''}`}
-                disabled={disabled}
-                onClick={() => onChange({ ...value, [key]: opt })}
-              >
-                <i className={`rider-filter-btn-icon ${getFilterIcon(opt)}`} aria-hidden="true" />
-                {formatLabel(opt)}
-              </button>
-            ))}
+            />
           </ScrollableButtonRow>
         </div>
       ))}

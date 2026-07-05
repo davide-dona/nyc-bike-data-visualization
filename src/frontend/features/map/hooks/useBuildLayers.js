@@ -14,6 +14,7 @@ import { useInfrastructureLayer } from '../layers/infrastructure_layer/useInfras
 import { useInfrastructureStationSelection } from '../layers/infrastructure_layer/stations/useInfrastructureStationSelection.js'
 
 import { useMemo, useState } from 'react'
+import { filterRoutesByYear } from '../utils/routeYearFilter.js'
 
 // CartoDB Positron - subdued paper/grey basemap that lets the data layers carry
 // the color weight. Same provider as Voyager, no API key required.
@@ -26,7 +27,7 @@ const BASE_TILE_URL = 'https://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png
  * @param {string} activeLayer - The currently active map layer to determine which layers to build.
  * @returns {Object} The built layers and their status.
  */
-export function useBuildLayers({ filters, currentTime, activeLayer, showBikeRoutes, usageMode, hiddenHealthCategories, hiddenRouteClasses }) {
+export function useBuildLayers({ filters, currentTime, activeLayer, showBikeRoutes, usageMode, hiddenHealthCategories, hiddenRouteClasses, selectedYear }) {
     // Fetch and process data
     const { frameStations, maxUsage, maxDelta, loading: stationLoading, error: stationError, refetch: stationRefetch } = useStationUsageLayer({ filters: filters, currentTime, usageMode })
     const { selectedStationIds, onStationPick, resetSelectedStationIds } = useTripStationSelection() // Manage station selection state for trip flow layer
@@ -41,6 +42,12 @@ export function useBuildLayers({ filters, currentTime, activeLayer, showBikeRout
     } = useInfrastructureStationSelection(stations)
     // State for hovered bike route segment
     const [hoveredrouteID, setHoveredrouteID] = useState(null)
+    // Historical view: keep only the segments active in the selected year.
+    // Memoized so scrubbing the year slider stays a cheap array pass.
+    const yearFilteredRoutes = useMemo(
+        () => filterRoutesByYear(bikeRoutes, selectedYear),
+        [bikeRoutes, selectedYear],
+    )
     const handleRoutePick = (info) => {
         const route = info?.object
         setHoveredrouteID(route?.routeID ?? route?.properties?.routeID ?? null)
@@ -91,8 +98,8 @@ export function useBuildLayers({ filters, currentTime, activeLayer, showBikeRout
                     ? stations.filter((s) => !hiddenHealthCategories.has(s.health_category))
                     : stations
                 const visibleRoutes = hiddenRouteClasses?.size
-                    ? bikeRoutes.filter((f) => !hiddenRouteClasses.has(f.facilityClass))
-                    : bikeRoutes
+                    ? yearFilteredRoutes.filter((f) => !hiddenRouteClasses.has(f.facilityClass))
+                    : yearFilteredRoutes
                 if (showBikeRoutes && visibleRoutes.length > 0) {
                     base.push(createBikeRoutesLayer({ routes: visibleRoutes, hoveredrouteID: hoveredrouteID, onRoutePick: handleRoutePick }))
                 }
@@ -105,7 +112,7 @@ export function useBuildLayers({ filters, currentTime, activeLayer, showBikeRout
         }
 
         return base
-    }, [frameStations, maxUsage, maxDelta, trips, maxTripFlow, tripStations, selectedStationIds, hoveredTripStationId, onStationPick, stations, activeLayer, stationLoading, stationError, tripLoading, tripError, availabilityLoading, availabilityError, bikeRoutes, showBikeRoutes, hoveredrouteID, selectedInfrastructureStationIds, onInfrastructureStationPick, hiddenHealthCategories, hiddenRouteClasses])
+    }, [frameStations, maxUsage, maxDelta, trips, maxTripFlow, tripStations, selectedStationIds, hoveredTripStationId, onStationPick, stations, activeLayer, stationLoading, stationError, tripLoading, tripError, availabilityLoading, availabilityError, yearFilteredRoutes, showBikeRoutes, hoveredrouteID, selectedInfrastructureStationIds, onInfrastructureStationPick, hiddenHealthCategories, hiddenRouteClasses])
 
     // Consider the loading, error, and data states of only the active layer for the overall status
     const activeLayerState = stateLayers.find(layer => layer.layer === activeLayer)
@@ -125,5 +132,7 @@ export function useBuildLayers({ filters, currentTime, activeLayer, showBikeRout
         hasTripFlowSelection,
         selectedInfrastructureStations,
         clearInfrastructureSelection,
+        // Unfiltered routes, for deriving the year slider bounds
+        bikeRoutes,
     }
 }

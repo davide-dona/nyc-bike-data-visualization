@@ -2,6 +2,7 @@ import SpeedController from "./SpeedController"
 import BikeRoutesToggle from "./BikeRoutesToggle"
 import UsageModeToggle from "./UsageModeToggle.jsx"
 import ResetButton from "./ResetButton.jsx"
+import YearSlider from "./YearSlider.jsx"
 
 /**
  * Component for controlling the active map layer and animation settings. 
@@ -16,7 +17,10 @@ import ResetButton from "./ResetButton.jsx"
  * @param {string} usageMode - Which metric the station usage layer encodes ('all' | 'incoming' | 'outgoing').
  * @param {Function} setUsageMode - Function to update the usageMode state in the parent component.
  * @param {Function} resetSelectedStationIds - Function to reset the selected station IDs in the trip flow layer, allowing users to clear their selection and reset the view.
- * @returns 
+ * @param {number|null} selectedYear - Historical year for the bike-route network, null for present.
+ * @param {Function} setSelectedYear - Setter for the selected network year.
+ * @param {Object} yearBounds - {minYear, maxYear} derived from the route data.
+ * @returns
  */
 export default function MapController({
     activeLayer,
@@ -29,6 +33,9 @@ export default function MapController({
     setUsageMode,
     resetSelectedStationIds,
     hasTripFlowSelection,
+    selectedYear,
+    setSelectedYear,
+    yearBounds,
     disabled = false,
 }) {
     return (
@@ -46,6 +53,16 @@ export default function MapController({
                     <UsageModeToggle
                         usageMode={usageMode}
                         setUsageMode={setUsageMode}
+                    />
+                )}
+
+                {activeLayer === 'infrastructure' && showBikeRoutes && (
+                    <YearSlider
+                        value={selectedYear}
+                        onChange={setSelectedYear}
+                        minYear={yearBounds.minYear}
+                        maxYear={yearBounds.maxYear}
+                        disabled={disabled}
                     />
                 )}
 

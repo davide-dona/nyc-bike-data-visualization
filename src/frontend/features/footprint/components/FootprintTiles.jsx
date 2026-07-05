@@ -54,7 +54,7 @@ export default function FootprintTiles({ totals, substitutionRate, loading, erro
     return (
         <div className="footprint-tiles">
             {tiles.map((tile) => (
-                <article className="footprint-tile" key={tile.key}>
+                <article className="panel-frame" key={tile.key}>
                     <p className="footprint-tile__value">{tile.value}</p>
                     <p className="footprint-tile__label">{tile.label}</p>
                     <p className="footprint-tile__hint">{tile.hint}</p>

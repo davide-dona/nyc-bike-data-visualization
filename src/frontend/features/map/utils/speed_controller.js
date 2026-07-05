@@ -4,10 +4,9 @@ export const MINUTES_IN_HOUR = 60;
 export const MINUTES_IN_DAY = HOURS_IN_DAY * MINUTES_IN_HOUR;
 export const MAX_MINUTE_INDEX = MINUTES_IN_DAY - 1;
 export const TIME_DRAG_THRESHOLD_PX = 4;
-export const SPEED_DRAG_THRESHOLD_PX = 4;
-export const MIN_SPEED = 0.5;
-export const MAX_SPEED = 4;
-export const SPEED_PIVOT = 2;
+
+/** Discrete playback speeds offered by the selector, in multiplier units. */
+export const SPEED_OPTIONS = [0.5, 1, 2, 4];
 
 /**
  * Clamps a numeric value into the inclusive [min, max] range.
@@ -17,41 +16,6 @@ export const SPEED_PIVOT = 2;
  * @returns {number} Clamped value.
  */
 export const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
-
-/**
- * Maps a playback speed (in [MIN_SPEED, MAX_SPEED]) to a 0–100 non-linear
- * percentage position on the speed wheel: linear on [MIN_SPEED, SPEED_PIVOT],
- * log2 on [SPEED_PIVOT, MAX_SPEED].
- * @param {number} value - Speed value in multiplier units.
- * @returns {number} Position percentage in [0, 100].
- */
-export const speedToNonLinearPosition = (value) => {
-    const clampedValue = clamp(value, MIN_SPEED, MAX_SPEED);
-
-    if (clampedValue <= SPEED_PIVOT) {
-        return ((clampedValue - MIN_SPEED) / (SPEED_PIVOT - MIN_SPEED)) * 50;
-    }
-
-    const rightRatio = Math.log2(clampedValue / SPEED_PIVOT) / Math.log2(MAX_SPEED / SPEED_PIVOT);
-    return 50 + rightRatio * 50;
-};
-
-/**
- * Inverse of `speedToNonLinearPosition` - takes a wheel ratio in [0, 1] and
- * returns the corresponding speed multiplier.
- * @param {number} ratio - Position ratio in [0, 1].
- * @returns {number} Speed multiplier in [MIN_SPEED, MAX_SPEED].
- */
-export const nonLinearPositionToSpeed = (ratio) => {
-    const clampedRatio = clamp(ratio, 0, 1);
-
-    if (clampedRatio <= 0.5) {
-        return MIN_SPEED + (clampedRatio / 0.5) * (SPEED_PIVOT - MIN_SPEED);
-    }
-
-    const rightRatio = (clampedRatio - 0.5) / 0.5;
-    return SPEED_PIVOT * 2 ** (rightRatio * Math.log2(MAX_SPEED / SPEED_PIVOT));
-};
 
 /**
  * Normalizes a time value to [0, HOURS_IN_DAY), wrapping negative or large
@@ -76,7 +40,7 @@ export const formatTimeLabel = (time) => {
 };
 
 /**
- * Formats a playback speed multiplier as a compact label (e.g. "2×", "1.5×").
+ * Formats a playback speed multiplier as a compact label (e.g. "2×", "0.5×").
  * @param {number} value - Speed multiplier.
  * @returns {string} Display string with trailing "×".
  */
@@ -86,13 +50,23 @@ export const formatSpeedLabel = (value) => {
 };
 
 /**
- * Produces the hour tick marks (0..24 inclusive) with precomputed positions
- * for the time wheel, so the component does not recompute on every render.
- * @returns {Array<{hour:number,label:string,position:number}>} Hour marks with percentage positions.
+ * Produces the hour tick marks for the circular time wheel. The strip is
+ * periodic: three day-widths of ticks (hours -24..48) so that the window
+ * centered on any normalized time is always fully covered, and a wrap from
+ * 23:59 to 00:00 translates the strip by exactly one period - visually
+ * seamless. Ticks carry importance flags so responsive decimation can key on
+ * the hour itself instead of DOM order.
+ * @returns {Array<{hour:number,label:string,position:number,isMinor:boolean,isMajor:boolean}>}
  */
 export const createHourMarks = () =>
-    Array.from({ length: HOURS_IN_DAY + 1 }, (_, hour) => ({
-        hour,
-        label: String(hour).padStart(2, "0"),
-        position: hour === HOURS_IN_DAY ? 100 : ((hour * MINUTES_IN_HOUR) / MAX_MINUTE_INDEX) * 100,
-    }));
+    Array.from({ length: 3 * HOURS_IN_DAY + 1 }, (_, index) => {
+        const hour = index - HOURS_IN_DAY;
+        const normalizedHour = ((hour % HOURS_IN_DAY) + HOURS_IN_DAY) % HOURS_IN_DAY;
+        return {
+            hour,
+            label: String(normalizedHour).padStart(2, "0"),
+            position: (hour / HOURS_IN_DAY) * 100,
+            isMinor: normalizedHour % 2 === 1,
+            isMajor: normalizedHour % 6 === 0,
+        };
+    });

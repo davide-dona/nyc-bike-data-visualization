@@ -93,8 +93,8 @@ export default function ModeComparisonBar({ totals, loading, error, onRefetch })
     }, [bars])
 
     return (
-        <div className="footprint-frame">
-            <p className="footprint-frame__title">Same kilometres, different footprint</p>
+        <div className="panel-frame">
+            <p className="panel-frame__title">Same kilometres, different footprint</p>
             <div className="footprint-plot">
                 {bars.length > 0 || loading || error
                     ? <canvas ref={canvasRef} />

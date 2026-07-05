@@ -3,40 +3,6 @@
         @apply opacity-60;
     }
 
-    .surface-metric-selector {
-        @apply flex flex-wrap gap-1 border border-rule p-1 bg-paper;
-    }
-
-    .surface-metric-btn {
-        @apply inline-flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-eyebrow px-3 py-1.5
-               text-ink-muted transition-colors duration-150
-               focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent;
-        line-height: 1;
-    }
-
-    .surface-metric-btn__icon {
-        @apply inline-flex items-center justify-center w-4 h-4 text-[12px] text-current;
-        line-height: 1;
-        flex-shrink: 0;
-    }
-
-    .surface-metric-btn__icon::before {
-        display: block;
-        line-height: 1;
-    }
-
-    .surface-metric-btn:hover {
-        @apply text-ink;
-    }
-
-    .surface-metric-btn.active {
-        @apply bg-ink text-white;
-    }
-
-    .surface-metric-btn:disabled {
-        @apply cursor-not-allowed;
-    }
-
     .surface-compare-btn {
         @apply inline-flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-eyebrow px-3 py-1.5 border border-rule
                text-ink-muted bg-paper/90 transition-all duration-200

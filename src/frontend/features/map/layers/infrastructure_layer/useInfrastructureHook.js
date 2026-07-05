@@ -29,7 +29,10 @@ export function useInfrastructureLayer({ showBikeRoutes = false } = {}) {
 
     return {
         stations,
-        bikeRoutes: showBikeRoutes ? bikeRoutes : [],   // Only provide routes if requested, more efficient for components that don't need them
+        // Routes are always returned (the query runs regardless) so the year
+        // slider can derive its bounds even while the map toggle is off; the
+        // layer builder still gates rendering on showBikeRoutes.
+        bikeRoutes,
         loading,
         error,
         refetch,
