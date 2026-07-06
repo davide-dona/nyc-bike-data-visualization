@@ -74,22 +74,22 @@ const MAP_LAYER_GUIDES = {
     trip_flow: {
         mapName: 'Trip Flow',
         title: 'How To Read It',
-        summary: 'This layer highlights station-to-station movement intensity. Use it to understand directional connectivity and the strongest mobility corridors in the network.',
+        summary: 'This layer highlights station-to-station movement intensity. It opens on the strongest corridors citywide; focusing a station isolates its own links and splits them by direction.',
         hints: [
             {
                 mapType: 'Trip Flow',
-                title: 'Start from a station',
-                text: 'Click a station to isolate its outgoing and incoming links. This quickly reveals whether it behaves as a local feeder or a network hub.',
+                title: 'Read the overview first',
+                text: 'The map opens on the busiest corridors in the whole network. Look for where flow concentrates before drilling into any single station.',
             },
             {
                 mapType: 'Trip Flow',
-                title: 'Read thickness as intensity',
-                text: 'Heavier arcs indicate stronger relationships between station pairs. Compare multiple links from the same origin before drawing conclusions.',
+                title: 'Focus one station',
+                text: 'Click a station to isolate its corridors. The chart below splits them into inbound and outbound rides, so feeder and hub behavior becomes visible.',
             },
             {
                 mapType: 'Trip Flow',
-                title: 'Reset and compare',
-                text: 'Use Reset often to avoid tunnel vision. Repeating selection across districts gives a cleaner picture of city-wide flow structure.',
+                title: 'Step back out',
+                text: 'Click the focused station again, click empty map, or press Reset to return to the citywide view and compare another area.',
             },
         ],
     },
@@ -191,8 +191,8 @@ function MapPage({ filters }) {
         hasData,
         clearInfrastructureSelection,
         refetch,
-        resetSelectedStationIds,
-        hasTripFlowSelection,
+        clearTripFlowFocus,
+        hasTripFlowFocus,
         selectedInfrastructureStations,
         bikeRoutes,
         insights,
@@ -207,9 +207,17 @@ function MapPage({ filters }) {
     const guide = MAP_LAYER_GUIDES[activeLayer] ?? MAP_LAYER_GUIDES.station_usage
 
     const handleMapClick = useCallback((info) => {
+        const pickedObject = info?.object
+
+        // Clicking empty map exits the trip-flow focus back to the overview;
+        // station and arc picks carry an object, so they never clear it here.
+        if (activeLayer === 'trip_flow') {
+            if (!pickedObject) clearTripFlowFocus()
+            return
+        }
+
         if (activeLayer !== 'infrastructure') return
 
-        const pickedObject = info?.object
         const layerId = info?.layer?.id ?? ''
         const isStationPick = layerId.startsWith('station-availability-layer') && pickedObject?.id
 
@@ -218,7 +226,7 @@ function MapPage({ filters }) {
         if (!pickedObject) {
             clearInfrastructureSelection()
         }
-    }, [activeLayer, clearInfrastructureSelection])
+    }, [activeLayer, clearInfrastructureSelection, clearTripFlowFocus])
 
     return (
         <section className="page-card">
@@ -275,8 +283,8 @@ function MapPage({ filters }) {
                             setShowBikeRoutes={setShowBikeRoutes}
                             usageMode={usageMode}
                             setUsageMode={setUsageMode}
-                            resetSelectedStationIds={resetSelectedStationIds}
-                            hasTripFlowSelection={hasTripFlowSelection}
+                            clearTripFlowFocus={clearTripFlowFocus}
+                            hasTripFlowFocus={hasTripFlowFocus}
                             selectedYear={selectedYear}
                             setSelectedYear={setSelectedYear}
                             yearBounds={yearBounds}
@@ -312,7 +320,6 @@ function MapPage({ filters }) {
                     insights={insights}
                     usageMode={usageMode}
                     currentTime={currentTime}
-                    setCurrentTime={setCurrentTime}
                     selectedYear={selectedYear}
                     setSelectedYear={setSelectedYear}
                     yearBounds={yearBounds}

@@ -6,7 +6,7 @@ import { useStationUsageLayer } from '../layers/station_usage_layer/useStationUs
 // Trip Flow Layer
 import { createTripFlowLayers } from '../layers/trip_flow_layer/tripFlowLayer.jsx'
 import { useTripFlowLayer } from '../layers/trip_flow_layer/useTripFlowHook.js'
-import { useTripStationSelection } from '../layers/trip_flow_layer/stations/useTripStationSelection.js'
+import { useTripStationFocus } from '../layers/trip_flow_layer/stations/useTripStationFocus.js'
 // Infrastructure Layer
 import { createStationAvailabilityLayer } from '../layers/infrastructure_layer/stations/stationAvailabilityLayer.jsx'
 import { createBikeRoutesLayer } from '../layers/infrastructure_layer/bike_routes/bikeRoutesLayer.jsx'
@@ -30,9 +30,9 @@ const BASE_TILE_URL = 'https://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png
 export function useBuildLayers({ filters, currentTime, activeLayer, showBikeRoutes, usageMode, hiddenHealthCategories, hiddenRouteClasses, selectedYear }) {
     // Fetch and process data
     const { stations: usageStations, frameStations, maxUsage, maxDelta, loading: stationLoading, error: stationError, refetch: stationRefetch } = useStationUsageLayer({ filters: filters, currentTime, usageMode })
-    const { selectedStationIds, onStationPick, resetSelectedStationIds } = useTripStationSelection() // Manage station selection state for trip flow layer
+    const { focusedStationId, onStationPick, clearFocus } = useTripStationFocus() // Single focused station for the trip flow layer
     const [hoveredTripStationId, setHoveredTripStationId] = useState(null)
-    const { trips, maxTripFlow, stations: tripStations, loading: tripLoading, error: tripError, refetch: tripRefetch } = useTripFlowLayer({ filters, selectedStationIds })
+    const { trips, maxTripFlow, isFocusView, stations: tripStations, loading: tripLoading, error: tripError, refetch: tripRefetch } = useTripFlowLayer({ filters, focusedStationId })
     const { stations, bikeRoutes, loading: availabilityLoading, error: availabilityError, refetch: availabilityRefetch, routesLoading, routesError, refetchRoutes } = useInfrastructureLayer({ showBikeRoutes })
     const {
         clearSelectedStations: clearInfrastructureSelection,
@@ -59,7 +59,8 @@ export function useBuildLayers({ filters, currentTime, activeLayer, showBikeRout
     // Combine loading, error, and data-arrival states for easier handling in the component.
     // hasData is derived from the source arrays (not the deck.gl layer instances) so the
     // page can tell "still waiting on data" apart from "loaded but layer not built yet".
-    // Trip flow counts as ready once its clickable stations exist: arcs need a selection.
+    // Trip flow counts as ready once its clickable stations exist; overview arcs and
+    // focus arcs arrive through their own query states.
     const stateLayers = [
         { layer: 'station_usage', loading: stationLoading, error: stationError, refetch: stationRefetch, hasData: frameStations.length > 0 },
         { layer: 'trip_flow', loading: tripLoading, error: tripError, refetch: tripRefetch, hasData: tripStations.length > 0 },
@@ -81,7 +82,7 @@ export function useBuildLayers({ filters, currentTime, activeLayer, showBikeRout
                     trips,
                     maxTripCount: maxTripFlow,
                     stations: tripStations,
-                    selectedStationIds,
+                    focusedStationId,
                     hoveredStationId: hoveredTripStationId,
                     onStationPick,
                     onStationHover: handleTripStationHover,
@@ -112,7 +113,14 @@ export function useBuildLayers({ filters, currentTime, activeLayer, showBikeRout
         }
 
         return base
-    }, [frameStations, maxUsage, maxDelta, trips, maxTripFlow, tripStations, selectedStationIds, hoveredTripStationId, onStationPick, stations, activeLayer, stationLoading, stationError, tripLoading, tripError, availabilityLoading, availabilityError, yearFilteredRoutes, showBikeRoutes, hoveredrouteID, selectedInfrastructureStationIds, onInfrastructureStationPick, hiddenHealthCategories, hiddenRouteClasses])
+    }, [frameStations, maxUsage, maxDelta, trips, maxTripFlow, tripStations, focusedStationId, hoveredTripStationId, onStationPick, stations, activeLayer, stationLoading, stationError, tripLoading, tripError, availabilityLoading, availabilityError, yearFilteredRoutes, showBikeRoutes, hoveredrouteID, selectedInfrastructureStationIds, onInfrastructureStationPick, hiddenHealthCategories, hiddenRouteClasses])
+
+    // Station name for the focus-mode chart title; the trip station list
+    // carries id and name for every clickable dot.
+    const focusedTripStation = useMemo(
+        () => tripStations.find((station) => station.id === focusedStationId) ?? null,
+        [tripStations, focusedStationId],
+    )
 
     // Per-layer data slices for the insights panel under the map. Memoized as
     // one stable bundle so consumers can depend on it without new object
@@ -126,7 +134,8 @@ export function useBuildLayers({ filters, currentTime, activeLayer, showBikeRout
         },
         tripFlow: {
             trips,
-            hasSelection: selectedStationIds.length > 0,
+            isFocusView,
+            focusedStationName: focusedTripStation?.name ?? null,
             loading: tripLoading,
             error: tripError,
             refetch: tripRefetch,
@@ -141,7 +150,7 @@ export function useBuildLayers({ filters, currentTime, activeLayer, showBikeRout
         },
     }), [
         usageStations, stationLoading, stationError, stationRefetch,
-        trips, selectedStationIds.length, tripLoading, tripError, tripRefetch,
+        trips, isFocusView, focusedTripStation, tripLoading, tripError, tripRefetch,
         bikeRoutes, yearFilteredRoutes, routesLoading, routesError, refetchRoutes,
     ])
 
@@ -151,7 +160,7 @@ export function useBuildLayers({ filters, currentTime, activeLayer, showBikeRout
     const error = activeLayerState?.error || null
     const refetch = activeLayerState?.refetch ?? (() => {})
     const hasData = activeLayerState?.hasData ?? false
-    const hasTripFlowSelection = selectedStationIds.length > 0
+    const hasTripFlowFocus = Boolean(focusedStationId)
 
     return {
         layers,
@@ -159,8 +168,8 @@ export function useBuildLayers({ filters, currentTime, activeLayer, showBikeRout
         error: error,
         hasData,
         refetch,
-        resetSelectedStationIds,
-        hasTripFlowSelection,
+        clearTripFlowFocus: clearFocus,
+        hasTripFlowFocus,
         selectedInfrastructureStations,
         clearInfrastructureSelection,
         // Unfiltered routes, for deriving the year slider bounds

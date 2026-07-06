@@ -7,6 +7,7 @@ import {
     aggregateRoutesByBorough,
     aggregateRoutesByFacilityClass,
     topCorridors,
+    topPartnersByFlow,
     topStationsByUsage,
 } from './insightSelectors.js'
 import {
@@ -14,7 +15,7 @@ import {
     FACILITY_LABELS,
 } from '../layers/infrastructure_layer/bike_routes/bikeRoutesLayer.jsx'
 import { BAR_SOLID, BAR_NEUTRAL } from '../../../utils/styling'
-import { LIMIT_STATIONS, LIMIT_TRIPS } from '../../../utils/config.jsx'
+import { LIMIT_STATIONS, LIMIT_TRIPS_OVERVIEW } from '../../../utils/config.jsx'
 
 const HOURS_IN_DAY = 24
 
@@ -130,7 +131,7 @@ function InfrastructureInsights({ insights, selectedYear, setSelectedYear, yearB
     )
 }
 
-function StationUsageInsights({ insights, usageMode, currentTime, setCurrentTime }) {
+function StationUsageInsights({ insights, usageMode, currentTime }) {
     const { stations } = insights
     const status = insights
 
@@ -144,21 +145,19 @@ function StationUsageInsights({ insights, usageMode, currentTime, setCurrentTime
     )
 
     const wheelHour = ((Math.floor(currentTime) % HOURS_IN_DAY) + HOURS_IN_DAY) % HOURS_IN_DAY
-    const handleHourClick = useCallback((index) => setCurrentTime(index), [setCurrentTime])
     const modeNote = USAGE_MODE_NOTES[usageMode] ?? USAGE_MODE_NOTES.all
 
     return (
         <div className="map-insights__row">
             <InsightFrame
                 title="Stations by peak hour"
-                note={`The amber bar follows the map's time wheel - click an hour to jump the animation. Counting ${modeNote}.`}
+                note={`The amber bar follows the map's time wheel. Counting ${modeNote}.`}
                 status={status}
             >
                 <InsightBarChart
                     labels={peakHours.labels}
                     values={peakHours.values}
                     highlightLabel={String(wheelHour)}
-                    onBarClick={handleHourClick}
                     xAxisTitle="Hour of Day"
                     yAxisTitle="Stations peaking"
                     xLabelStep={3}
@@ -181,29 +180,53 @@ function StationUsageInsights({ insights, usageMode, currentTime, setCurrentTime
 }
 
 function TripFlowInsights({ insights }) {
-    const { trips, hasSelection } = insights
+    const { trips, isFocusView, focusedStationName } = insights
     const status = insights
 
     const corridors = useMemo(() => topCorridors(trips, 10), [trips])
-    const directionGroups = useMemo(() => [
-        { label: 'A → B', values: corridors.aToB, color: BAR_SOLID },
-        { label: 'B → A', values: corridors.bToA, color: BAR_NEUTRAL },
-    ], [corridors])
+    const partners = useMemo(() => topPartnersByFlow(trips, 10), [trips])
+    // Inbound bars grow left of the zero line, outbound bars grow right.
+    const divergingGroups = useMemo(() => [
+        { label: 'Inbound', values: partners.inbound.map((value) => -value), color: BAR_NEUTRAL },
+        { label: 'Outbound', values: partners.outbound, color: BAR_SOLID },
+    ], [partners])
+
+    if (isFocusView) {
+        return (
+            <InsightFrame
+                title={`Corridors of ${focusedStationName ?? 'the focused station'}`}
+                note="Partners ranked by combined flow. Inbound rides grow left, outbound rides grow right, averaged per day. Click the station again or press Reset for the citywide view."
+                status={status}
+                emptyMessage={partners.labels.length === 0
+                    ? 'No trips recorded for the focused station with the current filters.'
+                    : null}
+                tall
+            >
+                <InsightBarChart
+                    horizontal
+                    diverging
+                    labels={partners.labels}
+                    groups={divergingGroups}
+                    xAxisTitle="Avg daily rides"
+                />
+            </InsightFrame>
+        )
+    }
 
     return (
         <InsightFrame
-            title="Strongest corridors - daily rides by direction"
-            note={`Top ${LIMIT_TRIPS} partners per selected station, ranked by combined flow. In each "A <> B" pair, A is the station named first.`}
+            title="Strongest corridors citywide"
+            note={`Top ${LIMIT_TRIPS_OVERVIEW} corridors drawn on the map, top 10 charted. Click a station to focus its own corridors.`}
             status={status}
-            emptyMessage={hasSelection && corridors.labels.length === 0
-                ? 'No trips recorded between the selected stations for the current filters.'
-                : (!hasSelection ? 'Click a station on the map to reveal its strongest corridors.' : null)}
+            emptyMessage={corridors.labels.length === 0
+                ? 'No trips recorded for the current filters.'
+                : null}
             tall
         >
             <InsightBarChart
                 horizontal
                 labels={corridors.labels}
-                groups={directionGroups}
+                values={corridors.values}
                 xAxisTitle="Avg daily rides"
             />
         </InsightFrame>
@@ -218,7 +241,6 @@ function TripFlowInsights({ insights }) {
  * @param {Object} insights - Per-layer data slices from useBuildLayers.
  * @param {string} usageMode - Station usage mode ('all' | 'incoming' | 'outgoing').
  * @param {number} currentTime - Current time-wheel hour (fractional during animation).
- * @param {Function} setCurrentTime - Jumps the map animation to an hour.
  * @param {number|null} selectedYear - Selected network year, null for present.
  * @param {Function} setSelectedYear - Sets the network year filter.
  * @param {{minYear: number, maxYear: number}} yearBounds - Year slider bounds.
@@ -228,7 +250,6 @@ export default function MapInsightsPanel({
     insights,
     usageMode,
     currentTime,
-    setCurrentTime,
     selectedYear,
     setSelectedYear,
     yearBounds,
@@ -248,7 +269,6 @@ export default function MapInsightsPanel({
                     insights={insights.stationUsage}
                     usageMode={usageMode}
                     currentTime={currentTime}
-                    setCurrentTime={setCurrentTime}
                 />
             )}
             {activeLayer === 'trip_flow' && (

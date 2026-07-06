@@ -22,20 +22,16 @@ function getVisualRadius(d, hoveredStationId) {
 
 export function createTripStationsLayer({
     stations,
-    selectedStationIds = [],
+    focusedStationId = null,
     hoveredStationId = null,
-    onStationPick,
-    onStationHover,
 }) {
-    const selectedStationIdSet = new Set(selectedStationIds);
-
     return new ScatterplotLayer({
         id: "trip-flow-stations-layer",
         data: stations,
         getPosition: (d) => [d.longitude, d.latitude],
         getRadius: (d) => getVisualRadius(d, hoveredStationId),
         getFillColor: (d) =>
-            selectedStationIdSet.has(d.id) || d.id === hoveredStationId
+            d.id === focusedStationId || d.id === hoveredStationId
                 ? STATION_COLOR_SELECTED
                 : STATION_COLOR_DEFAULT,
         getLineColor: [255, 255, 255],
@@ -57,7 +53,7 @@ export function createTripStationsLayer({
         },
 
         updateTriggers: {
-            getFillColor: [selectedStationIds, hoveredStationId],
+            getFillColor: [focusedStationId, hoveredStationId],
             getRadius: [hoveredStationId],
         },
     });

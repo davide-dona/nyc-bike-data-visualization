@@ -7,9 +7,11 @@ import {
     aggregateRoutesByBorough,
     aggregateRoutesByFacilityClass,
     topCorridors,
+    topPartnersByFlow,
     topStationsByUsage,
 } from '../features/map/insights/insightSelectors.js'
 import { selectStations } from '../features/map/layers/station_usage_layer/stationUsageSelector.js'
+import { orientTripsToFocus } from '../features/map/layers/trip_flow_layer/trips/tripArcsSelector.js'
 
 const route = (overrides) => ({
     instDate: '2020-06-01',
@@ -145,25 +147,30 @@ describe('topStationsByUsage', () => {
     })
 })
 
-describe('topCorridors', () => {
-    const trip = (overrides) => ({
-        start_station_name: 'A',
-        end_station_name: 'B',
-        total_daily_flow: 1,
-        a_to_b_flow: 0.6,
-        b_to_a_flow: 0.4,
-        ...overrides,
-    })
+const trip = (overrides) => ({
+    start_station_id: 'A',
+    start_station_name: 'A',
+    start_station_lat: 40.7,
+    start_station_lon: -73.9,
+    end_station_id: 'B',
+    end_station_name: 'B',
+    end_station_lat: 40.8,
+    end_station_lon: -74.0,
+    total_daily_flow: 1,
+    a_to_b_flow: 0.6,
+    b_to_a_flow: 0.4,
+    ...overrides,
+})
 
-    it('ranks pairs by total daily flow and keeps per-direction values', () => {
-        const { labels, aToB, bToA } = topCorridors([
+describe('topCorridors', () => {
+    it('ranks pairs by total daily flow with two-line pair labels and totals', () => {
+        const { labels, values } = topCorridors([
             trip({ start_station_name: 'Low', total_daily_flow: 1 }),
-            trip({ start_station_name: 'High', total_daily_flow: 9, a_to_b_flow: 5, b_to_a_flow: 4 }),
+            trip({ start_station_name: 'High', total_daily_flow: 9 }),
         ], 10)
 
-        expect(labels).toEqual(['High <> B', 'Low <> B'])
-        expect(aToB).toEqual([5, 0.6])
-        expect(bToA).toEqual([4, 0.4])
+        expect(labels).toEqual([['High', '<> B'], ['Low', '<> B']])
+        expect(values).toEqual([9, 1])
     })
 
     it('handles short lists and does not mutate its input order', () => {
@@ -173,8 +180,53 @@ describe('topCorridors', () => {
         expect(trips[0].total_daily_flow).toBe(1) // input untouched
     })
 
-    it('returns empty series for no selection', () => {
-        expect(topCorridors([], 10)).toEqual({ labels: [], aToB: [], bToA: [] })
+    it('returns empty series for empty input', () => {
+        expect(topCorridors([], 10)).toEqual({ labels: [], values: [] })
         expect(topCorridors(null, 10).labels).toEqual([])
+    })
+})
+
+describe('orientTripsToFocus', () => {
+    it('swaps endpoints and flows when the focused station is the end endpoint', () => {
+        const [oriented] = orientTripsToFocus([trip()], 'B')
+
+        expect(oriented.start_station_id).toBe('B')
+        expect(oriented.start_station_name).toBe('B')
+        expect(oriented.start_station_lat).toBe(40.8)
+        expect(oriented.end_station_id).toBe('A')
+        expect(oriented.a_to_b_flow).toBe(0.4) // outbound from B
+        expect(oriented.b_to_a_flow).toBe(0.6) // inbound to B
+        expect(oriented.total_daily_flow).toBe(1)
+    })
+
+    it('passes through rows already starting at the focused station or not touching it', () => {
+        const alreadyOriented = trip()
+        const unrelated = trip({ start_station_id: 'C', end_station_id: 'D' })
+        expect(orientTripsToFocus([alreadyOriented, unrelated], 'A')).toEqual([alreadyOriented, unrelated])
+    })
+})
+
+describe('topPartnersByFlow', () => {
+    it('ranks partners by total flow with partner names and direction splits', () => {
+        const oriented = orientTripsToFocus([
+            trip({ total_daily_flow: 2 }),
+            trip({
+                start_station_id: 'C', start_station_name: 'C',
+                end_station_id: 'A', end_station_name: 'A',
+                total_daily_flow: 8, a_to_b_flow: 5, b_to_a_flow: 3,
+            }),
+        ], 'A')
+        const { labels, inbound, outbound } = topPartnersByFlow(oriented, 10)
+
+        expect(labels).toEqual(['C', 'B'])
+        expect(outbound).toEqual([3, 0.6]) // focused-to-partner
+        expect(inbound).toEqual([5, 0.4])  // partner-to-focused
+    })
+
+    it('caps the list at n and returns empty series for empty input', () => {
+        const oriented = orientTripsToFocus([trip(), trip({ end_station_id: 'C', end_station_name: 'C', total_daily_flow: 3 })], 'A')
+        expect(topPartnersByFlow(oriented, 1).labels).toEqual(['C'])
+        expect(topPartnersByFlow([], 10)).toEqual({ labels: [], inbound: [], outbound: [] })
+        expect(topPartnersByFlow(null, 10).labels).toEqual([])
     })
 })

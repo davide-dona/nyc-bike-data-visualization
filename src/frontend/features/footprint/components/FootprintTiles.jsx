@@ -12,7 +12,7 @@ import {
 /**
  * Headline stat tiles: distance ridden, avoided CO2 (always a range), and car
  * trips replaced at the selected substitution rate.
- * @param {Object|null} totals - Ungrouped stats from /stats/ (total_rides, total_distance_km)
+ * @param {Object} totals - Summed daily stats (total_rides, total_distance_km)
  * @param {number} substitutionRate - Selected car-substitution rate (fraction)
  * @param {boolean} loading - Whether data is loading
  * @param {Error|null} error - Fetch error

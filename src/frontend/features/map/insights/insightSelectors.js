@@ -157,11 +157,14 @@ export function topStationsByUsage(stations, mode = 'all', n = 10) {
 }
 
 /**
- * Top station pairs by total daily flow, keeping the per-direction averages
- * so the chart can show the balance between the two directions.
+ * Top station pairs by total daily flow for the citywide overview chart.
+ * Labels are two-line arrays (one station name per line) so both endpoints
+ * stay readable on the category axis. Values are pair totals: the backend's
+ * a/b pair order carries no direction semantics, so no per-direction split
+ * is offered here.
  * @param {Array} trips - Processed trip rows from selectTrips.
  * @param {number} n - How many pairs to keep.
- * @returns {{labels: string[], aToB: number[], bToA: number[]}}
+ * @returns {{labels: string[][], values: number[]}}
  */
 export function topCorridors(trips, n = 10) {
     const ranked = [...(trips ?? [])]
@@ -169,8 +172,29 @@ export function topCorridors(trips, n = 10) {
         .slice(0, n)
 
     return {
-        labels: ranked.map((trip) => `${trip.start_station_name} <> ${trip.end_station_name}`),
-        aToB: ranked.map((trip) => trip.a_to_b_flow),
-        bToA: ranked.map((trip) => trip.b_to_a_flow),
+        labels: ranked.map((trip) => [trip.start_station_name, `<> ${trip.end_station_name}`]),
+        values: ranked.map((trip) => trip.total_daily_flow),
+    }
+}
+
+/**
+ * Top partner stations of the focused station by total daily flow, split by
+ * direction. Expects rows oriented with orientTripsToFocus, where the focused
+ * station is the start endpoint: a_to_b_flow is outbound (focused to partner)
+ * and b_to_a_flow is inbound. Both series stay positive; the diverging chart
+ * applies the sign.
+ * @param {Array} orientedTrips - Trip rows oriented to the focused station.
+ * @param {number} n - How many partners to keep.
+ * @returns {{labels: string[], inbound: number[], outbound: number[]}}
+ */
+export function topPartnersByFlow(orientedTrips, n = 10) {
+    const ranked = [...(orientedTrips ?? [])]
+        .sort((a, b) => b.total_daily_flow - a.total_daily_flow)
+        .slice(0, n)
+
+    return {
+        labels: ranked.map((trip) => trip.end_station_name),
+        inbound: ranked.map((trip) => trip.b_to_a_flow),
+        outbound: ranked.map((trip) => trip.a_to_b_flow),
     }
 }

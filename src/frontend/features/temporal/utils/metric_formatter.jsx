@@ -24,28 +24,34 @@ function getRidesPerDay(row) {
 
     return daysCount > 0 ? totalRides / daysCount : 0
 }
-// Configuration object that defines the available metrics
+// Configuration object that defines the available metrics.
+// `noun` is the short tooltip name for the value; the unit follows it there,
+// so it stays unit-free.
 export const METRICS = {
     total_rides: {
         label: "Rides per Day",
+        noun: "Rides",
         unit: "rides/day",
         get: getRidesPerDay,
         format: METRIC_FORMATTERS.total_rides,
     },
     average_duration_minutes: {
         label: "Avg Duration (min)",
+        noun: "Duration",
         unit: "min",
         get: row => row.average_duration_seconds / 60,
         format: METRIC_FORMATTERS.average_duration_minutes,
     },
     average_speed_kmh: {
         label: "Avg Speed (km/h)",
+        noun: "Speed",
         unit: "km/h",
         get: row => row.average_speed_kmh,
         format: METRIC_FORMATTERS.average_speed_kmh,
     },
     average_distance: {
         label: "Avg Distance (km)",
+        noun: "Distance",
         unit: "km",
         get: row => row.average_distance_km,
         format: METRIC_FORMATTERS.average_distance,

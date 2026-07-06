@@ -241,18 +241,20 @@ export default function ScatterPlot({ data, loading, error, onRefetch }) {
                             boxWidth: 12,
                             boxHeight: 12,
                             padding: 20,
-                            filter: (item, chart) => {
-                                const labels = chart.datasets.map(d => d.label)
-                                return labels.indexOf(item.text) === item.datasetIndex
-                            },
+                            // Every point is its own dataset; keep one legend
+                            // entry per weather group (the group's first dataset).
+                            filter: (item, chartData) =>
+                                chartData.datasets.findIndex(ds => ds.label === item.text) === item.datasetIndex,
                         },
+                        // Toggling a group shows or hides all datasets sharing
+                        // its label, keyed by label rather than dataset order.
                         onClick: (e, item, legend) => {
                             const chart = legend.chart
                             const targetLabel = item.text
+                            const nextHidden = chart.isDatasetVisible(item.datasetIndex)
                             chart.data.datasets.forEach((ds, i) => {
                                 if (ds.label === targetLabel) {
-                                    const meta = chart.getDatasetMeta(i)
-                                    meta.hidden = !meta.hidden
+                                    chart.setDatasetVisibility(i, !nextHidden)
                                 }
                             })
                             chart.update()

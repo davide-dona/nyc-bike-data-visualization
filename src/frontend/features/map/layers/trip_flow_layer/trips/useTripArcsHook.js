@@ -1,58 +1,61 @@
 import { useMemo } from 'react'
-import { useApiQueriesWithFilters } from '../../../../../clients/baseApiQuery.js'
-import { selectTrips, selectMaxFlow } from './tripArcsSelector.js'
+import useApiQueryWithFilters from '../../../../../clients/baseApiQuery.js'
+import { selectTrips, selectMaxFlow, orientTripsToFocus } from './tripArcsSelector.js'
 import { fetchStationFlowCounts } from './stationFlowCountsApi.js'
-import { LIMIT_TRIPS } from '../../../../../utils/config.jsx'
+import { LIMIT_TRIPS, LIMIT_TRIPS_OVERVIEW } from '../../../../../utils/config.jsx'
 
 /**
- * Custom hook to fetch and process trip flow data for the trip flow layer.
- * It retrieves trip counts, filters them based on the date range, and calculates the maximum flow for scaling purposes.
- * @param {Object} filter - Optional filters for fetching trip counts, such as date range or user-selected filters.
- * @param {Array} selectedStationIds - Array of selected station IDs to fetch trip counts for specific stations.
- * @returns {Object} An object containing the filtered trip data, maximum flow value, loading state, and error state.
+ * Fetches and processes trip flow data for the trip flow layer. Two views
+ * share the same endpoint: the citywide overview (no station filter, top
+ * corridors by total rides) and the focus view (corridors of one station).
+ * Both results cache independently, so leaving focus restores the overview
+ * without a refetch.
+ * @param {Object} filters - Optional filters such as date range or user type.
+ * @param {string|null} focusedStationId - Station whose corridors to fetch, null for the overview.
+ * @returns {Object} Trips (oriented to the focused station in focus view), max flow, view flag, and query states.
  */
-export function useTripArcsLayer({ filters, selectedStationIds }) {
-    // Prepare the base filters for fetching trip counts, including the limit and any additional filters provided by the user
-    const baseTripCountFilters = useMemo(
-        () => ({
-            limit: LIMIT_TRIPS,
-            ...(filters ?? {}),
-        }),
-        [filters],
-    )
-    // Fetch trip counts for each selected station ID in parallel via the shared /clients query helper.
-    const tripCountQueries = useApiQueriesWithFilters(
-        selectedStationIds.map((stationId) => ({
-            queryKey: 'station-flow-counts',
-            fetcher: fetchStationFlowCounts,
-            filters: { ...baseTripCountFilters, station_id: stationId },
-            enabledWhen: () => true,
-        })),
-    )
-    // Combine and process the trip count data from all queries
-    const tripCount = useMemo(() => {
-        // If no stations are selected, return an empty array to avoid unnecessary processing
-        if (!selectedStationIds.length) return []
-        // Use a Map to combine trip counts from different queries while avoiding duplicates based on station pairs
-        const pairMap = new Map()
-        // Iterate through each query's data and populate the pairMap with unique station pairs and their corresponding trip counts
-        for (const query of tripCountQueries) {
-            const rows = Array.isArray(query.data) ? query.data : []
-            for (const row of rows) {
-                const pairKey = `${row.station_a_id}|${row.station_b_id}`
-                if (!pairMap.has(pairKey)) pairMap.set(pairKey, row)
-            }
-        }
-        return Array.from(pairMap.values())
-    }, [tripCountQueries, selectedStationIds.length])
-    // Only initial loads count: background refetches keep the cached arcs
-    // visible instead of flashing the loading overlay on every station click
-    const loading = tripCountQueries.some((query) => query.isLoading)
-    const error = tripCountQueries.find((query) => query.error)?.error || null
-    const refetch = () => Promise.all(tripCountQueries.map((query) => query.refetch()))
-    // Process the combined trip count data to select trips that meet the criteria and calculate the maximum flow for scaling the visualization
-    const trips = useMemo(() => selectTrips(tripCount), [tripCount])
+export function useTripArcsLayer({ filters, focusedStationId }) {
+    const isFocusView = Boolean(focusedStationId)
+
+    // Citywide top corridors; the default date-range gate applies.
+    const overviewQuery = useApiQueryWithFilters({
+        queryKey: 'station-flow-counts',
+        fetcher: fetchStationFlowCounts,
+        filters: useMemo(
+            () => ({ limit: LIMIT_TRIPS_OVERVIEW, ...(filters ?? {}) }),
+            [filters],
+        ),
+    })
+
+    // Corridors of the focused station; disabled while no station is focused.
+    const focusQuery = useApiQueryWithFilters({
+        queryKey: 'station-flow-counts',
+        fetcher: fetchStationFlowCounts,
+        filters: useMemo(
+            () => ({ limit: LIMIT_TRIPS, ...(filters ?? {}), station_id: focusedStationId }),
+            [filters, focusedStationId],
+        ),
+        enabledWhen: (queryFilters) => Boolean(
+            queryFilters.start_date && queryFilters.end_date && queryFilters.station_id,
+        ),
+    })
+
+    const activeQuery = isFocusView ? focusQuery : overviewQuery
+
+    // Focus view rows are oriented so start_* is always the focused station;
+    // overview rows keep the backend's canonical pair order.
+    const trips = useMemo(() => {
+        const rows = selectTrips(activeQuery.data)
+        return isFocusView ? orientTripsToFocus(rows, focusedStationId) : rows
+    }, [activeQuery.data, isFocusView, focusedStationId])
     const maxTripFlow = useMemo(() => (trips.length > 0 ? selectMaxFlow(trips) : 0), [trips])
 
-    return { trips, maxTripFlow, loading, error, refetch }
+    return {
+        trips,
+        maxTripFlow,
+        isFocusView,
+        loading: activeQuery.loading,
+        error: activeQuery.error,
+        refetch: activeQuery.refetch,
+    }
 }

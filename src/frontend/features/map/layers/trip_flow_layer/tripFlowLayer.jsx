@@ -6,24 +6,24 @@ import { createTripsArcLayer } from "./trips/tripArcsLayer";
  * @param {Array} trips - Array of trip objects with source and target positions and daily flow
  * @param {number} maxTripCount - Maximum trip count for scaling arc widths and colors
  * @param {Array} stations - Array of station objects with latitude and longitude for displaying station points
- * @param {string[]} selectedStationIds - Selected station identifier list.
- * @param {Function} onStationPick - Click handler to toggle station selection.
- * @returns 
+ * @param {string|null} focusedStationId - Focused station identifier, null in the citywide overview.
+ * @param {Function} onStationPick - Click handler that focuses the picked station.
+ * @returns
  */
 export function createTripFlowLayers({
     trips,
     maxTripCount,
     stations,
-    selectedStationIds = [],
+    focusedStationId = null,
     hoveredStationId = null,
     onStationPick,
     onStationHover,
 }) {
     const layers = []
-    layers.push(createTripsArcLayer({ trips, maxTripCount, selectedStationIds }))
+    layers.push(createTripsArcLayer({ trips, maxTripCount }))
     layers.push(createTripStationsLayer({
         stations,
-        selectedStationIds,
+        focusedStationId,
         hoveredStationId,
     }))
     layers.push(createTripStationsHitLayer({
@@ -44,7 +44,7 @@ export function tripFlowLegend() {
         entries: [
             { swatch: 'rgb(25, 83, 216)', label: 'Trip source' },
             { swatch: 'rgb(10, 42, 122)', label: 'Trip target' },
-            { swatch: 'rgb(229, 140, 43)', label: 'Selected link' },
+            { swatch: 'rgb(229, 140, 43)', label: 'Focused station' },
         ],
     }
 }

@@ -8,4 +8,5 @@ export const DAY_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 export const DAY_ORDER = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
 // Limit the number of stations to fetch for performance reasons
 export const LIMIT_STATIONS = 3000
-export const LIMIT_TRIPS = 10 // Limit per station
+export const LIMIT_TRIPS = 10 // Corridors fetched for the focused station
+export const LIMIT_TRIPS_OVERVIEW = 60 // Citywide corridors drawn on the overview

@@ -16,7 +16,8 @@ import YearSlider from "./YearSlider.jsx"
  * @param {Function} setShowBikeRoutes - Function to update the showBikeRoutes state in the parent component, allowing the user to toggle bike routes on the infrastructure layer.
  * @param {string} usageMode - Which metric the station usage layer encodes ('all' | 'incoming' | 'outgoing').
  * @param {Function} setUsageMode - Function to update the usageMode state in the parent component.
- * @param {Function} resetSelectedStationIds - Function to reset the selected station IDs in the trip flow layer, allowing users to clear their selection and reset the view.
+ * @param {Function} clearTripFlowFocus - Returns the trip flow layer to the citywide overview.
+ * @param {boolean} hasTripFlowFocus - Whether a station is currently focused on the trip flow layer.
  * @param {number|null} selectedYear - Historical year for the bike-route network, null for present.
  * @param {Function} setSelectedYear - Setter for the selected network year.
  * @param {Object} yearBounds - {minYear, maxYear} derived from the route data.
@@ -31,8 +32,8 @@ export default function MapController({
     setShowBikeRoutes,
     usageMode,
     setUsageMode,
-    resetSelectedStationIds,
-    hasTripFlowSelection,
+    clearTripFlowFocus,
+    hasTripFlowFocus,
     selectedYear,
     setSelectedYear,
     yearBounds,
@@ -75,10 +76,8 @@ export default function MapController({
 
                 {activeLayer === 'trip_flow' && (
                     <ResetButton
-                        disabled={!hasTripFlowSelection}
-                        onClick={() => {
-                            resetSelectedStationIds()
-                        }}
+                        disabled={!hasTripFlowFocus}
+                        onClick={clearTripFlowFocus}
                     />
                 )}
             </div>

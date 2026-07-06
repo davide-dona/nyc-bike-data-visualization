@@ -1,8 +1,7 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import useDayHourStats from "./useDayHourStats";
-import useWeeklyStats from "./useWeeklyStats";
-import useHourlyStats from "./useHourlyStats";
 import useDateStats from "./useDateStats";
+import { marginalizeDayHour } from "../utils/marginalize_stats.js";
 
 /**
  * Hook to manage the temporal state for the  page.
@@ -23,39 +22,33 @@ export default function useTemporalState(filters) {
         refetch: refetchDayHourStats,
     } = useDayHourStats(filters)
     const {
-        dayStats,
-        loading: loadingDayStats,
-        error: errorDayStats,
-        refetch: refetchDayStats,
-    } = useWeeklyStats(filters)
-    const {
-        hourStats,
-        loading: loadingHourStats,
-        error: errorHourStats,
-        refetch: refetchHourStats,
-    } = useHourlyStats(filters)
-    const {
         dateStats,
         loading: loadingDateStats,
         error: errorDateStats,
         refetch: refetchDateStats,
     } = useDateStats(filters)
 
+    // Day and hour histograms read marginals of the day-hour grid, so they
+    // share the surface's fetch instead of issuing their own.
+    const dayStats = useMemo(() => marginalizeDayHour(dayHourStats, 'day_of_week'), [dayHourStats])
+    const hourStats = useMemo(() => marginalizeDayHour(dayHourStats, 'hour'), [dayHourStats])
+
     // Aggregate states, for page-level concerns (controls gating, compare layers)
-    const loading = loadingDayHourStats || loadingDayStats || loadingHourStats || loadingDateStats
-    const error = errorDayHourStats || errorDayStats || errorHourStats || errorDateStats
+    const loading = loadingDayHourStats || loadingDateStats
+    const error = errorDayHourStats || errorDateStats
     const refetch = () => Promise.all([
         refetchDayHourStats(),
-        refetchDayStats(),
-        refetchHourStats(),
         refetchDateStats(),
     ])
 
-    // Per-breakdown states, so each chart reflects only its own queries
+    // Per-breakdown states, so each chart reflects only its own queries.
+    // The day and hour marginals derive from the day-hour query, so they
+    // share its state.
+    const dayHourQueryState = { loading: loadingDayHourStats, error: errorDayHourStats, refetch: refetchDayHourStats }
     const queries = {
-        dayHour: { loading: loadingDayHourStats, error: errorDayHourStats, refetch: refetchDayHourStats },
-        day: { loading: loadingDayStats, error: errorDayStats, refetch: refetchDayStats },
-        hour: { loading: loadingHourStats, error: errorHourStats, refetch: refetchHourStats },
+        dayHour: dayHourQueryState,
+        day: dayHourQueryState,
+        hour: dayHourQueryState,
         date: { loading: loadingDateStats, error: errorDateStats, refetch: refetchDateStats },
     }
 

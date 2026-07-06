@@ -14,7 +14,6 @@ export function formatData(data) {
         const hoursWithRides = Number(d.hours_with_rides || 0)
         const totalRides = Number(d.total_rides || 0)
         const ridesPerHour = hoursCount > 0 ? totalRides / hoursCount : 0
-        const ridesPerDay = hoursCount > 0 ? totalRides / (hoursCount / 24) : 0
         // Standard error of the mean (std/√n); the speed std is sampled only over
         // hours with rides, so its n differs from hoursCount
         const ridesPerHourSE = d.rides_per_hour_std != null && hoursCount > 0
@@ -29,7 +28,6 @@ export function formatData(data) {
             avgDurationMin: Number(d.average_duration_seconds || 0) / 60,
             avgSpeed: Number(d.average_speed_kmh || 0),
             ridesPerHour,
-            ridesPerDay,
             ridesPerHourSE,
             avgSpeedSE,
             weatherGroup,

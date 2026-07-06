@@ -11,9 +11,9 @@
     @apply relative w-full h-[30vh] min-h-[240px];
   }
 
-  /* Grouped corridor bars: 10 pairs x 2 directions need the extra room */
+  /* Corridor charts: 10 rows with two-line pair labels need extra room */
   .map-insights__plot--tall {
-    @apply h-[42vh] min-h-[340px];
+    @apply h-[36vh] min-h-[300px];
   }
 
   .map-insights__empty {

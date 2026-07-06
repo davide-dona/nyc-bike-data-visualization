@@ -1,5 +1,4 @@
-import { useState } from 'react'
-import useFootprintTotals from './hooks/useFootprintTotals.js'
+import { useMemo, useState } from 'react'
 import useFootprintDaily from './hooks/useFootprintDaily.js'
 import FootprintTiles from './components/FootprintTiles.jsx'
 import ModeComparisonBar from './components/ModeComparisonBar.jsx'
@@ -8,6 +7,7 @@ import AssumptionsBox from './components/AssumptionsBox.jsx'
 import SubstitutionRateControl from './components/SubstitutionRateControl.jsx'
 import VisualizationGuide from '../../components/VisualizationGuide.jsx'
 import { SUBSTITUTION_RATE } from './utils/emission_factors.js'
+import { sumFootprintTotals } from './utils/footprint_math.js'
 
 /**
  * Component for the green mobility page: ridden kilometres translated into
@@ -17,14 +17,14 @@ import { SUBSTITUTION_RATE } from './utils/emission_factors.js'
 function FootprintPage({ filters = {} }) {
     // Assumed share of rides replacing a car trip; drives tiles and band alike
     const [substitutionRate, setSubstitutionRate] = useState(SUBSTITUTION_RATE.mid)
-    // Each chart keeps its own query state; tiles and the comparison bar read the same totals
-    const { totals, loading, error, refetch } = useFootprintTotals(filters)
+    // One date-grouped fetch serves every chart; the totals are its sums
     const {
         dailyStats,
         loading: dailyLoading,
         error: dailyError,
         refetch: refetchDaily,
     } = useFootprintDaily(filters)
+    const totals = useMemo(() => sumFootprintTotals(dailyStats), [dailyStats])
 
     return (
         <section className="page-card">
@@ -49,17 +49,17 @@ function FootprintPage({ filters = {} }) {
                 <FootprintTiles
                     totals={totals}
                     substitutionRate={substitutionRate}
-                    loading={loading}
-                    error={error}
-                    onRefetch={refetch}
+                    loading={dailyLoading}
+                    error={dailyError}
+                    onRefetch={refetchDaily}
                 />
 
                 <div className="footprint-grid">
                     <ModeComparisonBar
                         totals={totals}
-                        loading={loading}
-                        error={error}
-                        onRefetch={refetch}
+                        loading={dailyLoading}
+                        error={dailyError}
+                        onRefetch={refetchDaily}
                     />
                     <CumulativeAvoidedBand
                         dailyStats={dailyStats}

@@ -13,6 +13,10 @@ import { formatCompact } from '../../../utils/numberFormat.js'
 // Unit-separator control char: cannot appear in station names or year labels,
 // so joined keys round-trip safely even when labels contain spaces.
 const KEY_SEPARATOR = '\u001f'
+// Record-separator control char: joins the lines of a multi-line label inside
+// a key entry, so array labels round-trip through labelsKey alongside plain
+// string labels.
+const LINE_SEPARATOR = '\u001e'
 
 // Long station/corridor names would eat the plot area on horizontal charts;
 // ticks are truncated in the middle (corridor labels differ at both ends),
@@ -25,6 +29,17 @@ const truncateLabel = (label) => {
     const half = Math.floor((MAX_CATEGORY_TICK_CHARS - 1) / 2)
     return `${text.slice(0, half)}…${text.slice(text.length - half)}`
 }
+
+// Multi-line labels arrive as arrays; each line is truncated on its own so a
+// two-line corridor label keeps both station names readable.
+const truncateTickLabel = (label) =>
+    Array.isArray(label) ? label.map(truncateLabel) : truncateLabel(label)
+
+const labelToKey = (label) =>
+    Array.isArray(label) ? label.join(LINE_SEPARATOR) : String(label)
+
+const keyToLabel = (key) =>
+    key.includes(LINE_SEPARATOR) ? key.split(LINE_SEPARATOR) : key
 
 function buildBarColors(labels, highlightLabel, colors) {
     return labels.map((label, index) => {
@@ -59,10 +74,13 @@ function buildDatasets(labels, values, groups, highlightLabel, colors) {
  * only when its label structure changes; value, color, and highlight changes
  * are applied in place with chart.update('none') so scrubbing the year slider
  * or the time wheel never stutters.
- * @param {Array} labels - Category labels.
+ * @param {Array} labels - Category labels; an array entry renders as a multi-line tick.
  * @param {Array} values - Single-series values (ignored when groups is set).
  * @param {Array} groups - Optional [{ label, values, color }] for grouped bars; renders a legend.
  * @param {boolean} horizontal - Draw bars horizontally (category axis on y).
+ * @param {boolean} diverging - Butterfly layout: two groups share each row and grow in
+ *   opposite directions from zero (one group carries negative values); ticks and
+ *   tooltips show absolute values.
  * @param {Array} colors - Optional per-bar colors for the single-series mode.
  * @param {string} highlightLabel - Label of the bar painted in the amber selection color.
  * @param {Function} onBarClick - Optional (index, label) callback; enables the pointer cursor.
@@ -76,6 +94,7 @@ export default function InsightBarChart({
     values = [],
     groups = null,
     horizontal = false,
+    diverging = false,
     colors = null,
     highlightLabel = null,
     onBarClick = null,
@@ -108,7 +127,7 @@ export default function InsightBarChart({
     // creation animation.
     const paintedKeyRef = useRef('')
 
-    const labelsKey = labels.join(KEY_SEPARATOR)
+    const labelsKey = labels.map(labelToKey).join(KEY_SEPARATOR)
     const groupStructureKey = hasGroups
         ? groups.map((group) => `${group.label}|${group.color}`).join(KEY_SEPARATOR)
         : ''
@@ -122,7 +141,7 @@ export default function InsightBarChart({
         const ctx = canvasRef.current?.getContext('2d')
         if (!ctx) return undefined
 
-        const categoryLabels = labelsKey === '' ? [] : labelsKey.split(KEY_SEPARATOR)
+        const categoryLabels = labelsKey === '' ? [] : labelsKey.split(KEY_SEPARATOR).map(keyToLabel)
         const categoryAxis = {
             title: {
                 display: Boolean(horizontal ? yAxisTitle : xAxisTitle),
@@ -134,7 +153,7 @@ export default function InsightBarChart({
                 maxRotation: 0,
                 autoSkip: false,
                 callback: horizontal
-                    ? function categoryTick(value) { return truncateLabel(this.getLabelForValue(value)) }
+                    ? function categoryTick(value) { return truncateTickLabel(this.getLabelForValue(value)) }
                     : (value, index) => (index % xLabelStep === 0 ? categoryLabels[index] : ''),
                 font: { family: FONT_MONO, size: 10 },
                 color: INK_MUTED,
@@ -152,12 +171,18 @@ export default function InsightBarChart({
             },
             ticks: {
                 maxTicksLimit: 5,
-                callback: (value) => formatValueRef.current(value),
+                // Diverging rows encode direction by side, so both sides of
+                // the zero line read as magnitudes.
+                callback: (value) => formatValueRef.current(diverging ? Math.abs(value) : value),
                 font: { family: FONT_MONO, size: 10 },
                 color: INK_MUTED,
             },
             grid: { color: RULE },
             border: { display: false },
+        }
+        if (diverging) {
+            categoryAxis.stacked = true
+            valueAxis.stacked = true
         }
 
         paintedKeyRef.current = [
@@ -222,8 +247,17 @@ export default function InsightBarChart({
                         titleSpacing: 4,
                         bodySpacing: 5,
                         callbacks: {
+                            // Multi-line category labels arrive as arrays;
+                            // the tooltip title reads them as one line.
+                            title: (items) => {
+                                const item = items[0]
+                                if (!item) return ''
+                                const label = item.chart.data.labels[item.dataIndex]
+                                return Array.isArray(label) ? label.join(' ') : String(label ?? '')
+                            },
                             label: (tooltipCtx) => {
-                                const rawValue = horizontal ? tooltipCtx.parsed.x : tooltipCtx.parsed.y
+                                const parsedValue = horizontal ? tooltipCtx.parsed.x : tooltipCtx.parsed.y
+                                const rawValue = diverging ? Math.abs(parsedValue) : parsedValue
                                 const valueLabel = formatValueRef.current(rawValue)
                                 const datasetLabel = tooltipCtx.dataset.label
                                 return datasetLabel ? `${datasetLabel}: ${valueLabel}` : ` ${valueLabel}`
@@ -241,7 +275,7 @@ export default function InsightBarChart({
         // Value/color/highlight changes are handled in place below; only
         // structural changes recreate the chart.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [labelsKey, groupStructureKey, hasGroups, horizontal, xAxisTitle, yAxisTitle, xLabelStep, hasBarClick])
+    }, [labelsKey, groupStructureKey, hasGroups, horizontal, diverging, xAxisTitle, yAxisTitle, xLabelStep, hasBarClick])
 
     // Apply value/color/highlight changes in place instead of recreating the
     // chart, so year-slider and time-wheel scrubbing repaint without churn.

@@ -78,8 +78,10 @@ export function compactFilters(filters = {}) {
 }
 
 /**
- * Emits the four breakdown query descriptors (day×hour, day, hour, date) for
- * a given comparison layer, tagged with the layer id for later grouping.
+ * Emits the breakdown query descriptors (day×hour and date) for a given
+ * comparison layer, tagged with the layer id for later grouping. The day and
+ * hour breakdowns are derived client-side as marginals of the day×hour grid,
+ * so they need no descriptors of their own.
  * @param {object} baseFilters - Filters shared by every descriptor.
  * @param {{ id: string, filters?: object }} layer - Comparison layer descriptor.
  * @returns {Array<{ layerId: string, kind: string, params: object }>} Query descriptors.
@@ -92,16 +94,6 @@ export function createLayerQueries(baseFilters, layer) {
             layerId: layer.id,
             kind: "dayHourStats",
             params: { ...layerFilters, group_by: "day_of_week,hour" },
-        },
-        {
-            layerId: layer.id,
-            kind: "dayStats",
-            params: { ...layerFilters, group_by: "day_of_week" },
-        },
-        {
-            layerId: layer.id,
-            kind: "hourStats",
-            params: { ...layerFilters, group_by: "hour" },
         },
         {
             layerId: layer.id,

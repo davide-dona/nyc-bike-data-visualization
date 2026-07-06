@@ -76,7 +76,7 @@ function SurfaceLineChart({
                     hovertemplate:
                         `<b>${layer.label}</b><br>` +
                         "Moment: <b>%{x|%b %d, %Y}</b><br>" +
-                        `Rhythm: <b>%{y:,.2f}</b> ${metric.unit}<extra></extra>`,
+                        `${metric.noun}: <b>%{y:,.2f}</b> ${metric.unit}<extra></extra>`,
                 };
             })
             .filter(Boolean);
@@ -99,7 +99,7 @@ function SurfaceLineChart({
             },
             hovertemplate:
                 "Moment: <b>%{x|%b %d, %Y}</b><br>" +
-                `Rhythm: <b>%{y:,.2f}</b> ${metric.unit}<extra></extra>`,
+                `${metric.noun}: <b>%{y:,.2f}</b> ${metric.unit}<extra></extra>`,
         }),
         [singleSeries, metric],
     );

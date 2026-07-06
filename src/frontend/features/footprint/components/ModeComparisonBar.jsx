@@ -17,7 +17,7 @@ import { formatNumber } from '../../../utils/numberFormat.js'
  * Horizontal bars re-expressing the period's total ridden distance as the CO2
  * the same travel would emit per mode. This is deliberately NOT an "avoided"
  * claim: it answers "what would the same kilometres emit by other modes".
- * @param {Object|null} totals - Ungrouped stats from /stats/ (total_distance_km)
+ * @param {Object} totals - Summed daily stats (total_distance_km)
  * @param {boolean} loading - Whether data is loading
  * @param {Error|null} error - Fetch error
  * @param {Function} onRefetch - Callback to trigger a retry after error

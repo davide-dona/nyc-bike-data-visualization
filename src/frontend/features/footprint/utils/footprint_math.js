@@ -27,6 +27,24 @@ export function carTripsReplaced(totalRides, substitutionRate) {
 }
 
 /**
+ * Sums the daily stat rows into the page totals. The tiles and the mode
+ * comparison read plain sums of the per-date series, so one date-grouped
+ * fetch serves every footprint chart.
+ * @param {Array} dateRows - GroupedStats rows from /stats/?group_by=date.
+ * @returns {{total_rides: number, total_distance_km: number}} Summed totals; zeros when empty.
+ */
+export function sumFootprintTotals(dateRows) {
+    const rows = Array.isArray(dateRows) ? dateRows : []
+    return rows.reduce(
+        (totals, row) => ({
+            total_rides: totals.total_rides + (Number(row?.total_rides) || 0),
+            total_distance_km: totals.total_distance_km + (Number(row?.total_distance_km) || 0),
+        }),
+        { total_rides: 0, total_distance_km: 0 },
+    )
+}
+
+/**
  * Builds the cumulative avoided-CO2 series for the band chart.
  * @param {Array} dateRows - GroupedStats rows from /stats/?group_by=date.
  * @param {number} substitutionRate - The user-selected substitution rate for the mid line.

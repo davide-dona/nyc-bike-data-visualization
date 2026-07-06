@@ -101,7 +101,7 @@ export default function ResetButton({ onReset, onClick, disabled = false }) {
                 }}
                 aria-hidden={!showDisabledTooltip}
             >
-                Select at least one station
+                Click a station to focus it first
             </div>
         </div>
     )

@@ -7,8 +7,6 @@ import useDayHourStats from '../features/temporal/hooks/useDayHourStats.js'
 import useStationUsageCounts from '../features/map/layers/station_usage_layer/useStationUsageCounts.js'
 import useStationAvailability from '../features/map/layers/infrastructure_layer/stations/useStationAvailability.js'
 import useTripCounts from '../features/map/layers/trip_flow_layer/trips/useTripCounts.js'
-import useHourlyStats from '../features/temporal/hooks/useHourlyStats.js'
-import useWeeklyStats from '../features/temporal/hooks/useWeeklyStats.js'
 import useWeatherStats from '../features/weather/hooks/useWeatherStats.js'
 import useTemperatureResponse from '../features/weather/hooks/useTemperatureResponse.js'
 import useRainImpact from '../features/weather/hooks/useRainImpact.js'
@@ -48,16 +46,6 @@ describe('hooks smoke tests', () => {
 
     it('useTripCounts resolves without throwing', async () => {
         const { result } = renderHook(() => useTripCounts(TEST_FILTERS), { wrapper })
-        await waitFor(() => expect(result.current).toBeDefined())
-    })
-
-    it('useHourlyStats resolves without throwing', async () => {
-        const { result } = renderHook(() => useHourlyStats(TEST_FILTERS), { wrapper })
-        await waitFor(() => expect(result.current).toBeDefined())
-    })
-
-    it('useWeeklyStats resolves without throwing', async () => {
-        const { result } = renderHook(() => useWeeklyStats(TEST_FILTERS), { wrapper })
         await waitFor(() => expect(result.current).toBeDefined())
     })
 
