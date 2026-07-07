@@ -9,7 +9,7 @@ import {
     topCorridors,
     topPartnersByFlow,
     topStationsByUsage,
-} from '../features/map/insights/insightSelectors.js'
+} from '@/features/map/utils/insightSelectors.js'
 import { selectStations } from '@/features/map/utils/stationUsageSelector.js'
 import { orientTripsToFocus } from '@/features/map/utils/tripArcsSelector.js'
 

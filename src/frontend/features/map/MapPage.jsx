@@ -10,7 +10,7 @@ import InfrastructureStationSidebar from './components/InfrastructureStationSide
 import StatusMessage from '../../components/StatusMessage.jsx'
 import Tooltip from './components/Tooltip.jsx'
 import VisualizationGuide from '../../components/VisualizationGuide.jsx'
-import MapInsightsPanel from './insights/MapInsightsPanel.jsx'
+import MapInsightsPanel from './components/MapInsightsPanel.jsx'
 
 // List of available map layers
 export const LAYER_OPTIONS = [

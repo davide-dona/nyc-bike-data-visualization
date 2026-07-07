@@ -9,7 +9,7 @@ import {
     topCorridors,
     topPartnersByFlow,
     topStationsByUsage,
-} from './insightSelectors.js'
+} from '../utils/insightSelectors.js'
 import {
     FACILITY_CSS_COLORS,
     FACILITY_LABELS,
