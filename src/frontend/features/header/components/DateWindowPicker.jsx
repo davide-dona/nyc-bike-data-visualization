@@ -3,34 +3,10 @@ import useDateRangeBounds from '../hooks/useDateBounds.js'
 import { MONTH_LABELS } from '@/utils/config.js'
 import { MONTH_ORDER } from '@/utils/config.js'
 
+import CalendarIcon from './CalendarIcon.jsx'
+import MonthCell from './MonthCell.jsx'
+
 import '../styles/date-window-picker.css'
-
-function CalendarIcon() {
-    return <i className="fa-solid fa-calendar-days" aria-hidden="true" />
-}
-
-function MonthCell({ monthIdx, label, disabled, shade, onClick, active }) {
-    const className = [
-        'dw-month-cell',
-        disabled ? ' disabled' : '',
-        shade === 'start' ? ' shade-start' : '',
-        shade === 'end' ? ' shade-end' : '',
-        shade === 'middle' ? ' shade-mid' : '',
-        active ? ' active' : '',
-    ].join('')
-
-    return (
-        <div
-            role="button"
-            tabIndex={disabled ? -1 : 0}
-            aria-disabled={disabled}
-            className={className}
-            onClick={(e) => { if (disabled) return; onClick?.(e) }}
-        >
-            {label}
-        </div>
-    )
-}
 
 export default function DateWindowPicker({ value, onCommit, disabled = false }) {
     const { bounds, loading } = useDateRangeBounds()

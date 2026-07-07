@@ -5,11 +5,11 @@ import MetricSelector from "./components/MetricSelector";
 import SurfaceGraph from "./components/SurfaceGraph";
 import SurfaceHistograms from "./components/SurfaceHistograms";
 import SurfaceLineChart from "./components/SurfaceLineChart.jsx";
-import CompareFilterDropdown from "./components/CompareFilterDropdown.jsx";
+import CompareControlPanel from "./components/CompareControlPanel.jsx";
+import CompareLayerList from "./components/CompareLayerList.jsx";
+import AddLayerTooltip from "./components/AddLayerTooltip.jsx";
 import VisualizationGuide from "../../components/VisualizationGuide";
-import { FILTERS } from "../header/components/RiderBikeFilter.jsx";
 import {
-    CLASS_FILTER_KEYS,
     COMPARE_LAYER_COLORS,
     COMPARE_LAYER_SCALES,
     buildLayerKey,
@@ -471,194 +471,42 @@ function TemporalPage({ filters, onCompareModeChange }) {
 
 
                     <div ref={overlayRef} className={"surface-plot-overlay"}>
-                        <button
-                            ref={compareButtonRef}
-                            type="button"
-                            className={`surface-compare-btn${(isCompareMode || isCompareHovered) && !mergedLoading ? " is-active" : ""}`}
-                            onClick={handleCompareToggle}
-                            onMouseEnter={handleCompareHoverEnter}
-                            onMouseLeave={handleCompareHoverLeave}
+                        <CompareControlPanel
+                            isOpen={isComparePanelOpen}
+                            isActive={(isCompareMode || isCompareHovered) && !mergedLoading}
                             disabled={mergedLoading || mergedError}
+                            pendingLayerFilters={pendingLayerFilters}
+                            onPendingFilterChange={handlePendingFilterChange}
+                            onAddLayer={handleAddLayer}
+                            isAddDisabled={isPendingSelectionDuplicate}
+                            onResetCompare={handleResetCompare}
+                            canReset={compareLayers.length > 0}
+                            onToggle={handleCompareToggle}
+                            onHoverEnter={handleCompareHoverEnter}
+                            onHoverLeave={handleCompareHoverLeave}
+                            addLayerMouseHandlers={{
+                                onMouseEnter: handleAddLayerMouseEnter,
+                                onMouseMove: handleAddLayerMouseMove,
+                                onMouseLeave: handleAddLayerMouseLeave,
+                            }}
+                            buttonRef={compareButtonRef}
+                            panelRef={comparePanelRef}
+                            addLayerButtonRef={addLayerButtonRef}
                         >
-                            <span
-                                className="surface-compare-btn__icon"
-                                aria-hidden="true"
-                            >
-                                <i className="fa-solid fa-code-compare" />
-                            </span>
-                            Compare
-                        </button>
-
-                        <div
-                            ref={comparePanelRef}
-                            className={`surface-compare-panel${isComparePanelOpen ? " is-open" : ""}`}
-                            role="dialog"
-                            aria-label="Compare surfaces"
-                            onMouseEnter={handleCompareHoverEnter}
-                            onMouseLeave={handleCompareHoverLeave}
-                        >
-                            <div className="surface-compare-panel__controls">
-                                {CLASS_FILTER_KEYS.map((key) => (
-                                    <label
-                                        key={key}
-                                        className="surface-compare-field"
-                                    >
-                                        <span>{FILTERS[key].label}</span>
-                                        <CompareFilterDropdown
-                                            value={pendingLayerFilters[key]}
-                                            options={FILTERS[key].options}
-                                            onChange={(nextValue) =>
-                                                handlePendingFilterChange(
-                                                    key,
-                                                    nextValue,
-                                                )
-                                            }
-                                        />
-                                    </label>
-                                ))}
-                                <div
-                                    onMouseEnter={handleAddLayerMouseEnter}
-                                    onMouseMove={handleAddLayerMouseMove}
-                                    onMouseLeave={handleAddLayerMouseLeave}
-                                >
-                                    <button
-                                        ref={addLayerButtonRef}
-                                        type="button"
-                                        className="surface-compare-add"
-                                        onClick={handleAddLayer}
-                                        disabled={isPendingSelectionDuplicate}
-                                    >
-                                        <span
-                                            className="surface-btn-icon"
-                                            aria-hidden="true"
-                                        >
-                                            <i className="fa-solid fa-plus" />
-                                        </span>
-                                        Add Surface
-                                    </button>
-                                </div>
-                                <button
-                                    type="button"
-                                    className="surface-compare-reset"
-                                    onClick={handleResetCompare}
-                                    disabled={compareLayers.length === 0}
-                                >
-                                    <span
-                                        className="surface-btn-icon"
-                                        aria-hidden="true"
-                                    >
-                                        <i className="fa-solid fa-rotate-left" />
-                                    </span>
-                                    Reset
-                                </button>
-                            </div>
-
-                            <details className="surface-layer-list" open>
-                                <summary>
-                                    <span className="surface-layer-list__title">
-                                        Surfaces ({1 + compareLayers.length})
-                                    </span>
-                                    <span
-                                        className="surface-layer-list__hint"
-                                        aria-hidden="true"
-                                    >
-                                        <span className="surface-layer-list__hint-open">
-                                            Collapse
-                                        </span>
-                                        <span className="surface-layer-list__hint-closed">
-                                            Expand
-                                        </span>
-                                    </span>
-                                    <span
-                                        className="surface-layer-list__chevron"
-                                        aria-hidden="true"
-                                    >
-                                        <i className="fa-solid fa-chevron-right" />
-                                    </span>
-                                </summary>
-                                <div className="surface-layer-list__items">
-                                    <div className="surface-layer-item is-base">
-                                        <span
-                                            className="surface-layer-swatch"
-                                            style={{
-                                                backgroundColor:
-                                                    baseLayer.color,
-                                            }}
-                                        />
-                                        <span className="surface-layer-name">
-                                            {baseLayer.label}
-                                        </span>
-                                    </div>
-
-                                    {comparedLayers.map((layer) => (
-                                        <div
-                                            key={layer.id}
-                                            className="surface-layer-item"
-                                        >
-                                            <span
-                                                className="surface-layer-swatch"
-                                                style={{
-                                                    backgroundColor:
-                                                        layer.color,
-                                                }}
-                                            />
-                                            <span className="surface-layer-name">
-                                                {layer.label}
-                                            </span>
-                                            <button
-                                                type="button"
-                                                className={`surface-layer-toggle${layer.visible ? " is-on" : ""}`}
-                                                onClick={() =>
-                                                    handleToggleLayerVisibility(
-                                                        layer.id,
-                                                    )
-                                                }
-                                            >
-                                                <span
-                                                    className="surface-btn-icon"
-                                                    aria-hidden="true"
-                                                >
-                                                    <i
-                                                        className={`fa-solid ${layer.visible ? "fa-eye-slash" : "fa-eye"}`}
-                                                    />
-                                                </span>
-                                                {layer.visible
-                                                    ? "Hide"
-                                                    : "Show"}
-                                            </button>
-                                            <button
-                                                type="button"
-                                                className="surface-layer-delete"
-                                                onClick={() =>
-                                                    handleRemoveLayer(layer.id)
-                                                }
-                                            >
-                                                <span
-                                                    className="surface-btn-icon"
-                                                    aria-hidden="true"
-                                                >
-                                                    <i className="fa-solid fa-trash" />
-                                                </span>
-                                                Remove
-                                            </button>
-                                        </div>
-                                    ))}
-                                </div>
-                            </details>
-                        </div>
+                            <CompareLayerList
+                                baseLayer={baseLayer}
+                                layers={comparedLayers}
+                                onToggleVisibility={handleToggleLayerVisibility}
+                                onRemove={handleRemoveLayer}
+                            />
+                        </CompareControlPanel>
 
                         {showTooltip && getAddLayerTooltipText() && (
-                            <div
-                                ref={addLayerTooltipRef}
-                                className="surface-compare-add-tooltip"
-                                style={{
-                                    left: `${tooltipPosition.x}px`,
-                                    top: `${tooltipPosition.y}px`,
-                                }}
-                                role="tooltip"
-                            >
-                                {getAddLayerTooltipText()}
-                            </div>
+                            <AddLayerTooltip
+                                text={getAddLayerTooltipText()}
+                                position={tooltipPosition}
+                                tooltipRef={addLayerTooltipRef}
+                            />
                         )}
                     </div>
                 </div>
