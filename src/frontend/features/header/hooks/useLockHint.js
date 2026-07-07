@@ -1,4 +1,5 @@
 import { useCallback, useRef, useState } from "react";
+import { clampTooltipToViewport } from "@/utils/tooltipPosition.js";
 
 /**
  * Handler hook for the cursor-anchored "filters are locked" hint: visibility,
@@ -23,20 +24,13 @@ export default function useLockHint({ isActive }) {
             const anchorX = event.clientX;
             const anchorY = event.clientY + NORTH_OFFSET_Y;
 
-            const rawLeft = anchorX - hintWidth / 2;
-            const rawTop = anchorY;
-
-            const maxLeft = Math.max(
-                VIEWPORT_MARGIN,
-                window.innerWidth - hintWidth - VIEWPORT_MARGIN,
-            );
-            const maxTop = Math.max(
-                VIEWPORT_MARGIN,
-                window.innerHeight - hintHeight - VIEWPORT_MARGIN,
-            );
-
-            const nextX = Math.min(Math.max(VIEWPORT_MARGIN, rawLeft), maxLeft);
-            const nextY = Math.min(Math.max(VIEWPORT_MARGIN, rawTop), maxTop);
+            const { x: nextX, y: nextY } = clampTooltipToViewport({
+                x: anchorX - hintWidth / 2,
+                y: anchorY,
+                width: hintWidth,
+                height: hintHeight,
+                margin: VIEWPORT_MARGIN,
+            });
 
             setLockHintPosition({
                 x: nextX,

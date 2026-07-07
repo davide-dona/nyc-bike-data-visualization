@@ -3,6 +3,7 @@ import Plot from 'react-plotly.js'
 import StatusMessage from '../../../components/StatusMessage.jsx'
 import { SUBSTITUTION_RATE } from '../utils/emissionFactors.js'
 import { buildCumulativeAvoidedSeries } from '../utils/footprintMath.js'
+import { PLOTLY_HOVERLABEL } from '@/utils/styling'
 import {
     ACCENT,
     INK_MUTED,
@@ -114,13 +115,7 @@ export default function CumulativeAvoidedBand({
                                 rangemode: 'tozero',
                                 zerolinecolor: RULE_STRONG,
                             },
-                            hoverlabel: {
-                                bgcolor: 'rgba(11, 12, 14, 0.94)',
-                                bordercolor: 'rgba(25, 83, 216, 0.72)',
-                                align: 'left',
-                                namelength: -1,
-                                font: { family: FONT_MONO, size: 11, color: '#fbf8f2' },
-                            },
+                            hoverlabel: PLOTLY_HOVERLABEL,
                         }}
                         config={{
                             displayModeBar: false,

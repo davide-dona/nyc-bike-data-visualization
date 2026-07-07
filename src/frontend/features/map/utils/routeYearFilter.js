@@ -8,6 +8,13 @@
 const currentYear = () => new Date().getFullYear()
 
 /**
+ * Extracts a route's installation year from its ISO instDate string.
+ * @param {Object} route - BikeRoute object with instDate ('YYYY-MM-DD').
+ * @returns {number} The installation year, or NaN when instDate is missing/unparseable.
+ */
+export const getRouteInstallYear = (route) => Number(route.instDate?.slice(0, 4))
+
+/**
  * Returns the segments that were part of the network during the given year:
  * installed by the end of it and not retired before it started. Mirrors the
  * backend /bike_routes/history semantics, including treating segments without
@@ -39,7 +46,7 @@ export function getRouteYearBounds(routes) {
     let minYear = maxYear
 
     for (const route of routes) {
-        const year = Number(route.instDate?.slice(0, 4))
+        const year = getRouteInstallYear(route)
         if (Number.isFinite(year) && year > 0 && year < minYear) minYear = year
     }
 

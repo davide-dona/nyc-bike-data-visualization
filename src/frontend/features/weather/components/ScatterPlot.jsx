@@ -13,6 +13,7 @@ import {
 import { SCATTER_BORDER_COLOR, SCATTER_BORDER_WIDTH, SCATTER_POINT_RADIUS } from "../../../utils/styling"
 import { formatCount, formatNumber } from "../../../utils/numberFormat.js"
 import StatusMessage from "../../../components/StatusMessage"
+import { clampTooltipToViewport } from "@/utils/tooltipPosition.js"
 
 /**
  * Component for rendering a scatter plot of weather data
@@ -168,11 +169,13 @@ export default function ScatterPlot({ data, loading, error, onRefetch }) {
             : pointX - TOOLTIP_OFFSET_X - tooltipWidth
         const baseTop = pointY + TOOLTIP_OFFSET_Y
 
-        const maxLeft = window.innerWidth - tooltipEl.offsetWidth - VIEWPORT_MARGIN
-        const maxTop = window.innerHeight - tooltipEl.offsetHeight - VIEWPORT_MARGIN
-
-        const nextLeft = Math.min(Math.max(baseLeft, VIEWPORT_MARGIN), Math.max(maxLeft, VIEWPORT_MARGIN))
-        const nextTop = Math.min(Math.max(baseTop, VIEWPORT_MARGIN), Math.max(maxTop, VIEWPORT_MARGIN))
+        const { x: nextLeft, y: nextTop } = clampTooltipToViewport({
+            x: baseLeft,
+            y: baseTop,
+            width: tooltipWidth,
+            height: tooltipHeight,
+            margin: VIEWPORT_MARGIN,
+        })
 
         const arrowEl = tooltipEl.querySelector('[data-tooltip-arrow="true"]')
         if (arrowEl) {

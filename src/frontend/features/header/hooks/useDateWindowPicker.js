@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import useDateRangeBounds from './useDateBounds.js'
+import { formatIsoDate, lastDayOfMonth } from '@/utils/dateFormat.js'
 
 /**
  * Handler hook owning the whole date window picker state machine: the
@@ -115,9 +116,8 @@ export default function useDateWindowPicker({ value, onCommit, disabled = false 
 
     const commitRange = (s, e) => {
         if (!s || !e) return
-        const start_date = `${s.year}-${String(s.month + 1).padStart(2, '0')}-01`
-        const lastDay = new Date(e.year, e.month + 1, 0).getDate()
-        const end_date = `${e.year}-${String(e.month + 1).padStart(2, '0')}-${lastDay}`
+        const start_date = formatIsoDate(new Date(s.year, s.month, 1))
+        const end_date = formatIsoDate(new Date(e.year, e.month, lastDayOfMonth(e.year, e.month)))
         onCommitRef.current({ start_date, end_date })
     }
 

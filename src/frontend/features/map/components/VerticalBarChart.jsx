@@ -1,5 +1,5 @@
 import { formatCompact, formatNumber } from '@/utils/numberFormat.js'
-import { niceCeil } from '../utils/stationSidebarSelectors.js'
+import { niceCeil } from '@/utils/math.js'
 
 /**
  * CSS-only vertical bar chart with a nice-rounded y axis, used for the

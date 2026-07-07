@@ -11,8 +11,9 @@ import {
     RULE_STRONG,
 } from "../../../utils/editorialTokens.js";
 import { WMO_WEATHER_CODES } from "../utils/wmoCodeHandler.js";
+import { PLOTLY_HOVERLABEL } from "@/utils/styling";
+import { toRgba } from "@/utils/color.js";
 import {
-    toRgba,
     buildRidgelineSeries,
     buildTickText,
     wrapLabel,
@@ -153,13 +154,7 @@ function WeatherRidgeline({ data, loading, error, onRefetch }) {
                                 fixedrange: true,
                                 automargin: true,
                             },
-                            hoverlabel: {
-                                bgcolor: "rgba(11, 12, 14, 0.94)",
-                                bordercolor: "rgba(25, 83, 216, 0.72)",
-                                align: "left",
-                                namelength: -1,
-                                font: { family: FONT_MONO, size: 11, color: "#fbf8f2" },
-                            },
+                            hoverlabel: PLOTLY_HOVERLABEL,
                             font: { family: FONT_MONO, size: 11, color: INK },
                         }}
                         config={{ displayModeBar: false, scrollZoom: false }}

@@ -3,56 +3,19 @@ import Plot from "react-plotly.js"
 import { HOUR_LABELS, DAY_LABELS } from "@/utils/config.js"
 import StatusMessage from "../../../components/StatusMessage"
 import { PAPER_RAISED, FONT_MONO, INK, WARM_HIGHLIGHT } from "../../../utils/editorialTokens.js"
-import { EDITORIAL_COLORSCALE, editorialAxis } from "../../../utils/styling"
+import { EDITORIAL_COLORSCALE, editorialAxis, PLOTLY_HOVERLABEL } from "@/utils/styling"
 import { getMetricConfig } from "../utils/metricFormatter.js"
-
-const INITIAL_CAMERA = {
-    eye: { x: 1.6, y: -1.6, z: 0.9 },
-    center: { x: 0, y: 0, z: -0.3 },
-    up: { x: 0, y: 0, z: 1 },
-    projection: { type: "perspective" },
-}
-
-const BASE_RADIUS_XY = Math.hypot(INITIAL_CAMERA.eye.x, INITIAL_CAMERA.eye.y)
-const BASE_EYE_Z = INITIAL_CAMERA.eye.z
-const AZIMUTH_PER_PIXEL = 0.01
-const DEG_TO_RAD = Math.PI / 180
-const MIN_ANGLE_DEG = -180
-const MAX_ANGLE_DEG = 0
-const DISPLAY_MIN_DEG = -90
-const DISPLAY_MAX_DEG = 90
-const MIN_ANGLE = MIN_ANGLE_DEG * DEG_TO_RAD
-const MAX_ANGLE = MAX_ANGLE_DEG * DEG_TO_RAD
-const DEFAULT_AZIMUTH = Math.atan2(INITIAL_CAMERA.eye.y, INITIAL_CAMERA.eye.x)
-const INITIAL_AZIMUTH = Math.max(MIN_ANGLE, Math.min(MAX_ANGLE, DEFAULT_AZIMUTH))
-
-function clampAzimuth(value) {
-    return Math.max(MIN_ANGLE, Math.min(MAX_ANGLE, value))
-}
-
-function buildCameraFromAzimuth(azimuth) {
-    return {
-        ...INITIAL_CAMERA,
-        eye: {
-            x: BASE_RADIUS_XY * Math.cos(azimuth),
-            y: BASE_RADIUS_XY * Math.sin(azimuth),
-            z: BASE_EYE_Z,
-        },
-    }
-}
-
-function clampDisplayAngle(value) {
-    return Math.max(DISPLAY_MIN_DEG, Math.min(DISPLAY_MAX_DEG, value))
-}
-
-function azimuthToDisplayAngle(azimuth) {
-    const azimuthDeg = azimuth / DEG_TO_RAD
-    return clampDisplayAngle(azimuthDeg + 90)
-}
-
-function displayAngleToAzimuth(displayAngle) {
-    return clampAzimuth((displayAngle - 90) * DEG_TO_RAD)
-}
+import {
+    AZIMUTH_PER_PIXEL,
+    DISPLAY_MAX_DEG,
+    DISPLAY_MIN_DEG,
+    INITIAL_AZIMUTH,
+    azimuthToDisplayAngle,
+    buildCameraFromAzimuth,
+    clampAzimuth,
+    clampDisplayAngle,
+    displayAngleToAzimuth,
+} from "../utils/surfaceCamera.js"
 
 function buildSurfaceMatrix(data, metricGetter) {
     const grid = Array.from({ length: 7 }, () => Array(24).fill(0))
@@ -358,13 +321,7 @@ function SurfaceGraph({
                         },
                         margin: { l: 0, r: 0, b: 0, t: 24 },
                         font: { family: FONT_MONO, color: INK, size: 12 },
-                        hoverlabel: {
-                            bgcolor: "rgba(11, 12, 14, 0.94)",
-                            bordercolor: "rgba(25, 83, 216, 0.72)",
-                            align: "left",
-                            namelength: -1,
-                            font: { family: FONT_MONO, size: 11, color: PAPER_RAISED },
-                        },
+                        hoverlabel: PLOTLY_HOVERLABEL,
                     }}
                     config={{
                         displayModeBar: false,

@@ -4,6 +4,8 @@
  * series, trip flow rows) so the panel never triggers extra fetches.
  */
 
+import { getRouteInstallYear } from './routeYearFilter.js'
+
 const HOURS_IN_DAY = 24
 
 // NYC borough codes as they arrive from the bike-routes API ("1".."5")
@@ -32,7 +34,7 @@ export function aggregateInstallationsByYear(routes, currentYear = new Date().ge
     let minYear = currentYear
 
     for (const route of routes ?? []) {
-        const year = Number(route.instDate?.slice(0, 4))
+        const year = getRouteInstallYear(route)
         if (!Number.isFinite(year) || year <= 0 || year > currentYear) continue
         countsByYear.set(year, (countsByYear.get(year) ?? 0) + 1)
         if (year < minYear) minYear = year

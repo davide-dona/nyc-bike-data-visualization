@@ -7,6 +7,20 @@ import {
     FONT_MONO,
 } from '../editorialTokens.js'
 
+// Single source for the near-black tooltip surface and accent border shared
+// by every Chart.js and Plotly tooltip.
+export const CHART_TOOLTIP_BG = 'rgba(11, 12, 14, 0.94)'
+export const CHART_TOOLTIP_BORDER = 'rgba(25, 83, 216, 0.72)'
+
+/** Plotly hoverlabel config matching the Chart.js tooltip theme. */
+export const PLOTLY_HOVERLABEL = {
+    bgcolor: CHART_TOOLTIP_BG,
+    bordercolor: CHART_TOOLTIP_BORDER,
+    align: 'left',
+    namelength: -1,
+    font: { family: FONT_MONO, size: 11, color: PAPER_RAISED },
+}
+
 let applied = false
 
 /**
@@ -23,10 +37,10 @@ export function applyEditorialChartDefaults() {
     Chart.defaults.color = INK
 
     const tooltip = Chart.defaults.plugins.tooltip
-    tooltip.backgroundColor = 'rgba(11, 12, 14, 0.94)'
+    tooltip.backgroundColor = CHART_TOOLTIP_BG
     tooltip.titleColor = PAPER_RAISED
     tooltip.bodyColor = PAPER_RAISED
-    tooltip.borderColor = 'rgba(25, 83, 216, 0.72)'
+    tooltip.borderColor = CHART_TOOLTIP_BORDER
     tooltip.borderWidth = 1
     tooltip.cornerRadius = 2
     tooltip.padding = { top: 12, right: 14, bottom: 12, left: 14 }

@@ -1,8 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { LAYER_OPTIONS, MIN_PITCH, MAX_PITCH, MIN_ZOOM, MAX_ZOOM, INITIAL_VIEW_STATE, MIN_LONGITUDE, MAX_LONGITUDE, MIN_LATITUDE, MAX_LATITUDE } from '../utils/mapConfig.js'
 
-// Utility function to clamp a value between a minimum and maximum
-const clamp = (value, min, max) => Math.min(max, Math.max(min, value))
+import { clamp } from '@/utils/math.js'
 
 /**
  * Hook for handling map-related state and logic.

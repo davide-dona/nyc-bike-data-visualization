@@ -8,14 +8,7 @@ export const TIME_DRAG_THRESHOLD_PX = 4;
 /** Discrete playback speeds offered by the selector, in multiplier units. */
 export const SPEED_OPTIONS = [0.5, 1, 2, 4];
 
-/**
- * Clamps a numeric value into the inclusive [min, max] range.
- * @param {number} value - Value to clamp.
- * @param {number} min - Lower bound.
- * @param {number} max - Upper bound.
- * @returns {number} Clamped value.
- */
-export const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
+export { clamp } from '@/utils/math.js';
 
 /**
  * Normalizes a time value to [0, HOURS_IN_DAY), wrapping negative or large

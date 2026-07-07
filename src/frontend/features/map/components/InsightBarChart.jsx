@@ -7,66 +7,15 @@ import {
     FONT_DISPLAY,
     FONT_MONO,
 } from '../../../utils/editorialTokens.js'
-import { BAR_SOLID, BAR_PINNED } from '../../../utils/styling'
-import { formatCompact } from '../../../utils/numberFormat.js'
-
-// Unit-separator control char: cannot appear in station names or year labels,
-// so joined keys round-trip safely even when labels contain spaces.
-const KEY_SEPARATOR = '\u001f'
-// Record-separator control char: joins the lines of a multi-line label inside
-// a key entry, so array labels round-trip through labelsKey alongside plain
-// string labels.
-const LINE_SEPARATOR = '\u001e'
-
-// Long station/corridor names would eat the plot area on horizontal charts;
-// ticks are truncated in the middle (corridor labels differ at both ends),
-// tooltips keep the full label.
-const MAX_CATEGORY_TICK_CHARS = 26
-
-const truncateLabel = (label) => {
-    const text = String(label)
-    if (text.length <= MAX_CATEGORY_TICK_CHARS) return text
-    const half = Math.floor((MAX_CATEGORY_TICK_CHARS - 1) / 2)
-    return `${text.slice(0, half)}…${text.slice(text.length - half)}`
-}
-
-// Multi-line labels arrive as arrays; each line is truncated on its own so a
-// two-line corridor label keeps both station names readable.
-const truncateTickLabel = (label) =>
-    Array.isArray(label) ? label.map(truncateLabel) : truncateLabel(label)
-
-const labelToKey = (label) =>
-    Array.isArray(label) ? label.join(LINE_SEPARATOR) : String(label)
-
-const keyToLabel = (key) =>
-    key.includes(LINE_SEPARATOR) ? key.split(LINE_SEPARATOR) : key
-
-function buildBarColors(labels, highlightLabel, colors) {
-    return labels.map((label, index) => {
-        if (highlightLabel != null && label === highlightLabel) return BAR_PINNED
-        return colors?.[index] ?? BAR_SOLID
-    })
-}
-
-function buildDatasets(labels, values, groups, highlightLabel, colors) {
-    if (Array.isArray(groups) && groups.length > 0) {
-        return groups.map((group) => ({
-            label: group.label,
-            data: group.values,
-            backgroundColor: group.color,
-            borderRadius: 0,
-            borderSkipped: false,
-            barPercentage: 0.86,
-            categoryPercentage: 0.7,
-        }))
-    }
-    return [{
-        data: values,
-        backgroundColor: buildBarColors(labels, highlightLabel, colors),
-        borderRadius: 0,
-        borderSkipped: false,
-    }]
-}
+import { formatCompact } from '@/utils/numberFormat.js'
+import {
+    KEY_SEPARATOR,
+    buildBarColors,
+    buildDatasets,
+    keyToLabel,
+    labelToKey,
+    truncateTickLabel,
+} from '../utils/insightBarChart.js'
 
 /**
  * Bar chart for the map insights panel, following the editorial Chart.js

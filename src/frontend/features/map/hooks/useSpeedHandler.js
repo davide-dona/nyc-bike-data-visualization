@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { formatTimeLabel } from '../utils/speedController.js'
 
 /**
  * Hook for controlling the animation speed and play/pause state of the map visualization.
@@ -11,9 +12,7 @@ import { useEffect, useState } from 'react'
 export function useSpeedHandler({ setCurrentTime, currentTime, hoursInDay, baseFrameMs }) {
     const [isPlaying, setIsPlaying] = useState(false)
     const [speed, setSpeed] = useState(1)
-    const currentTimeLabel =
-        `${String(Math.floor(currentTime)).padStart(2, '0')}:` +
-        `${String(Math.floor((currentTime % 1) * 60)).padStart(2, '0')}`
+    const currentTimeLabel = formatTimeLabel(currentTime)
 
     // Updates the current time based on the selected speed
     useEffect(() => {

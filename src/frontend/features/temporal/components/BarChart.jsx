@@ -8,40 +8,9 @@ import {
     FONT_DISPLAY,
     FONT_MONO,
 } from "../../../utils/editorialTokens.js"
-import { BAR_SOLID, BAR_MUTED, BAR_PINNED, LINE_PINNED } from "../../../utils/styling"
-
-function toRgba(hexColor, alpha) {
-    if (!hexColor?.startsWith("#") || (hexColor.length !== 7 && hexColor.length !== 4)) {
-        return `rgba(25, 83, 216, ${alpha})`
-    }
-
-    const expanded = hexColor.length === 4
-        ? `#${hexColor[1]}${hexColor[1]}${hexColor[2]}${hexColor[2]}${hexColor[3]}${hexColor[3]}`
-        : hexColor
-
-    const red = Number.parseInt(expanded.slice(1, 3), 16)
-    const green = Number.parseInt(expanded.slice(3, 5), 16)
-    const blue = Number.parseInt(expanded.slice(5, 7), 16)
-
-    return `rgba(${red}, ${green}, ${blue}, ${alpha})`
-}
-
-function buildHighlightColors(labels, highlight, solidColor, mutedColor, selectedLabel) {
-    return labels.map((label) => {
-        if (selectedLabel != null && label === selectedLabel) return BAR_PINNED
-        if (!highlight) return solidColor
-        return label === highlight ? solidColor : mutedColor
-    })
-}
-
-function buildDatasetColors(labels, highlight, compareDatasets, datasetIndex, selectedLabel) {
-    if (!compareDatasets) {
-        return buildHighlightColors(labels, highlight, BAR_SOLID, BAR_MUTED, selectedLabel)
-    }
-    const baseColor = compareDatasets[datasetIndex]?.color ?? BAR_SOLID
-    return buildHighlightColors(labels, highlight, toRgba(baseColor, 0.86), toRgba(baseColor, 0.32), selectedLabel)
-}
-
+import { BAR_SOLID, LINE_PINNED } from "@/utils/styling"
+import { toRgba } from "@/utils/color.js"
+import { buildDatasetColors } from "../utils/chartColors.js"
 
 /**
  * Component for rendering a bar chart using Chart.js, with support for highlighting a specific bar based on the provided highlight value.
