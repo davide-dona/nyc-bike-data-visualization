@@ -86,4 +86,7 @@ function useApiQueriesWithFilters(descriptors = []) {
 }
 
 export { useApiQueriesWithFilters }
+// Re-exported so features never import @tanstack/react-query directly;
+// the clients layer stays the only place touching the query library.
+export { useIsFetching } from '@tanstack/react-query'
 export default useApiQueryWithFilters

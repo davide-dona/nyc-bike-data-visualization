@@ -1,7 +1,10 @@
 import DeckGL from '@deck.gl/react'
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useMemo } from 'react'
 import { useMapHandler } from './hooks/useMapHandler.js'
 import { useBuildLayers } from './hooks/useBuildLayers.js'
+import useMapFullscreen from './hooks/useMapFullscreen.js'
+import useMapCursor from './hooks/useMapCursor.js'
+import useMapClickActions from './hooks/useMapClickActions.js'
 import { getRouteYearBounds } from './utils/routeYearFilter.js'
 import MapController from './components/MapController.jsx'
 import MapLegend from './components/MapLegend.jsx'
@@ -11,53 +14,19 @@ import StatusMessage from '../../components/StatusMessage.jsx'
 import Tooltip from './components/Tooltip.jsx'
 import VisualizationGuide from '../../components/VisualizationGuide.jsx'
 import MapInsightsPanel from './components/MapInsightsPanel.jsx'
-import { POINT_LAYER_ID_PREFIXES } from './utils/mapConfig.js'
 import { MAP_LAYER_GUIDES } from './utils/mapGuides.js'
 
+/**
+ * Page for the interactive map: composes the layer selector, the DeckGL map
+ * with its controls, legend, and station sidebar, plus the layer-aware
+ * insights panel and reading guide. All state lives in the map handler
+ * hooks; this page only wires their results into components.
+ * @param {Object} filters - The filters to apply to the data.
+ * @returns The rendered MapPage.
+ */
 function MapPage({ filters }) {
-    const [isHoveringPoint, setIsHoveringPoint] = useState(false)
-    const [isFullscreen, setIsFullscreen] = useState(false)
-    const mapShellRef = useRef(null)
-
-    const handleHover = useCallback(({ object, layer }) => {
-        if (!object || !layer?.id) {
-            setIsHoveringPoint(false)
-            return
-        }
-
-        setIsHoveringPoint(
-            POINT_LAYER_ID_PREFIXES.some((prefix) => layer.id.startsWith(prefix)),
-        )
-    }, [])
-
-    const getCursor = useCallback(({ isDragging }) => {
-        if (isDragging) return 'grabbing'
-        if (isHoveringPoint) return 'pointer'
-        return 'grab'
-    }, [isHoveringPoint])
-
-    useEffect(() => {
-        const syncFullscreenState = () => {
-            setIsFullscreen(document.fullscreenElement === mapShellRef.current)
-        }
-
-        document.addEventListener('fullscreenchange', syncFullscreenState)
-        return () => {
-            document.removeEventListener('fullscreenchange', syncFullscreenState)
-        }
-    }, [])
-
-    const toggleFullscreen = useCallback(async () => {
-        const mapShellNode = mapShellRef.current
-        if (!mapShellNode || !document.fullscreenEnabled) return
-
-        if (document.fullscreenElement === mapShellNode) {
-            await document.exitFullscreen()
-            return
-        }
-
-        await mapShellNode.requestFullscreen()
-    }, [])
+    const { isFullscreen, mapShellRef, toggleFullscreen } = useMapFullscreen()
+    const { handleHover, getCursor } = useMapCursor()
 
     // Map handler manages view state, active layer, animation time, and related logic
     const {
@@ -103,27 +72,7 @@ function MapPage({ filters }) {
     const shouldShowStatusOverlay = loading || error || isAwaitingData
     const guide = MAP_LAYER_GUIDES[activeLayer] ?? MAP_LAYER_GUIDES.station_usage
 
-    const handleMapClick = useCallback((info) => {
-        const pickedObject = info?.object
-
-        // Clicking empty map exits the trip-flow focus back to the overview;
-        // station and arc picks carry an object, so they never clear it here.
-        if (activeLayer === 'trip_flow') {
-            if (!pickedObject) clearTripFlowFocus()
-            return
-        }
-
-        if (activeLayer !== 'infrastructure') return
-
-        const layerId = info?.layer?.id ?? ''
-        const isStationPick = layerId.startsWith('station-availability-layer') && pickedObject?.id
-
-        if (isStationPick) return
-
-        if (!pickedObject) {
-            clearInfrastructureSelection()
-        }
-    }, [activeLayer, clearInfrastructureSelection, clearTripFlowFocus])
+    const handleMapClick = useMapClickActions({ activeLayer, clearTripFlowFocus, clearInfrastructureSelection })
 
     return (
         <section className="page-card">

@@ -1,4 +1,4 @@
-import { useIsFetching } from "@tanstack/react-query";
+import { useIsFetching } from "@/clients/baseApiQuery.js";
 
 /**
  * Handler hook. Returns the number of in-flight React Query fetches excluding
