@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { formatFilterValue } from "../utils/compare_layers.js";
+import { formatFilterValue } from "../utils/compareLayers.js";
 
 /**
  * Custom dropdown used inside the Compare panel to pick a single class filter

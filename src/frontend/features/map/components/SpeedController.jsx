@@ -15,7 +15,7 @@ import {
     formatTimeLabel,
     formatSpeedLabel,
     createHourMarks,
-} from "../utils/speed_controller.js";
+} from "../utils/speedController.js";
 
 export { HOURS_IN_DAY };
 

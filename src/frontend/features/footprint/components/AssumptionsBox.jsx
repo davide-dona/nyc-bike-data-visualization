@@ -2,7 +2,7 @@ import {
     COMPARISON_MODES,
     SUBSTITUTION_RATE,
     EXCLUDED_EFFECTS,
-} from '../utils/emission_factors.js'
+} from '../utils/emissionFactors.js'
 
 /**
  * Explicit list of every assumption behind the numbers on this page: emission

@@ -10,13 +10,13 @@ import {
     FONT_DISPLAY,
     RULE_STRONG,
 } from "../../../utils/editorialTokens.js";
-import { WMO_WEATHER_CODES } from "../utils/wmo_code_handler.jsx";
+import { WMO_WEATHER_CODES } from "../utils/wmoCodeHandler.js";
 import {
     toRgba,
     buildRidgelineSeries,
     buildTickText,
     wrapLabel,
-} from "../utils/weather_ridgeline.js";
+} from "../utils/weatherRidgeline.js";
 
 /**
  * Ridgeline plot of rides-per-hour distributions broken down by WMO weather

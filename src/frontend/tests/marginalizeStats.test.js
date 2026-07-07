@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 
-import { marginalizeDayHour } from '../features/temporal/utils/marginalize_stats.js'
-import { sumFootprintTotals } from '../features/footprint/utils/footprint_math.js'
+import { marginalizeDayHour } from '@/features/temporal/utils/marginalizeStats.js'
+import { sumFootprintTotals } from '@/features/footprint/utils/footprintMath.js'
 
 // One backend day,hour group row; hours_count is the spine hours of that cell
 const cell = (day, hour, overrides = {}) => ({

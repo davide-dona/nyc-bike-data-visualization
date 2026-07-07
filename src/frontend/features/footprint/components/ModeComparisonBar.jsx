@@ -9,8 +9,8 @@ import {
 } from '../../../utils/editorialTokens.js'
 import { BAR_SOLID, BAR_NEUTRAL } from '../../../utils/styling'
 import StatusMessage from '../../../components/StatusMessage.jsx'
-import { COMPARISON_MODES } from '../utils/emission_factors.js'
-import { kmToCo2Tonnes } from '../utils/footprint_math.js'
+import { COMPARISON_MODES } from '../utils/emissionFactors.js'
+import { kmToCo2Tonnes } from '../utils/footprintMath.js'
 import { formatNumber } from '../../../utils/numberFormat.js'
 
 /**

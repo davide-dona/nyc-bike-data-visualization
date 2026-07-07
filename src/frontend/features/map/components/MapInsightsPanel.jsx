@@ -15,7 +15,7 @@ import {
     FACILITY_LABELS,
 } from '../utils/bikeRoutesLayer.js'
 import { BAR_SOLID, BAR_NEUTRAL } from '../../../utils/styling'
-import { LIMIT_STATIONS, LIMIT_TRIPS_OVERVIEW } from '../../../utils/config.jsx'
+import { LIMIT_STATIONS, LIMIT_TRIPS_OVERVIEW } from '@/utils/config.js'
 
 const HOURS_IN_DAY = 24
 

@@ -1,6 +1,6 @@
 import { useRef, useEffect } from "react"
 import { Chart } from "chart.js/auto"
-import { formatTooltipLabel, formatYAxisTick } from "../utils/barchart.tsx"
+import { formatTooltipLabel, formatYAxisTick } from "../utils/barChart.ts"
 import {
     INK,
     INK_MUTED,

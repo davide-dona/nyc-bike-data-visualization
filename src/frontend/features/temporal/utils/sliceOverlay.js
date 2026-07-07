@@ -1,4 +1,4 @@
-import { DAY_ORDER, HOUR_LABELS } from '../../../utils/config.jsx'
+import { DAY_ORDER, HOUR_LABELS } from '@/utils/config.js'
 
 /**
  * Derives the overlay series for a pinned day/hour slice.

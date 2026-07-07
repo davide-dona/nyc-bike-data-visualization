@@ -1,6 +1,6 @@
 import apiClient from '@/clients/apiClient.js'
 import { ENDPOINTS } from '@/clients/apiConstants.js'
-import { toStationParams } from '../utils/station_param.js'
+import { toStationParams } from '../utils/stationParam.js'
 
 async function fetchSingleStationStats(stationId, filters = {}) {
     const stationFilters = {

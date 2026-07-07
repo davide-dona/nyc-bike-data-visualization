@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 
-import { buildSliceOverlay } from '../features/temporal/utils/slice_overlay.js'
+import { buildSliceOverlay } from '@/features/temporal/utils/sliceOverlay.js'
 
 const getTotalRides = (row) => row.total_rides
 

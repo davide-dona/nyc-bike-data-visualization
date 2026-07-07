@@ -1,4 +1,4 @@
-import { CAR_G_PER_KM, SUBSTITUTION_RATE } from './emission_factors.js'
+import { CAR_G_PER_KM, SUBSTITUTION_RATE } from './emissionFactors.js'
 import { formatCount, formatNumber } from '../../../utils/numberFormat.js'
 
 const GRAMS_PER_TONNE = 1_000_000

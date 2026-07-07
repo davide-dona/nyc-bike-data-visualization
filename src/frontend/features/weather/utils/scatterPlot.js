@@ -1,4 +1,4 @@
-import { WMO_WEATHER_CODES, getWeatherGroup } from "./wmo_code_handler.jsx"
+import { WMO_WEATHER_CODES, getWeatherGroup } from "./wmoCodeHandler.js"
 
 /**
  * Formats the weather data for use in the scatter plot

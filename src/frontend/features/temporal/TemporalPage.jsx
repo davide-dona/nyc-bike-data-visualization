@@ -15,9 +15,9 @@ import {
     buildLayerKey,
     buildLayerLabel,
     stripClassFilters,
-} from "./utils/compare_layers.js";
-import { buildSliceOverlay } from "./utils/slice_overlay.js";
-import { getMetricConfig } from "./utils/metric_formatter.jsx";
+} from "./utils/compareLayers.js";
+import { buildSliceOverlay } from "./utils/sliceOverlay.js";
+import { getMetricConfig } from "./utils/metricFormatter.js";
 
 /**
  * Component for the temporal stats page, which includes a metric selector, the surface graph itself, and accompanying histograms.

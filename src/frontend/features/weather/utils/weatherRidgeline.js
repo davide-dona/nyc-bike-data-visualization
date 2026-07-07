@@ -2,7 +2,7 @@ import {
     GROUPED_WEATHER_CODES,
     WMO_WEATHER_CODES,
     getWeatherGroup,
-} from "./wmo_code_handler.jsx";
+} from "./wmoCodeHandler.js";
 
 export const WEEKDAY_LABELS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 

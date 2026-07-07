@@ -1,4 +1,4 @@
-import { SUBSTITUTION_RATE } from '../utils/emission_factors.js'
+import { SUBSTITUTION_RATE } from '../utils/emissionFactors.js'
 
 const MIN_PCT = Math.round(SUBSTITUTION_RATE.low * 100)
 const MAX_PCT = Math.round(SUBSTITUTION_RATE.high * 100)

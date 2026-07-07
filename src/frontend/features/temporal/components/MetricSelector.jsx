@@ -1,4 +1,4 @@
-import { METRICS } from "../utils/metric_formatter.jsx"
+import { METRICS } from "../utils/metricFormatter.js"
 import SegmentedControl from '../../../components/SegmentedControl.jsx'
 
 const METRIC_ICONS = {

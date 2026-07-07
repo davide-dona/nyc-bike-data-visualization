@@ -6,8 +6,8 @@ import CumulativeAvoidedBand from './components/CumulativeAvoidedBand.jsx'
 import AssumptionsBox from './components/AssumptionsBox.jsx'
 import SubstitutionRateControl from './components/SubstitutionRateControl.jsx'
 import VisualizationGuide from '../../components/VisualizationGuide.jsx'
-import { SUBSTITUTION_RATE } from './utils/emission_factors.js'
-import { sumFootprintTotals } from './utils/footprint_math.js'
+import { SUBSTITUTION_RATE } from './utils/emissionFactors.js'
+import { sumFootprintTotals } from './utils/footprintMath.js'
 
 /**
  * Component for the green mobility page: ridden kilometres translated into

@@ -1,6 +1,6 @@
 import { LAYER_OPTIONS } from "../utils/mapConfig.js";
 import LegendRow from "./LegendRow.jsx";
-import { legendFor, bikeRoutesLegend } from "../utils/map_legend.js";
+import { legendFor, bikeRoutesLegend } from "../utils/mapLegend.js";
 
 /**
  * Map legend panel - renders the active layer's swatch rows on an ink card.

@@ -152,8 +152,8 @@ import {
     avoidedCo2Tonnes,
     avoidedCo2Range,
     buildCumulativeAvoidedSeries,
-} from '../features/footprint/utils/footprint_math.js'
-import { CAR_G_PER_KM, SUBSTITUTION_RATE } from '../features/footprint/utils/emission_factors.js'
+} from '@/features/footprint/utils/footprintMath.js'
+import { CAR_G_PER_KM, SUBSTITUTION_RATE } from '@/features/footprint/utils/emissionFactors.js'
 
 describe('footprint math', () => {
     it('converts km to tonnes for a per-km factor', () => {

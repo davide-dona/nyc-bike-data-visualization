@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import useDateRangeBounds from '../hooks/useDateBounds.js'
-import { MONTH_LABELS } from '../../../utils/config.jsx'
-import { MONTH_ORDER } from '../../../utils/config.jsx'
+import { MONTH_LABELS } from '@/utils/config.js'
+import { MONTH_ORDER } from '@/utils/config.js'
 
 import '../styles/date-window-picker.css'
 

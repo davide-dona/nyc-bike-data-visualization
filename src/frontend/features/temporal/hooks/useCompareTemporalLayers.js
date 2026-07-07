@@ -5,8 +5,8 @@ import {
     createLayerQueries,
     hasDateRange,
     stripClassFilters,
-} from "../utils/compare_layers.js";
-import { marginalizeDayHour } from "../utils/marginalize_stats.js";
+} from "../utils/compareLayers.js";
+import { marginalizeDayHour } from "../utils/marginalizeStats.js";
 
 /**
  * Fetch hook. Runs the day×hour and date breakdowns for each pinned

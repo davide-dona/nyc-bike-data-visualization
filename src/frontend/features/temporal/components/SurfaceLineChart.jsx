@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import Plot from "react-plotly.js";
 import StatusMessage from "../../../components/StatusMessage.jsx";
-import { getMetricConfig } from "../utils/metric_formatter.jsx";
+import { getMetricConfig } from "../utils/metricFormatter.js";
 import {
     INK_MUTED,
     PAPER_RAISED,

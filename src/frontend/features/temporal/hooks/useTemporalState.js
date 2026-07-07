@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import useDayHourStats from "./useDayHourStats";
 import useDateStats from "./useDateStats";
-import { marginalizeDayHour } from "../utils/marginalize_stats.js";
+import { marginalizeDayHour } from "../utils/marginalizeStats.js";
 
 /**
  * Hook to manage the temporal state for the  page.

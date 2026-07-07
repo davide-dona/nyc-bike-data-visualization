@@ -1,8 +1,8 @@
 import { useMemo } from 'react'
 import Plot from 'react-plotly.js'
 import StatusMessage from '../../../components/StatusMessage.jsx'
-import { SUBSTITUTION_RATE } from '../utils/emission_factors.js'
-import { buildCumulativeAvoidedSeries } from '../utils/footprint_math.js'
+import { SUBSTITUTION_RATE } from '../utils/emissionFactors.js'
+import { buildCumulativeAvoidedSeries } from '../utils/footprintMath.js'
 import {
     ACCENT,
     INK_MUTED,

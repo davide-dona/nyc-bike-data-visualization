@@ -1,10 +1,10 @@
 import { useCallback, useMemo, useRef, useState } from "react"
 import Plot from "react-plotly.js"
-import { HOUR_LABELS, DAY_LABELS } from "../../../utils/config.jsx"
+import { HOUR_LABELS, DAY_LABELS } from "@/utils/config.js"
 import StatusMessage from "../../../components/StatusMessage"
 import { PAPER_RAISED, FONT_MONO, INK, WARM_HIGHLIGHT } from "../../../utils/editorialTokens.js"
 import { EDITORIAL_COLORSCALE, editorialAxis } from "../../../utils/styling"
-import { getMetricConfig } from "../utils/metric_formatter.jsx"
+import { getMetricConfig } from "../utils/metricFormatter.js"
 
 const INITIAL_CAMERA = {
     eye: { x: 1.6, y: -1.6, z: 0.9 },

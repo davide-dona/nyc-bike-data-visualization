@@ -1,13 +1,13 @@
 import { useMemo } from 'react'
 import StatusMessage from '../../../components/StatusMessage.jsx'
-import { SUBSTITUTION_RATE } from '../utils/emission_factors.js'
+import { SUBSTITUTION_RATE } from '../utils/emissionFactors.js'
 import {
     avoidedCo2Range,
     avoidedCo2Tonnes,
     carTripsReplaced,
     formatCompact,
     formatTonnes,
-} from '../utils/footprint_math.js'
+} from '../utils/footprintMath.js'
 
 /**
  * Headline stat tiles: distance ridden, avoided CO2 (always a range), and car

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef } from "react"
 import { Chart } from "chart.js/auto"
-import { GROUPED_WEATHER_CODES } from "../utils/wmo_code_handler.jsx"
-import { formatData } from "../utils/scatterplot.jsx"
+import { GROUPED_WEATHER_CODES } from "../utils/wmoCodeHandler.js"
+import { formatData } from "../utils/scatterPlot.js"
 import {
     INK,
     INK_MUTED,
