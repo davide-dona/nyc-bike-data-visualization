@@ -11,7 +11,7 @@ import {
     selectStationAvailability,
     HEALTH_CATEGORY,
 } from '@/features/map/utils/stationAvailabilitySelector.js'
-import { stationCharacter } from '@/features/map/hooks/useInfrastructureStationSidebarData.js'
+import { stationCharacter } from '@/features/map/utils/stationSidebarSelectors.js'
 
 // One observed day: each hour-of-day bucket occurred once (hours_count 1),
 // so the per-day averages equal the raw counts

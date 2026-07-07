@@ -1,34 +1,36 @@
-// Base Layer
-import { createBaseTileLayer } from '../utils/baseTileLayer.js'
+import { useMemo } from 'react'
 // Station Usage Layer
-import { createStationUsageLayer } from '../utils/stationUsageLayer.js'
 import { useStationUsageLayer } from './useStationUsageLayer.js'
 // Trip Flow Layer
-import { createTripFlowLayers } from '../utils/tripFlowLayer.js'
 import { useTripFlowLayer } from './useTripFlowLayer.js'
 import { useTripStationFocus } from './useTripStationFocus.js'
 // Infrastructure Layer
-import { createStationAvailabilityLayer } from '../utils/stationAvailabilityLayer.js'
-import { createBikeRoutesLayer } from '../utils/bikeRoutesLayer.js'
 import { useInfrastructureLayer } from './useInfrastructureLayer.js'
 import { useInfrastructureStationSelection } from './useInfrastructureStationSelection.js'
-
-import { useMemo, useState } from 'react'
+import useLayerHoverState from './useLayerHoverState.js'
 import { filterRoutesByYear } from '../utils/routeYearFilter.js'
-import { BASE_TILE_URL } from '../utils/mapConfig.js'
+import { buildDeckLayers } from '../utils/buildDeckLayers.js'
+import { selectMapInsights } from '../utils/selectMapInsights.js'
 
 /**
- * Function to build the layers for the map based on the active layer and the provided data. 
+ * Orchestrating handler hook for the map page: composes the per-layer data
+ * hooks, focus/selection/hover state, and the pure deck.gl layer assembly,
+ * and resolves the active layer's loading/error/data status.
  * @param {Object} filters - Optional filters for fetching data, such as date range or user-selected filters.
  * @param {number} currentTime - Current hour frame (0-23) for filtering station usage data.
  * @param {string} activeLayer - The currently active map layer to determine which layers to build.
- * @returns {Object} The built layers and their status.
+ * @param {boolean} showBikeRoutes - Whether the bike routes overlay is enabled.
+ * @param {string} usageMode - Station usage mode ('all' | 'incoming' | 'outgoing').
+ * @param {Set|null} hiddenHealthCategories - Health categories hidden via the legend.
+ * @param {Set|null} hiddenRouteClasses - Facility classes hidden via the legend.
+ * @param {number|null} selectedYear - Selected network year, null for present.
+ * @returns {Object} The built layers, active-layer status, selection/focus
+ * controls, unfiltered routes, and the insights bundle.
  */
 export function useBuildLayers({ filters, currentTime, activeLayer, showBikeRoutes, usageMode, hiddenHealthCategories, hiddenRouteClasses, selectedYear }) {
     // Fetch and process data
     const { stations: usageStations, frameStations, maxUsage, maxDelta, loading: stationLoading, error: stationError, refetch: stationRefetch } = useStationUsageLayer({ filters: filters, currentTime, usageMode })
     const { focusedStationId, onStationPick, clearFocus } = useTripStationFocus() // Single focused station for the trip flow layer
-    const [hoveredTripStationId, setHoveredTripStationId] = useState(null)
     const { trips, maxTripFlow, isFocusView, stations: tripStations, loading: tripLoading, error: tripError, refetch: tripRefetch } = useTripFlowLayer({ filters, focusedStationId })
     const { stations, bikeRoutes, loading: availabilityLoading, error: availabilityError, refetch: availabilityRefetch, routesLoading, routesError, refetchRoutes } = useInfrastructureLayer({ showBikeRoutes })
     const {
@@ -37,21 +39,14 @@ export function useBuildLayers({ filters, currentTime, activeLayer, showBikeRout
         selectedStationIds: selectedInfrastructureStationIds,
         selectedStations: selectedInfrastructureStations,
     } = useInfrastructureStationSelection(stations)
-    // State for hovered bike route segment
-    const [hoveredrouteID, setHoveredrouteID] = useState(null)
+    const { hoveredRouteId, hoveredTripStationId, handleRoutePick, handleTripStationHover } = useLayerHoverState()
+
     // Historical view: keep only the segments active in the selected year.
     // Memoized so scrubbing the year slider stays a cheap array pass.
     const yearFilteredRoutes = useMemo(
         () => filterRoutesByYear(bikeRoutes, selectedYear),
         [bikeRoutes, selectedYear],
     )
-    const handleRoutePick = (info) => {
-        const route = info?.object
-        setHoveredrouteID(route?.routeID ?? route?.properties?.routeID ?? null)
-    }
-    const handleTripStationHover = (info) => {
-        setHoveredTripStationId(info?.object?.id ?? null)
-    }
 
     // Combine loading, error, and data-arrival states for easier handling in the component.
     // hasData is derived from the source arrays (not the deck.gl layer instances) so the
@@ -65,52 +60,34 @@ export function useBuildLayers({ filters, currentTime, activeLayer, showBikeRout
     ]
 
     // Build layers based on active layer and data
-    const layers = useMemo(() => {
-        // Base tile layer is always included
-        const base = [createBaseTileLayer(BASE_TILE_URL)]
-        // Push the appropriate layer based on the active layer and data loading/error states
-        if (activeLayer === 'station_usage') {
-            if (!stationLoading && !stationError)
-                base.push(createStationUsageLayer({ frameStations, maxUsage, maxDelta }))
-        } 
-        if (activeLayer === 'trip_flow') {
-            if (!tripLoading && !tripError) {
-                base.push(createTripFlowLayers({
-                    trips,
-                    maxTripCount: maxTripFlow,
-                    stations: tripStations,
-                    focusedStationId,
-                    hoveredStationId: hoveredTripStationId,
-                    onStationPick,
-                    onStationHover: handleTripStationHover,
-                }))
-            }
-        }
-        if (activeLayer === 'infrastructure') {
-            if (!availabilityLoading && !availabilityError) {
-                // Legend toggles hide categories/classes from the map only; the
-                // stateLayers hasData flags above keep reading the unfiltered
-                // arrays so hiding everything never re-triggers the loading overlay.
-                // Route segments without a legend row (unknown class) stay visible.
-                const visibleStations = hiddenHealthCategories?.size
-                    ? stations.filter((s) => !hiddenHealthCategories.has(s.health_category))
-                    : stations
-                const visibleRoutes = hiddenRouteClasses?.size
-                    ? yearFilteredRoutes.filter((f) => !hiddenRouteClasses.has(f.facilityClass))
-                    : yearFilteredRoutes
-                if (showBikeRoutes && visibleRoutes.length > 0) {
-                    base.push(createBikeRoutesLayer({ routes: visibleRoutes, hoveredrouteID: hoveredrouteID, onRoutePick: handleRoutePick }))
-                }
-                base.push(createStationAvailabilityLayer({
-                    stations: visibleStations,
-                    selectedStationIds: selectedInfrastructureStationIds,
-                    onStationPick: onInfrastructureStationPick,
-                }))
-            }
-        }
-
-        return base
-    }, [frameStations, maxUsage, maxDelta, trips, maxTripFlow, tripStations, focusedStationId, hoveredTripStationId, onStationPick, stations, activeLayer, stationLoading, stationError, tripLoading, tripError, availabilityLoading, availabilityError, yearFilteredRoutes, showBikeRoutes, hoveredrouteID, selectedInfrastructureStationIds, onInfrastructureStationPick, hiddenHealthCategories, hiddenRouteClasses])
+    const layers = useMemo(() => buildDeckLayers({
+        activeLayer,
+        stationLoading,
+        stationError,
+        frameStations,
+        maxUsage,
+        maxDelta,
+        tripLoading,
+        tripError,
+        trips,
+        maxTripFlow,
+        tripStations,
+        focusedStationId,
+        hoveredTripStationId,
+        onTripStationPick: onStationPick,
+        onTripStationHover: handleTripStationHover,
+        availabilityLoading,
+        availabilityError,
+        stations,
+        hiddenHealthCategories,
+        hiddenRouteClasses,
+        yearFilteredRoutes,
+        showBikeRoutes,
+        hoveredRouteId,
+        onRoutePick: handleRoutePick,
+        selectedStationIds: selectedInfrastructureStationIds,
+        onInfrastructureStationPick,
+    }), [frameStations, maxUsage, maxDelta, trips, maxTripFlow, tripStations, focusedStationId, hoveredTripStationId, onStationPick, stations, activeLayer, stationLoading, stationError, tripLoading, tripError, availabilityLoading, availabilityError, yearFilteredRoutes, showBikeRoutes, hoveredRouteId, selectedInfrastructureStationIds, onInfrastructureStationPick, hiddenHealthCategories, hiddenRouteClasses])
 
     // Station name for the focus-mode chart title; the trip station list
     // carries id and name for every clickable dot.
@@ -122,29 +99,22 @@ export function useBuildLayers({ filters, currentTime, activeLayer, showBikeRout
     // Per-layer data slices for the insights panel under the map. Memoized as
     // one stable bundle so consumers can depend on it without new object
     // identities leaking into other hooks' dependency arrays every render.
-    const insights = useMemo(() => ({
-        stationUsage: {
-            stations: usageStations,
-            loading: stationLoading,
-            error: stationError,
-            refetch: stationRefetch,
-        },
-        tripFlow: {
-            trips,
-            isFocusView,
-            focusedStationName: focusedTripStation?.name ?? null,
-            loading: tripLoading,
-            error: tripError,
-            refetch: tripRefetch,
-        },
-        infrastructure: {
-            routes: bikeRoutes,
-            yearFilteredRoutes,
-            // Route-only states, so the panel works while showBikeRoutes is off
-            loading: routesLoading,
-            error: routesError,
-            refetch: refetchRoutes,
-        },
+    const insights = useMemo(() => selectMapInsights({
+        usageStations,
+        stationLoading,
+        stationError,
+        stationRefetch,
+        trips,
+        isFocusView,
+        focusedStationName: focusedTripStation?.name ?? null,
+        tripLoading,
+        tripError,
+        tripRefetch,
+        bikeRoutes,
+        yearFilteredRoutes,
+        routesLoading,
+        routesError,
+        refetchRoutes,
     }), [
         usageStations, stationLoading, stationError, stationRefetch,
         trips, isFocusView, focusedTripStation, tripLoading, tripError, tripRefetch,
