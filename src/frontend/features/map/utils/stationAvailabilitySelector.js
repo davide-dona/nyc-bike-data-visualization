@@ -15,9 +15,16 @@ export const HEALTH_CATEGORY = {
 const LOW_SIDE_FRACTION = 0.15
 const LOW_SIDE_MIN = 2
 
-// Health is a failure-mode category rather than a score: a station fails its
-// riders either by having nothing to rent (empty risk) or nowhere to return
-// (full risk). When both sides are low, the scarcer side wins.
+/**
+ * Classifies a station's live health. Health is a failure-mode category
+ * rather than a score: a station fails its riders either by having nothing
+ * to rent (empty risk) or nowhere to return (full risk). When both sides are
+ * low, the scarcer side wins.
+ * @param {number} bikes - Bikes currently available.
+ * @param {number} docks - Docks currently available.
+ * @param {number} actualCapacity - Effective capacity (disabled bikes excluded).
+ * @returns {string} A HEALTH_CATEGORY value.
+ */
 export function classifyStationHealth({ bikes, docks, actualCapacity }) {
     if (!Number.isFinite(actualCapacity) || actualCapacity <= 0) return HEALTH_CATEGORY.UNKNOWN
     const lowThreshold = Math.max(LOW_SIDE_MIN, Math.ceil(LOW_SIDE_FRACTION * actualCapacity))
@@ -27,6 +34,12 @@ export function classifyStationHealth({ bikes, docks, actualCapacity }) {
     return bikes <= docks ? HEALTH_CATEGORY.EMPTY_RISK : HEALTH_CATEGORY.FULL_RISK
 }
 
+/**
+ * Normalizes the raw station availability payload into map-ready rows with
+ * actual capacity and a health classification per station.
+ * @param {Array} stationData - Raw station rows from the API.
+ * @returns {Array} Stations with derived capacity and health_category.
+ */
 export function selectStationAvailability(stationData) {
     // Ensure stationData is an array before processing
     const stationRows = Array.isArray(stationData) ? stationData : []

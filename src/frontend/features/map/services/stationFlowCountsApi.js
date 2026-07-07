@@ -4,7 +4,7 @@ import { toStationParams } from '../utils/stationParam.js'
 
 /**
  * Fetches most frequent trips between station pairs, with optional filters
- * @param {*} filters
+ * @param {Object} filters
  * @returns An array of station-pair trip counts grouped by time buckets
  */
 export async function fetchStationFlowCounts(filters = {}) {

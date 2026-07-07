@@ -11,6 +11,11 @@ const FILTER_HINTS = {
   bike_type: 'Categories: Classic Bike and Electric Bike. Use All to compare the combined behavior of both bike types.',
 };
 
+/**
+ * Turns a snake_case option value into a title-case label.
+ * @param {string} value - Option value (e.g. "classic_bike").
+ * @returns {string} The display label (e.g. "Classic Bike").
+ */
 const formatLabel = (value) =>
   value.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
 
@@ -22,6 +27,11 @@ const FILTER_OPTION_ICONS = {
   electric_bike: 'fa-solid fa-bolt',
 };
 
+/**
+ * Resolves the Font Awesome icon for a filter option.
+ * @param {string} option - Filter option value.
+ * @returns {string} Icon class, with the globe fallback.
+ */
 const getFilterIcon = (option) => FILTER_OPTION_ICONS[option] ?? FILTER_OPTION_ICONS.all;
 
 /**

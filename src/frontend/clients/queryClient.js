@@ -1,4 +1,5 @@
 import { QueryClient } from '@tanstack/react-query'
+export { QueryClientProvider } from '@tanstack/react-query'
 
 /** Centralized QueryClient instance for the application, configured with sensible defaults for retry behavior, refetching, and data freshness. */
 export const queryClient = new QueryClient({

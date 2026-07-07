@@ -1,5 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 
+/**
+ * Horizontal scroller for filter button rows: shows edge arrows when the
+ * content overflows and keeps them in sync on scroll and resize.
+ * @param {import('react').ReactNode} children - The buttons to scroll.
+ * @param {string} className - Extra classes for the wrapper.
+ * @param {boolean} disabled - Disables the arrow buttons.
+ * @returns The rendered scrollable row.
+ */
 export default function ScrollableButtonRow({ children, className = '', disabled = false }) {
     const scrollerRef = useRef(null)
     const [canScrollLeft, setCanScrollLeft] = useState(false)

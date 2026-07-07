@@ -3,7 +3,7 @@ import useApiQueryWithFilters from "../../../clients/baseApiQuery.js";
 
 /**
  * Custom hook to fetch stats grouped by calendar date, used for temporal trend rendering.
- * @param {*} filters
+ * @param {Object} filters
  * @returns An object containing date stats data and loading/error states.
  */
 function useDateStats(filters = {}) {

@@ -3,7 +3,7 @@ import useApiQueryWithFilters from "../../../clients/baseApiQuery.js";
 
 /**
  * Fetch rides-per-hour bucketed by precipitation intensity for the rain impact chart.
- * @param {*} filters
+ * @param {Object} filters
  * @returns Query payload and status fields.
  */
 function useRainImpact(filters = {}) {

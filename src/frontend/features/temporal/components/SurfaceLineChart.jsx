@@ -11,10 +11,22 @@ import {
     FONT_DISPLAY,
 } from "../../../utils/editorialTokens.js";
 
+/**
+ * Sorts stats rows by their ISO date string, ascending.
+ * @param {Array} rows - Per-date stats rows.
+ * @returns {Array} A new sorted array.
+ */
 function sortRowsByDate(rows = []) {
     return [...rows].sort((a, b) => String(a?.date ?? "").localeCompare(String(b?.date ?? "")));
 }
 
+/**
+ * Builds the {date, value} line series for a metric, dropping rows without
+ * a date or a finite value.
+ * @param {Array} rows - Per-date stats rows.
+ * @param {Function} metricGetter - Reads the active metric from a row.
+ * @returns {Array<{date: string, value: number}>} The sorted series.
+ */
 function buildSeries(rows = [], metricGetter) {
     const sortedRows = sortRowsByDate(rows);
 
@@ -35,6 +47,18 @@ function buildSeries(rows = [], metricGetter) {
         .filter(Boolean);
 }
 
+/**
+ * Per-date line chart of the selected metric, drawing one line per layer in
+ * compare mode.
+ * @param {Array} dateData - Per-date stats rows of the base layer.
+ * @param {string} activeMetric - Selected metric key.
+ * @param {boolean} loading - Whether the chart's queries are in flight.
+ * @param {any} error - Error state of the chart's queries.
+ * @param {Function} onRefetch - Retry callback.
+ * @param {boolean} compareMode - Whether compare layers are pinned.
+ * @param {Array} layers - Visible layers (base plus compare layers).
+ * @returns The rendered line chart panel.
+ */
 function SurfaceLineChart({
     dateData,
     activeMetric,

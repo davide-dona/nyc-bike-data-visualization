@@ -1,5 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
+/**
+ * Handler hook for the infrastructure station multi-select: toggles stations
+ * on click (shift-click extends the selection), keeps selections valid as
+ * station data refreshes, and exposes the selected station objects.
+ * @param {Array} stations - Current stations with live availability data.
+ * @returns {Object} Selection ids/objects, the pick handler, and the clear action.
+ */
 export function useInfrastructureStationSelection(stations = []) {
     const [selectedStationIdSet, setSelectedStationIdSet] = useState(() => new Set())
 

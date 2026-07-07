@@ -1,17 +1,17 @@
-import { stationUsageTooltip } from '../utils/stationUsageLayer.js'
-import { tripArcsTooltip } from '../utils/tripArcsLayer.js'
-import { tripStationTooltip } from '../utils/tripStationsLayer.js'
-import { bikeRouteTooltip } from '../utils/bikeRoutesLayer.js'
-import { stationAvailabilityTooltip } from '../utils/stationAvailabilityLayer.js'
+import { stationUsageTooltip } from './stationUsageLayer.js'
+import { tripArcsTooltip } from './tripArcsLayer.js'
+import { tripStationTooltip } from './tripStationsLayer.js'
+import { bikeRouteTooltip } from './bikeRoutesLayer.js'
+import { stationAvailabilityTooltip } from './stationAvailabilityLayer.js'
 
 /**
- * Renders a tooltip based on the active layer and the provided object.
+ * Builds the deck.gl tooltip content for the active layer and the provided object.
  * @param {Object} object - The data object associated with the hovered element on the map.
  * @param {string} activeLayer - The currently active map layer to determine tooltip content.
  * @param {string} usageMode - Usage mode of the station usage layer, used to label its metric.
  * @returns {string} The tooltip content.
  */
-export default function Tooltip({ object, activeLayer, usageMode }) {
+export default function mapTooltip({ object, activeLayer, usageMode }) {
     // To avoid errors when hovering over empty areas of the map
     if (!object) return null
     switch (activeLayer) {

@@ -53,6 +53,11 @@ const HEALTH_CATEGORY_COLORS = {
     [HEALTH_CATEGORY.UNKNOWN]: UNKNOWN_RGB,
 }
 
+/**
+ * Resolves the RGB color of a station health category.
+ * @param {string} category - Health category key.
+ * @returns {number[]} RGB triple, grey for unknown categories.
+ */
 function getStationColor(category) {
     return HEALTH_CATEGORY_COLORS[category] ?? UNKNOWN_RGB
 }

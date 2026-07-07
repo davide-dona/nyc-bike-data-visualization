@@ -3,7 +3,7 @@ import { ENDPOINTS } from '../../../clients/apiConstants.js'
 
 /**
  * Fetches stats grouped by weather conditions, used for surface graph rendering.
- * @param {*} filters
+ * @param {Object} filters
  * @returns 
  */
 export async function fetchStatsByWeather(filters = {}) {

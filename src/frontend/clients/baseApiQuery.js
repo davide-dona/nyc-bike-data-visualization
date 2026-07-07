@@ -10,7 +10,7 @@ function hasUserFilters(filters = {}) {
 }
 /**
  * Custom hook to fetch data with optional filters using React Query.
- * @param {*} options - An object containing:
+ * @param {Object} options - An object containing:
  *   - queryKey: Unique key for the query, used for caching and refetching
  *   - fetcher: Function that performs the API call, should accept filters as an argument
  *   - filters: Optional filters to pass to the fetcher function

@@ -4,7 +4,7 @@ import { toStationParams } from '../utils/stationParam.js'
 
 /**
  * Fetches usage counts for each station, with optional filters.
- * @param {*} filters
+ * @param {Object} filters
  * @returns An array of station usage counts.
  */
 export async function fetchStationUsageCounts(filters = {}) {

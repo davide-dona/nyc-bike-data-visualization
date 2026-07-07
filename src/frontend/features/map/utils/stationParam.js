@@ -1,8 +1,8 @@
 
 /**
- * Converts date filters to a format suitable for station usage API calls.
- * @param {*} filters 
- * @returns 
+ * Converts date filters to the year/month params the station APIs expect.
+ * @param {Object} filters - Filters with optional start_date/end_date ISO strings.
+ * @returns {Object} The filters with dates replaced by start/end year and month.
  */
 export function toStationParams(filters = {}) {
     const { start_date, end_date, ...rest } = filters

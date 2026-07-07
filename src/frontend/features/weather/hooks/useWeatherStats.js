@@ -3,7 +3,7 @@ import useApiQueryWithFilters from "../../../clients/baseApiQuery.js";
 
 /**
  * Custom hook to fetch stats grouped by weather, used for surface graph rendering.
- * @param {*} filters 
+ * @param {Object} filters 
  * @returns An object containing weather stats data and loading/error states
  */
 function useWeatherStats(filters={}) {

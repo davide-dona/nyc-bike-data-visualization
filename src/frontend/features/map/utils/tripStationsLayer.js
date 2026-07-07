@@ -14,12 +14,25 @@ const STATION_RADIUS_MAX = 160;
 const STATION_PICK_RADIUS_MULTIPLIER = 3.5;
 const STATION_PICK_RADIUS_MAX = 160;
 
+/**
+ * Computes a station dot's visual radius, enlarging the hovered station.
+ * @param {Object} d - Station datum.
+ * @param {string|null} hoveredStationId - Currently hovered station id.
+ * @returns {number} Radius in meters.
+ */
 function getVisualRadius(d, hoveredStationId) {
     const base = STATION_RADIUS_BASE;
     if (d.id !== hoveredStationId) return base;
     return Math.min(base * STATION_RADIUS_HOVER_MULTIPLIER, STATION_RADIUS_MAX);
 }
 
+/**
+ * Builds the visible trip-flow station dots layer.
+ * @param {Array} stations - Clickable stations with coordinates.
+ * @param {string|null} focusedStationId - Focused station id, dims the rest.
+ * @param {string|null} hoveredStationId - Hovered station id, enlarged.
+ * @returns {ScatterplotLayer} The deck.gl layer.
+ */
 export function createTripStationsLayer({
     stations,
     focusedStationId = null,
@@ -59,6 +72,15 @@ export function createTripStationsLayer({
     });
 }
 
+/**
+ * Builds the invisible, larger hit-target layer that makes station dots easy
+ * to hover and click.
+ * @param {Array} stations - Clickable stations with coordinates.
+ * @param {string|null} hoveredStationId - Hovered station id (keeps picks in sync).
+ * @param {Function} onStationPick - Pick handler focusing a station.
+ * @param {Function} onStationHover - Hover handler.
+ * @returns {ScatterplotLayer} The deck.gl hit layer.
+ */
 export function createTripStationsHitLayer({
     stations,
     hoveredStationId = null,
@@ -93,6 +115,11 @@ export function createTripStationsHitLayer({
     });
 }
 
+/**
+ * Tooltip text for a trip-flow station dot.
+ * @param {Object} object - Picked station datum.
+ * @returns {string} The station name.
+ */
 export function tripStationTooltip(object) {
     return object?.name ?? "Unknown Station";
 }

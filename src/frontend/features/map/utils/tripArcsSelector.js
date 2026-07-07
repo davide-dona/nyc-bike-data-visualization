@@ -1,6 +1,6 @@
 /**
  * Selector to process raw trip count data into a format suitable for visualization.
- * @param {*} tripCounts 
+ * @param {Object} tripCounts 
  * @returns 
  */
 export function selectTrips(tripCounts) {
@@ -79,7 +79,7 @@ export function orientTripsToFocus(trips, focusedStationId) {
 
 /**
  * Returns the maximum daily flow count across all trips.
- * @param {*} trips - Array of processed trip objects from selectTrips
+ * @param {Array} trips - Array of processed trip objects from selectTrips
  * @returns {number} The maximum total_daily_flow value
  */
 export function selectMaxFlow(trips) {

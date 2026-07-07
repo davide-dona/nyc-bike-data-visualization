@@ -3,7 +3,7 @@ import useApiQueryWithFilters from '../../../clients/baseApiQuery.js'
 
 /**
  * Fetch per-date ride stats for the cumulative avoided-CO2 band.
- * @param {*} filters
+ * @param {Object} filters
  * @returns Query payload and status fields.
  */
 function useFootprintDaily(filters = {}) {

@@ -8,6 +8,11 @@ export const METRIC_FORMATTERS = {
     average_speed_kmh: value => formatNumber(value, 2) + " km/h",
 }
 
+/**
+ * Derives average rides per day from a stats row's totals and hour coverage.
+ * @param {Object} row - Stats row with total_rides, hours_count, and optional hour.
+ * @returns {number} Rides per covered day, 0 when coverage is missing.
+ */
 function getRidesPerDay(row) {
     const totalRides = Number(row?.total_rides ?? 0)
     const hoursCount = Number(row?.hours_count ?? 0)
@@ -58,8 +63,19 @@ export const METRICS = {
     },
 }
 
-// Retrieves the metric configuration for a given metric key
+/**
+ * Retrieves the metric configuration for a metric key.
+ * @param {string} metric - Metric key.
+ * @returns {Object} The metric config, falling back to total_rides.
+ */
 export const getMetricConfig = metric => METRICS[metric] ?? METRICS.total_rides
+
+/**
+ * Reads a metric's value from a stats row via its configured getter.
+ * @param {string} metric - Metric key.
+ * @param {Object} row - Stats row.
+ * @returns {number} The metric value.
+ */
 export const getMetricValue = (metric, row) => getMetricConfig(metric).get(row)
 
 // Precompute mappings for metric getters, labels, formats, and units
@@ -78,7 +94,13 @@ export const METRIC_FORMATS = Object.fromEntries(
 export const METRIC_UNITS = Object.fromEntries(
     Object.entries(METRICS).map(([key, config]) => [key, config.unit])
 )
-// Utility function to format a metric value based on the metric's formatting function, providing a consistent way to display metric values across the application.
+/**
+ * Formats a metric value with the metric's own formatter, providing a
+ * consistent display across the application.
+ * @param {string} metric - Metric key.
+ * @param {number} value - Raw value.
+ * @returns {string} The formatted value.
+ */
 export const formatMetricValue = (metric, value) => {
     const formatter = METRIC_FORMATTERS[metric]
     return formatter ? formatter(value) : String(value)

@@ -3,7 +3,7 @@ import useApiQueryWithFilters from "../../../clients/baseApiQuery.js";
 
 /**
  * Custom hook to fetch stats grouped by day_of_week and hour, used for surface graph rendering.
- * @param {*} filters 
+ * @param {Object} filters 
  * @returns An object containing day-hour stats data and loading/error states
  */
 function useDayHourStats(filters={}) {

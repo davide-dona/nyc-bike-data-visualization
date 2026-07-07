@@ -3,7 +3,7 @@ import { ENDPOINTS } from '../../../clients/apiConstants.js'
 
 /**
  * Fetches stats grouped by day_of_week AND hour, used for surface graph rendering.
- * @param {*} filters
+ * @param {Object} filters
  * @returns 
  */
 export async function fetchStats(filters = {}) {

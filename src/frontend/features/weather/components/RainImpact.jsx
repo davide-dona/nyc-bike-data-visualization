@@ -21,6 +21,12 @@ const RAIN_BUCKETS = [
     { bin: 7.6, label: "Heavy (>7.6)" },
 ]
 
+/**
+ * Converts rain-bin stats into rows relative to the dry baseline: each
+ * bucket's rides/hour as a percentage change versus dry hours.
+ * @param {Array} data - Weather-bin stats rows.
+ * @returns {Array} Labeled buckets with pct change, empty without a dry baseline.
+ */
 function formatBuckets(data) {
     const byBin = new Map(
         data.filter((row) => row.weather_bin !== null).map((row) => [Number(row.weather_bin), row])

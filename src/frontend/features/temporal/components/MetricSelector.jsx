@@ -8,6 +8,11 @@ const METRIC_ICONS = {
     average_distance: 'fa-solid fa-route',
 }
 
+/**
+ * Resolves the Font Awesome icon for a metric key.
+ * @param {string} key - Metric key.
+ * @returns {string} Icon class, with a circle fallback.
+ */
 const getMetricIcon = (key) => METRIC_ICONS[key] ?? 'fa-solid fa-circle'
 
 /**

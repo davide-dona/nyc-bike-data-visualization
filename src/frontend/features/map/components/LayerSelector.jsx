@@ -7,6 +7,11 @@ const LAYER_ICONS = {
     infrastructure: 'fa-solid fa-road',
 }
 
+/**
+ * Resolves the Font Awesome icon for a map layer key.
+ * @param {string} value - Layer key.
+ * @returns {string} Icon class, with a circle fallback.
+ */
 const getLayerIcon = (value) => LAYER_ICONS[value] ?? 'fa-solid fa-circle'
 
 /**

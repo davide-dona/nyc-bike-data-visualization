@@ -17,6 +17,12 @@ import {
     displayAngleToAzimuth,
 } from "../utils/surfaceCamera.js"
 
+/**
+ * Builds the 7x24 value grid backing the surface plot.
+ * @param {Array} data - Day-hour stats rows.
+ * @param {Function} metricGetter - Reads the active metric from a row.
+ * @returns {number[][]} A [day][hour] matrix, 0 where data is missing.
+ */
 function buildSurfaceMatrix(data, metricGetter) {
     const grid = Array.from({ length: 7 }, () => Array(24).fill(0))
 

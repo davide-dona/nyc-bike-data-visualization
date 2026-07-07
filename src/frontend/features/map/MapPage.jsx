@@ -11,7 +11,7 @@ import MapLegend from './components/MapLegend.jsx'
 import LayerSelector from './components/LayerSelector.jsx'
 import InfrastructureStationSidebar from './components/InfrastructureStationSidebar.jsx'
 import StatusMessage from '../../components/StatusMessage.jsx'
-import Tooltip from './components/Tooltip.jsx'
+import mapTooltip from './utils/mapTooltip.js'
 import VisualizationGuide from '../../components/VisualizationGuide.jsx'
 import MapInsightsPanel from './components/MapInsightsPanel.jsx'
 import { MAP_LAYER_GUIDES } from './utils/mapGuides.js'
@@ -103,7 +103,7 @@ function MapPage({ filters }) {
                         onHover={handleHover}
                         onClick={handleMapClick}
                         getCursor={getCursor}
-                        getTooltip={({ object }) => Tooltip({ object, activeLayer, usageMode })}
+                        getTooltip={({ object }) => mapTooltip({ object, activeLayer, usageMode })}
                     />
                     <button
                         type="button"

@@ -19,6 +19,12 @@ const BIN_WIDTH = 2 // °C, must match _WEATHER_EXPRS in src/backend/services/ri
 const USER_TYPE_LABELS = { member: "Member", casual: "Casual" }
 const USER_TYPE_COLORS = { member: ACCENT, casual: "#c24747" }
 
+/**
+ * Converts per-user-type temperature-bin stats into sorted rides-per-hour
+ * points, dropping bins with too few covered hours to be meaningful.
+ * @param {Array} series - [{userType, bins}] from the fetch hook.
+ * @returns {Array} [{userType, points: [{x, y}]}] sorted by temperature.
+ */
 function formatSeries(series) {
     return series.map(({ userType, bins }) => ({
         userType,

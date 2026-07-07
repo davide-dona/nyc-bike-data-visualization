@@ -1,8 +1,8 @@
 /**
- *  Takes various date formats from the API and normalizes them to a Date object
- * @param {*} dateValue - The date value to parse, expected to be in 'YYYY-MM-DD' 
- * @returns 
-*/
+ * Parses an API date string into a local Date.
+ * @param {string} dateValue - Date string in 'YYYY-MM-DD' form.
+ * @returns {Date|null} The parsed date, or null for unrecognized input.
+ */
 function parseApiDate(dateValue) {
     if (typeof dateValue !== 'string') return null
     const match = dateValue.match(/^(\d{4})-(\d{2})-(\d{2})$/)

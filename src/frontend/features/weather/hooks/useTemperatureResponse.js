@@ -8,7 +8,7 @@ const USER_TYPES = ["member", "casual"];
  * chart can contrast member and casual weather sensitivity. When the global
  * user filter is set only that type is fetched, keeping the page consistent
  * with the header filters.
- * @param {*} filters
+ * @param {Object} filters
  * @returns Series per user type plus loading/error states.
  */
 function useTemperatureResponse(filters = {}) {

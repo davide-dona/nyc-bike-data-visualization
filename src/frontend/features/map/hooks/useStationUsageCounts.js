@@ -4,7 +4,7 @@ import useApiQueryWithFilters from '@/clients/baseApiQuery.js'
 /**
  * Hook to fetch station usage counts with optional filters.
  * The filters can include parameters like date range, bike type, user type, etc.
- * @param {*} filters 
+ * @param {Object} filters 
  * @returns An object containing station usage counts and loading/error states
  */
 function useStationUsageCounts(filters = {}) {

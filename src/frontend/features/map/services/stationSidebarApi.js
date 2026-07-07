@@ -27,6 +27,11 @@ async function fetchSingleStationStats(stationId, filters = {}) {
     }
 }
 
+/**
+ * Fetches usage and flow stats for every selected station in parallel.
+ * @param {Object} filters - Header filters plus a stationIds array.
+ * @returns {Promise<{items: Array, selectionFilters: Object}>} Per-station payloads and the filters used.
+ */
 export async function fetchInfrastructureStationSidebarData(filters = {}) {
     const stationIds = Array.isArray(filters.stationIds) ? filters.stationIds.filter(Boolean) : []
     const selectionFilters = { ...filters }

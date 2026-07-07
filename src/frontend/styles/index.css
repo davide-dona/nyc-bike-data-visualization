@@ -9,7 +9,7 @@
 @import './stats.css';
 @import '../features/temporal/styles/surface.css';
 @import '../features/footprint/styles/footprint.css';
-@import '../features/header/styles/user_filter.css';
+@import '../features/header/styles/user-filter.css';
 
 @tailwind base;
 @tailwind components;
