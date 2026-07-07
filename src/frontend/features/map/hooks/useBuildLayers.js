@@ -15,10 +15,7 @@ import { useInfrastructureStationSelection } from './useInfrastructureStationSel
 
 import { useMemo, useState } from 'react'
 import { filterRoutesByYear } from '../utils/routeYearFilter.js'
-
-// CartoDB Positron - subdued paper/grey basemap that lets the data layers carry
-// the color weight. Same provider as Voyager, no API key required.
-const BASE_TILE_URL = 'https://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png'
+import { BASE_TILE_URL } from '../utils/mapConfig.js'
 
 /**
  * Function to build the layers for the map based on the active layer and the provided data. 

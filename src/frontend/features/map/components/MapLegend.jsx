@@ -1,4 +1,4 @@
-import { LAYER_OPTIONS } from "../MapPage.jsx";
+import { LAYER_OPTIONS } from "../utils/mapConfig.js";
 import LegendRow from "./LegendRow.jsx";
 import { legendFor, bikeRoutesLegend } from "../utils/map_legend.js";
 

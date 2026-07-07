@@ -1,4 +1,4 @@
-import { LAYER_OPTIONS } from '../MapPage.jsx'
+import { LAYER_OPTIONS } from '../utils/mapConfig.js'
 import SegmentedControl from '../../../components/SegmentedControl.jsx'
 
 const LAYER_ICONS = {
