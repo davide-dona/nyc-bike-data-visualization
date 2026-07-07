@@ -2,7 +2,7 @@ import { ScatterplotLayer } from "@deck.gl/layers";
 import {
     INK_MUTED_RGB,
     WARM_HIGHLIGHT_RGB,
-} from "../../../../../utils/editorialTokens.js";
+} from "@/utils/editorialTokens.js";
 
 const STATION_COLOR_DEFAULT = INK_MUTED_RGB;
 const STATION_COLOR_SELECTED = WARM_HIGHLIGHT_RGB;

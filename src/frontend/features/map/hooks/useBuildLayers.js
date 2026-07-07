@@ -1,17 +1,17 @@
 // Base Layer
-import { createBaseTileLayer } from '../layers/base_layer/baseTileLayer.js'
+import { createBaseTileLayer } from '../utils/baseTileLayer.js'
 // Station Usage Layer
-import { createStationUsageLayer } from '../layers/station_usage_layer/stationUsageLayer.jsx'
-import { useStationUsageLayer } from '../layers/station_usage_layer/useStationUsageHook.js'
+import { createStationUsageLayer } from '../utils/stationUsageLayer.js'
+import { useStationUsageLayer } from './useStationUsageLayer.js'
 // Trip Flow Layer
-import { createTripFlowLayers } from '../layers/trip_flow_layer/tripFlowLayer.jsx'
-import { useTripFlowLayer } from '../layers/trip_flow_layer/useTripFlowHook.js'
-import { useTripStationFocus } from '../layers/trip_flow_layer/stations/useTripStationFocus.js'
+import { createTripFlowLayers } from '../utils/tripFlowLayer.js'
+import { useTripFlowLayer } from './useTripFlowLayer.js'
+import { useTripStationFocus } from './useTripStationFocus.js'
 // Infrastructure Layer
-import { createStationAvailabilityLayer } from '../layers/infrastructure_layer/stations/stationAvailabilityLayer.jsx'
-import { createBikeRoutesLayer } from '../layers/infrastructure_layer/bike_routes/bikeRoutesLayer.jsx'
-import { useInfrastructureLayer } from '../layers/infrastructure_layer/useInfrastructureHook.js'
-import { useInfrastructureStationSelection } from '../layers/infrastructure_layer/stations/useInfrastructureStationSelection.js'
+import { createStationAvailabilityLayer } from '../utils/stationAvailabilityLayer.js'
+import { createBikeRoutesLayer } from '../utils/bikeRoutesLayer.js'
+import { useInfrastructureLayer } from './useInfrastructureLayer.js'
+import { useInfrastructureStationSelection } from './useInfrastructureStationSelection.js'
 
 import { useMemo, useState } from 'react'
 import { filterRoutesByYear } from '../utils/routeYearFilter.js'

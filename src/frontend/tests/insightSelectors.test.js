@@ -10,8 +10,8 @@ import {
     topPartnersByFlow,
     topStationsByUsage,
 } from '../features/map/insights/insightSelectors.js'
-import { selectStations } from '../features/map/layers/station_usage_layer/stationUsageSelector.js'
-import { orientTripsToFocus } from '../features/map/layers/trip_flow_layer/trips/tripArcsSelector.js'
+import { selectStations } from '@/features/map/utils/stationUsageSelector.js'
+import { orientTripsToFocus } from '@/features/map/utils/tripArcsSelector.js'
 
 const route = (overrides) => ({
     instDate: '2020-06-01',

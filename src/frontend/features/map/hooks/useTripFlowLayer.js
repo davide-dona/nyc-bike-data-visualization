@@ -1,5 +1,5 @@
-import { useInfrastructureLayer } from "../infrastructure_layer/useInfrastructureHook.js";
-import { useTripArcsLayer } from "./trips/useTripArcsHook";
+import { useInfrastructureLayer } from "./useInfrastructureLayer.js";
+import { useTripArcsLayer } from "./useTripArcsLayer.js";
 
 /**
  * Custom hook to fetch and process data for the trip flow layer, including station availability and trip arcs.

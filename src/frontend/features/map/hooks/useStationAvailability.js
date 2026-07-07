@@ -1,5 +1,5 @@
-import { fetchStationAvailability } from './stationAvailabilityApi.js'
-import useApiQueryWithFilters from '../../../../../clients/baseApiQuery.js'
+import { fetchStationAvailability } from '../services/stationAvailabilityApi.js'
+import useApiQueryWithFilters from '@/clients/baseApiQuery.js'
 
 /**
  * Custom hook to fetch the dataset date range coverage stats

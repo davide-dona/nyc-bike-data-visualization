@@ -1,6 +1,6 @@
 import { HexagonLayer } from '@deck.gl/aggregation-layers'
-import { STATION_USAGE_COLOR_RANGE } from '../../../../utils/styling/map.ts'
-import { formatCount } from '../../../../utils/numberFormat.js'
+import { STATION_USAGE_COLOR_RANGE } from '@/utils/styling/map.ts'
+import { formatCount } from '@/utils/numberFormat.js'
 
 const LAYER_CONFIG = {
     radius: 150,

@@ -13,7 +13,7 @@ import {
 import {
     FACILITY_CSS_COLORS,
     FACILITY_LABELS,
-} from '../layers/infrastructure_layer/bike_routes/bikeRoutesLayer.jsx'
+} from '../utils/bikeRoutesLayer.js'
 import { BAR_SOLID, BAR_NEUTRAL } from '../../../utils/styling'
 import { LIMIT_STATIONS, LIMIT_TRIPS_OVERVIEW } from '../../../utils/config.jsx'
 

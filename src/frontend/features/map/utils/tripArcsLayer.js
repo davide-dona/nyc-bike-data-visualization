@@ -2,8 +2,8 @@ import { ArcLayer } from '@deck.gl/layers'
 import {
     ACCENT_RGB,
     ACCENT_INK_RGB,
-} from '../../../../../utils/editorialTokens.js'
-import { formatCount, formatNumber } from '../../../../../utils/numberFormat.js'
+} from '@/utils/editorialTokens.js'
+import { formatCount, formatNumber } from '@/utils/numberFormat.js'
 
 // Arc styling - alpha and width ramps stay; palette is editorial.
 const BASE_ALPHA = 80

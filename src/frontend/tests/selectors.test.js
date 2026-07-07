@@ -5,13 +5,13 @@ import {
     getStationForCurrentTime,
     getMaxUsage,
     getMaxDelta,
-} from '../features/map/layers/station_usage_layer/stationUsageSelector.js'
+} from '@/features/map/utils/stationUsageSelector.js'
 import {
     classifyStationHealth,
     selectStationAvailability,
     HEALTH_CATEGORY,
-} from '../features/map/layers/infrastructure_layer/stations/stationAvailabilitySelector.js'
-import { stationCharacter } from '../features/map/layers/infrastructure_layer/stations/useInfrastructureStationSidebarData.js'
+} from '@/features/map/utils/stationAvailabilitySelector.js'
+import { stationCharacter } from '@/features/map/hooks/useInfrastructureStationSidebarData.js'
 
 // One observed day: each hour-of-day bucket occurred once (hours_count 1),
 // so the per-day averages equal the raw counts

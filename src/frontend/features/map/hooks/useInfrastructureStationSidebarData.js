@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
-import useApiQueryWithFilters from '../../../../../clients/baseApiQuery.js'
-import { fetchInfrastructureStationSidebarData } from './stationSidebarApi.js'
+import useApiQueryWithFilters from '@/clients/baseApiQuery.js'
+import { fetchInfrastructureStationSidebarData } from '../services/stationSidebarApi.js'
 
 const DAY_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 

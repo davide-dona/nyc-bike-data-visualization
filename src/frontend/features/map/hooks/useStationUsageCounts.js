@@ -1,5 +1,5 @@
-import { fetchStationUsageCounts } from './stationUsageCountsApi.js'
-import useApiQueryWithFilters from '../../../../clients/baseApiQuery.js'
+import { fetchStationUsageCounts } from '../services/stationUsageCountsApi.js'
+import useApiQueryWithFilters from '@/clients/baseApiQuery.js'
 
 /**
  * Hook to fetch station usage counts with optional filters.

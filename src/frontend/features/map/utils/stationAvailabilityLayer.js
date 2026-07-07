@@ -4,8 +4,8 @@ import {
     DANGER_RGB,
     UNKNOWN_RGB,
     ACCENT_RGB,
-} from '../../../../../utils/editorialTokens.js'
-import { formatCount } from '../../../../../utils/numberFormat.js'
+} from '@/utils/editorialTokens.js'
+import { formatCount } from '@/utils/numberFormat.js'
 import { HEALTH_CATEGORY } from './stationAvailabilitySelector.js'
 
 /**

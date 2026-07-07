@@ -1,8 +1,8 @@
 import { useMemo } from 'react'
-import useApiQueryWithFilters from '../../../../../clients/baseApiQuery.js'
-import { selectTrips, selectMaxFlow, orientTripsToFocus } from './tripArcsSelector.js'
-import { fetchStationFlowCounts } from './stationFlowCountsApi.js'
-import { LIMIT_TRIPS, LIMIT_TRIPS_OVERVIEW } from '../../../../../utils/config.jsx'
+import useApiQueryWithFilters from '@/clients/baseApiQuery.js'
+import { selectTrips, selectMaxFlow, orientTripsToFocus } from '../utils/tripArcsSelector.js'
+import { fetchStationFlowCounts } from '../services/stationFlowCountsApi.js'
+import { LIMIT_TRIPS, LIMIT_TRIPS_OVERVIEW } from '@/utils/config.jsx'
 
 /**
  * Fetches and processes trip flow data for the trip flow layer. Two views

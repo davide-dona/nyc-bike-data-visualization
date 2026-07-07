@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import useInfrastructureStationSidebarData from '../layers/infrastructure_layer/stations/useInfrastructureStationSidebarData.js'
+import useInfrastructureStationSidebarData from '../hooks/useInfrastructureStationSidebarData.js'
 import { formatCompact, formatCount, formatNumber } from '../../../utils/numberFormat.js'
 
 const DAY_ORDER = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']

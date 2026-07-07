@@ -1,5 +1,5 @@
-import { createTripStationsHitLayer, createTripStationsLayer } from "./stations/tripStationsLayer";
-import { createTripsArcLayer } from "./trips/tripArcsLayer";
+import { createTripStationsHitLayer, createTripStationsLayer } from "./tripStationsLayer.js";
+import { createTripsArcLayer } from "./tripArcsLayer.js";
 
 /**
  * Creates the layers for visualizing trip flows between stations, including arcs for trips and points for stations.

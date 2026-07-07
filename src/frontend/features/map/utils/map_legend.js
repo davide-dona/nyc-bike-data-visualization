@@ -1,7 +1,7 @@
-import { stationAvailabilityLegend } from "../layers/infrastructure_layer/stations/stationAvailabilityLayer.jsx";
-import { bikeRoutesLegend } from "../layers/infrastructure_layer/bike_routes/bikeRoutesLayer.jsx";
-import { stationUsageLegend } from "../layers/station_usage_layer/stationUsageLayer.jsx";
-import { tripFlowLegend } from "../layers/trip_flow_layer/tripFlowLayer.jsx";
+import { stationAvailabilityLegend } from "./stationAvailabilityLayer.js";
+import { bikeRoutesLegend } from "./bikeRoutesLayer.js";
+import { stationUsageLegend } from "./stationUsageLayer.js";
+import { tripFlowLegend } from "./tripFlowLayer.js";
 
 /**
  * Resolves the legend descriptor (entries + optional sub-sections) for the
