@@ -60,10 +60,19 @@ This inconsistency in the structure of the datasets posed a challenge for our an
 \paragraph{Missing Values and Inconsistencies}
 
 \begin{comment}
-    Older dataset have a different structure.
-    Discussion of any data quality issues, such as missing values, outliers, or inconsistencies, and how they were addressed in the analysis.
+    TODO:
+    Discussion of any data quality issues, such as missing values, outliers, noise, bias, or inconsistencies, and how they were addressed in the analysis.
+    OUTLIERS: some trips have too long durations (need to be filtered out)
+    some trips have the same start and end station (could be possible, but it might screw up the analysis, need to be filtered out)
+
+    BIAS: 1) we are considering only the data from the Citi Bike system, which may not be representative of the entire population of bike users in New York City. 
+    2) To compute the length of the trips, we are using the Haversine formula between start station and end station. This is just an approximation.
+    
+    ISSUES: 
     Two UUID (short name and station id) were used to uniquely identify stations, but they are not consistent across the dataset, so we had to use the short name as the unique identifier for stations.
     Live data has inactive stations that need to be filtered out, and bike counts aren't always perfect
+
+    This are just the ones that come to my mind as of now, but IDK
 \end{comment}
 
 
