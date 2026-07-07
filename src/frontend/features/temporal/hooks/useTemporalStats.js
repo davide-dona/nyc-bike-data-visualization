@@ -1,19 +1,16 @@
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import useDayHourStats from "./useDayHourStats";
 import useDateStats from "./useDateStats";
 import { marginalizeDayHour } from "../utils/marginalizeStats.js";
 
 /**
- * Hook to manage the temporal state for the  page.
- * @param {*} filters - The filters to apply to the data.
- * @returns The state and functions for managing the temporal data.
+ * Composes the page's two stats fetches (day-hour grid and per-date series)
+ * and derives the day/hour marginals plus per-chart query states.
+ * @param {Object} filters - The filters to apply to the data.
+ * @returns {Object} dayHourStats, dayStats, hourStats, dateStats, aggregate
+ * loading/error/refetch, and a queries map with per-breakdown query states.
  */
-export default function useTemporalState(filters) {
-    // State to track the currently active metric for the surface graph, initialized to 'total_rides'
-    const [activeMetric, setActiveMetric] = useState('total_rides')
-    // State to track the coordinates of the currently hovered point on the surface graph
-    const [coordinates, setCoordinates] = useState(null)
-
+export default function useTemporalStats(filters) {
     // Fetches the day-hour statistics based on the provided filters using a custom hook. The hook returns the data, loading state, and any error encountered during the fetch.
     const {
         dayHourStats,
@@ -53,10 +50,6 @@ export default function useTemporalState(filters) {
     }
 
     return {
-        activeMetric,
-        setActiveMetric,
-        coordinates,
-        setCoordinates,
         dayHourStats,
         dayStats,
         hourStats,
