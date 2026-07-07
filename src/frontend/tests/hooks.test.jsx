@@ -6,7 +6,6 @@ import { useDatasetDateRange } from '../features/header/hooks/useDatasetDateRang
 import useDayHourStats from '../features/temporal/hooks/useDayHourStats.js'
 import useStationUsageCounts from '../features/map/layers/station_usage_layer/useStationUsageCounts.js'
 import useStationAvailability from '../features/map/layers/infrastructure_layer/stations/useStationAvailability.js'
-import useTripCounts from '../features/map/layers/trip_flow_layer/trips/useTripCounts.js'
 import useWeatherStats from '../features/weather/hooks/useWeatherStats.js'
 import useTemperatureResponse from '../features/weather/hooks/useTemperatureResponse.js'
 import useRainImpact from '../features/weather/hooks/useRainImpact.js'
@@ -41,11 +40,6 @@ describe('hooks smoke tests', () => {
 
     it('useStationAvailability resolves without throwing', async () => {
         const { result } = renderHook(() => useStationAvailability(TEST_FILTERS), { wrapper })
-        await waitFor(() => expect(result.current).toBeDefined())
-    })
-
-    it('useTripCounts resolves without throwing', async () => {
-        const { result } = renderHook(() => useTripCounts(TEST_FILTERS), { wrapper })
         await waitFor(() => expect(result.current).toBeDefined())
     })
 

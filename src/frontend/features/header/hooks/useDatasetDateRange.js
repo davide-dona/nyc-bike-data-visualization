@@ -16,13 +16,6 @@ export function useDatasetDateRange() {
             fallbackData: null,
         })
 
-        // Minimal debug info to help trace why data may not load in browser
-        try {
-            console.debug('[useDatasetDateRange] query', { loading: query.loading, data: query.data, error: query.error })
-        } catch (e) {
-            // ignore if console access fails
-        }
-
         return {
             dateRange: query.data,
             loading: query.loading,
