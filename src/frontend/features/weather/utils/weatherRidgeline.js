@@ -3,7 +3,6 @@ import {
     WMO_WEATHER_CODES,
     getWeatherGroup,
 } from "./wmoCodeHandler.js";
-import { toRgba } from "@/utils/color.js";
 
 export const WEEKDAY_LABELS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 

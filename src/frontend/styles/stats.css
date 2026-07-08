@@ -1,9 +1,0 @@
-@layer components {
-  .status-message {
-    @apply text-center text-[#666];
-  }
-
-  .status-error {
-    @apply text-red-600;
-  }
-}
