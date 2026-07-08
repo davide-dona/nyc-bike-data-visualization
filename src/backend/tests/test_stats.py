@@ -249,6 +249,30 @@ def test_get_trips_between_stations_with_invalid_station_id():
     payload = response.json()
     assert payload == []
 
+def test_get_trips_between_stations_all_partners_without_limit():
+    """Test that /stats/station_flow_counts with station_id and no limit returns every partner pair."""
+    response = requests.get(
+        f"{BASE_URL}/stats/station_flow_counts",
+        params={**YM_PARAMS, "station_id": "6602.05"},
+        timeout=DEFAULT_TIMEOUT,
+    )
+    assert response.status_code == 200
+    payload = response.json()
+    assert len(payload) == 1
+    pair = payload[0]
+    assert {pair["station_a_id"], pair["station_b_id"]} == {"6602.05", "6839.04"}
+
+def test_get_trips_between_stations_respects_explicit_limit():
+    """Test that /stats/station_flow_counts truncates to an explicit limit."""
+    response = requests.get(
+        f"{BASE_URL}/stats/station_flow_counts",
+        params={**YM_PARAMS, "limit": 1},
+        timeout=DEFAULT_TIMEOUT,
+    )
+    assert response.status_code == 200
+    payload = response.json()
+    assert len(payload) == 1
+
 def test_get_station_counts():
     """Test that /stats/station_usage_counts returns expected station counts."""
     response = requests.get(f"{BASE_URL}/stats/station_usage_counts", params=YM_PARAMS, timeout=DEFAULT_TIMEOUT)

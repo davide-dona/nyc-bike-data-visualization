@@ -23,8 +23,10 @@ import { BASE_TILE_URL } from './mapConfig.js'
  * @param {Array} tripStations - Clickable stations of the trip flow layer.
  * @param {string|null} focusedStationId - Focused station id, null in overview.
  * @param {string|null} hoveredTripStationId - Hovered trip station id.
+ * @param {string|null} hoveredCorridorKey - Corridor highlighted via panel or arc hover.
  * @param {Function} onTripStationPick - Pick handler focusing a station.
  * @param {Function} onTripStationHover - Hover handler for trip stations.
+ * @param {Function} onTripArcHover - Hover handler for corridor arcs.
  * @param {boolean} availabilityLoading - Station availability query in flight.
  * @param {any} availabilityError - Station availability query error.
  * @param {Array} stations - Stations with live availability data.
@@ -52,8 +54,10 @@ export function buildDeckLayers({
     tripStations,
     focusedStationId,
     hoveredTripStationId,
+    hoveredCorridorKey,
     onTripStationPick,
     onTripStationHover,
+    onTripArcHover,
     availabilityLoading,
     availabilityError,
     stations,
@@ -81,8 +85,10 @@ export function buildDeckLayers({
                 stations: tripStations,
                 focusedStationId,
                 hoveredStationId: hoveredTripStationId,
+                hoveredCorridorKey,
                 onStationPick: onTripStationPick,
                 onStationHover: onTripStationHover,
+                onArcHover: onTripArcHover,
             }))
         }
     }

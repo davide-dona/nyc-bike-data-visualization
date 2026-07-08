@@ -2,7 +2,7 @@ import { useMemo } from 'react'
 import useApiQueryWithFilters from '@/clients/baseApiQuery.js'
 import { selectTrips, selectMaxFlow, orientTripsToFocus } from '../utils/tripArcsSelector.js'
 import { fetchStationFlowCounts } from '../services/stationFlowCountsApi.js'
-import { LIMIT_TRIPS, LIMIT_TRIPS_OVERVIEW } from '@/utils/config.js'
+import { LIMIT_TRIPS_OVERVIEW } from '@/utils/config.js'
 
 /**
  * Fetches and processes trip flow data for the trip flow layer. Two views
@@ -27,12 +27,13 @@ export function useTripArcsLayer({ filters, focusedStationId }) {
         ),
     })
 
-    // Corridors of the focused station; disabled while no station is focused.
+    // Every corridor of the focused station (no limit param, so the backend
+    // returns all partner pairs); disabled while no station is focused.
     const focusQuery = useApiQueryWithFilters({
         queryKey: 'station-flow-counts',
         fetcher: fetchStationFlowCounts,
         filters: useMemo(
-            () => ({ limit: LIMIT_TRIPS, ...(filters ?? {}), station_id: focusedStationId }),
+            () => ({ ...(filters ?? {}), station_id: focusedStationId }),
             [filters, focusedStationId],
         ),
         enabledWhen: (queryFilters) => Boolean(

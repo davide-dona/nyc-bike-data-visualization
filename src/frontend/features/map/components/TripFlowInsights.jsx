@@ -1,45 +1,56 @@
 import { useMemo } from 'react'
 import InsightFrame from './InsightFrame.jsx'
-import InsightBarChart from './InsightBarChart.jsx'
-import { topCorridors, topPartnersByFlow } from '../utils/insightSelectors.js'
-import { BAR_SOLID, BAR_NEUTRAL } from '@/utils/styling'
+import InsightStatTile from './InsightStatTile.jsx'
+import TripFlowCorridorList from './TripFlowCorridorList.jsx'
+import { rankCorridors, tripFlowFocusStats, tripFlowOverviewStats } from '../utils/insightSelectors.js'
+import { formatCount, formatNumber } from '@/utils/numberFormat.js'
 import { LIMIT_TRIPS_OVERVIEW } from '@/utils/config.js'
 
+// Ranked corridor rows shown under the stat tiles.
+const LIST_SIZE = 12
+
 /**
- * Insight frame for the trip flow layer: the strongest corridors citywide,
- * or the focused station's partners split by direction when a station is focused.
+ * Insight frame for the trip flow layer: headline stat tiles plus a ranked
+ * corridor list. The overview summarizes the citywide corridor web; focusing
+ * a station switches to its partners with an outbound/inbound split per row.
+ * Hovering a row traces the matching arc on the map and vice versa.
  * @param {Object} insights - Trip flow data slice (trips, focus state, query status).
+ * @param {Object} tripFlowHover - Corridor hover link ({ hoveredCorridorKey, onCorridorHover }).
  * @returns The rendered trip flow insight frame.
  */
-export default function TripFlowInsights({ insights }) {
+export default function TripFlowInsights({ insights, tripFlowHover }) {
     const { trips, isFocusView, focusedStationName } = insights
     const status = insights
+    const { hoveredCorridorKey, onCorridorHover } = tripFlowHover
 
-    const corridors = useMemo(() => topCorridors(trips, 10), [trips])
-    const partners = useMemo(() => topPartnersByFlow(trips, 10), [trips])
-    // Inbound bars grow left of the zero line, outbound bars grow right.
-    const divergingGroups = useMemo(() => [
-        { label: 'Inbound', values: partners.inbound.map((value) => -value), color: BAR_NEUTRAL },
-        { label: 'Outbound', values: partners.outbound, color: BAR_SOLID },
-    ], [partners])
+    const rows = useMemo(() => rankCorridors(trips, LIST_SIZE), [trips])
+    const stats = useMemo(
+        () => (isFocusView ? tripFlowFocusStats(trips) : tripFlowOverviewStats(trips)),
+        [trips, isFocusView],
+    )
 
     if (isFocusView) {
         return (
             <InsightFrame
                 title={`Corridors of ${focusedStationName ?? 'the focused station'}`}
-                note="Partners ranked by combined flow. Inbound rides grow left, outbound rides grow right, averaged per day. Click the station again or press Reset for the citywide view."
+                note="Every corridor of the focused station is drawn on the map; the strongest are listed here. Hover a row to trace its corridor. Click the station again, click empty map, or press Reset View for the citywide picture."
                 status={status}
-                emptyMessage={partners.labels.length === 0
+                emptyMessage={rows.length === 0
                     ? 'No trips recorded for the focused station with the current filters.'
                     : null}
-                tall
+                autoHeight
             >
-                <InsightBarChart
-                    horizontal
-                    diverging
-                    labels={partners.labels}
-                    groups={divergingGroups}
-                    xAxisTitle="Avg daily rides"
+                <div className="map-insights__stat-row">
+                    <InsightStatTile value={formatCount(stats.totalDailyRides)} label="Daily rides" hint="avg per day" />
+                    <InsightStatTile value={formatCount(stats.partnerCount)} label="Partners" hint="stations linked" />
+                    <InsightStatTile value={`${formatCount(stats.outboundShare * 100)}%`} label="Outbound" hint="of rides leave here" />
+                    <InsightStatTile value={`${formatNumber(stats.medianDistanceKm, 1)} km`} label="Median trip" hint="flow-weighted" />
+                </div>
+                <TripFlowCorridorList
+                    rows={rows}
+                    hoveredCorridorKey={hoveredCorridorKey}
+                    onCorridorHover={onCorridorHover}
+                    showSplit
                 />
             </InsightFrame>
         )
@@ -48,18 +59,22 @@ export default function TripFlowInsights({ insights }) {
     return (
         <InsightFrame
             title="Strongest corridors citywide"
-            note={`Top ${LIMIT_TRIPS_OVERVIEW} corridors drawn on the map, top 10 charted. Click a station to focus its own corridors.`}
+            note={`Top ${LIMIT_TRIPS_OVERVIEW} corridors drawn on the map, strongest ${LIST_SIZE} listed. Hover a row to trace its corridor. Click a station to see all of its corridors.`}
             status={status}
-            emptyMessage={corridors.labels.length === 0
+            emptyMessage={rows.length === 0
                 ? 'No trips recorded for the current filters.'
                 : null}
-            tall
+            autoHeight
         >
-            <InsightBarChart
-                horizontal
-                labels={corridors.labels}
-                values={corridors.values}
-                xAxisTitle="Avg daily rides"
+            <div className="map-insights__stat-row">
+                <InsightStatTile value={formatCount(stats.totalDailyRides)} label="Daily rides" hint={`top ${LIMIT_TRIPS_OVERVIEW} corridors`} />
+                <InsightStatTile value={formatCount(stats.corridorCount)} label="Corridors" hint="drawn on the map" />
+                <InsightStatTile value={`${formatNumber(stats.medianDistanceKm, 1)} km`} label="Median corridor" hint="flow-weighted" />
+            </div>
+            <TripFlowCorridorList
+                rows={rows}
+                hoveredCorridorKey={hoveredCorridorKey}
+                onCorridorHover={onCorridorHover}
             />
         </InsightFrame>
     )

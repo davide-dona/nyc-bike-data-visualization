@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { clamp, niceCeil } from '@/utils/math.js'
+import { clamp, haversineKm, niceCeil } from '@/utils/math.js'
 import { toRgba } from '@/utils/color.js'
 import { formatIsoDate, lastDayOfMonth } from '@/utils/dateFormat.js'
 import { clampTooltipToViewport } from '@/utils/tooltipPosition.js'
@@ -23,6 +23,12 @@ describe('math utils', () => {
         expect(niceCeil(0)).toBe(1)
         expect(niceCeil(-5)).toBe(1)
         expect(niceCeil(NaN)).toBe(1)
+    })
+
+    it('haversineKm matches a known NYC distance', () => {
+        // Columbus Circle to Union Square is about 3.66 km great-circle
+        expect(haversineKm(40.7681, -73.9819, 40.7359, -73.9911)).toBeCloseTo(3.66, 1)
+        expect(haversineKm(40.7, -73.9, 40.7, -73.9)).toBe(0)
     })
 })
 

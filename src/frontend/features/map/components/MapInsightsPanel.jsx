@@ -8,6 +8,7 @@ import TripFlowInsights from './TripFlowInsights.jsx'
  * already hold client-side.
  * @param {string} activeLayer - The map's active layer key.
  * @param {Object} insights - Per-layer data slices from useBuildLayers.
+ * @param {Object} tripFlowHover - Corridor hover link shared with the trip-flow arc layer.
  * @param {string} usageMode - Station usage mode ('all' | 'incoming' | 'outgoing').
  * @param {number} currentTime - Current time-wheel hour (fractional during animation).
  * @param {number|null} selectedYear - Selected network year, null for present.
@@ -18,6 +19,7 @@ import TripFlowInsights from './TripFlowInsights.jsx'
 export default function MapInsightsPanel({
     activeLayer,
     insights,
+    tripFlowHover,
     usageMode,
     currentTime,
     selectedYear,
@@ -42,7 +44,7 @@ export default function MapInsightsPanel({
                 />
             )}
             {activeLayer === 'trip_flow' && (
-                <TripFlowInsights insights={insights.tripFlow} />
+                <TripFlowInsights insights={insights.tripFlow} tripFlowHover={tripFlowHover} />
             )}
         </div>
     )

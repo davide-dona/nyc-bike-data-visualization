@@ -6,8 +6,11 @@ import {
 
 const STATION_COLOR_DEFAULT = INK_MUTED_RGB;
 const STATION_COLOR_SELECTED = WARM_HIGHLIGHT_RGB;
+// Overview dots recede behind the corridor web: smaller, semi-transparent.
+const STATION_COLOR_OVERVIEW = [...INK_MUTED_RGB, 150];
 
 const STATION_RADIUS_BASE = 24;
+const STATION_RADIUS_BASE_OVERVIEW = 14;
 const STATION_RADIUS_HOVER_MULTIPLIER = 2;
 const STATION_RADIUS_MAX = 160;
 
@@ -18,41 +21,46 @@ const STATION_PICK_RADIUS_MAX = 160;
  * Computes a station dot's visual radius, enlarging the hovered station.
  * @param {Object} d - Station datum.
  * @param {string|null} hoveredStationId - Currently hovered station id.
+ * @param {boolean} isFocusView - Whether a station is focused (overview dots are smaller).
  * @returns {number} Radius in meters.
  */
-function getVisualRadius(d, hoveredStationId) {
-    const base = STATION_RADIUS_BASE;
+function getVisualRadius(d, hoveredStationId, isFocusView = true) {
+    const base = isFocusView ? STATION_RADIUS_BASE : STATION_RADIUS_BASE_OVERVIEW;
     if (d.id !== hoveredStationId) return base;
     return Math.min(base * STATION_RADIUS_HOVER_MULTIPLIER, STATION_RADIUS_MAX);
 }
 
 /**
- * Builds the visible trip-flow station dots layer.
+ * Builds the visible trip-flow station dots layer. In the citywide overview
+ * the dots recede (smaller, semi-transparent) so the corridor web stays the
+ * hero; in focus view they regain full weight as click targets.
  * @param {Array} stations - Clickable stations with coordinates.
  * @param {string|null} focusedStationId - Focused station id, dims the rest.
  * @param {string|null} hoveredStationId - Hovered station id, enlarged.
+ * @param {boolean} isFocusView - Whether a station is focused.
  * @returns {ScatterplotLayer} The deck.gl layer.
  */
 export function createTripStationsLayer({
     stations,
     focusedStationId = null,
     hoveredStationId = null,
+    isFocusView = false,
 }) {
     return new ScatterplotLayer({
         id: "trip-flow-stations-layer",
         data: stations,
         getPosition: (d) => [d.longitude, d.latitude],
-        getRadius: (d) => getVisualRadius(d, hoveredStationId),
-        getFillColor: (d) =>
-            d.id === focusedStationId || d.id === hoveredStationId
-                ? STATION_COLOR_SELECTED
-                : STATION_COLOR_DEFAULT,
+        getRadius: (d) => getVisualRadius(d, hoveredStationId, isFocusView),
+        getFillColor: (d) => {
+            if (d.id === focusedStationId || d.id === hoveredStationId) return STATION_COLOR_SELECTED;
+            return isFocusView ? STATION_COLOR_DEFAULT : STATION_COLOR_OVERVIEW;
+        },
         getLineColor: [255, 255, 255],
         lineWidthMinPixels: 1,
         stroked: true,
         filled: true,
         radiusUnits: "meters",
-        radiusMinPixels: 4,
+        radiusMinPixels: isFocusView ? 4 : 2.5,
         radiusMaxPixels: 110,
         pickable: false,
         transitions: {
@@ -66,8 +74,8 @@ export function createTripStationsLayer({
         },
 
         updateTriggers: {
-            getFillColor: [focusedStationId, hoveredStationId],
-            getRadius: [hoveredStationId],
+            getFillColor: [focusedStationId, hoveredStationId, isFocusView],
+            getRadius: [hoveredStationId, isFocusView],
         },
     });
 }

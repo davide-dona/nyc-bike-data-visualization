@@ -9,17 +9,21 @@ import StatusMessage from '@/components/StatusMessage.jsx'
  * @param {{loading: boolean, error: any, refetch: Function}} status - Query status driving the overlay.
  * @param {string|null} emptyMessage - Message shown instead of the plot when there is no data.
  * @param {boolean} tall - Whether the plot area uses the tall variant.
+ * @param {boolean} autoHeight - Whether the plot area grows with its HTML content instead of using a fixed chart height.
  * @param {import('react').ReactNode} children - The chart to render inside the frame.
  * @returns The rendered insight frame.
  */
-export default function InsightFrame({ title, note, status, emptyMessage, tall = false, children }) {
+export default function InsightFrame({ title, note, status, emptyMessage, tall = false, autoHeight = false, children }) {
     const showStatus = Boolean(status?.loading || status?.error)
     const showEmpty = Boolean(emptyMessage) && !showStatus
+    const plotVariant = autoHeight
+        ? ' map-insights__plot--auto'
+        : (tall ? ' map-insights__plot--tall' : '')
 
     return (
         <div className="panel-frame">
             <p className="panel-frame__title">{title}</p>
-            <div className={`map-insights__plot${tall ? ' map-insights__plot--tall' : ''}`}>
+            <div className={`map-insights__plot${plotVariant}`}>
                 {showEmpty
                     ? <div className="map-insights__empty">{emptyMessage}</div>
                     : children}

@@ -5,6 +5,7 @@ import { useBuildLayers } from './hooks/useBuildLayers.js'
 import useMapFullscreen from './hooks/useMapFullscreen.js'
 import useMapCursor from './hooks/useMapCursor.js'
 import useMapClickActions from './hooks/useMapClickActions.js'
+import { useTripFlowCamera } from './hooks/useTripFlowCamera.js'
 import { getRouteYearBounds } from './utils/routeYearFilter.js'
 import MapController from './components/MapController.jsx'
 import MapLegend from './components/MapLegend.jsx'
@@ -33,6 +34,7 @@ function MapPage({ filters }) {
         activeLayer,
         controller,
         currentTime,
+        flyTo,
         handleViewStateChange,
         hasAnimation,
         hiddenHealthCategories,
@@ -59,10 +61,17 @@ function MapPage({ filters }) {
         refetch,
         clearTripFlowFocus,
         hasTripFlowFocus,
+        focusedStationId,
         selectedInfrastructureStations,
         bikeRoutes,
         insights,
+        tripFlowHover,
+        tripLoading,
+        trips,
     } = useBuildLayers({ filters, currentTime, activeLayer, showBikeRoutes, usageMode, hiddenHealthCategories, hiddenRouteClasses, selectedYear })
+
+    // Frame the focused station's corridors; return to the citywide view on reset.
+    useTripFlowCamera({ activeLayer, focusedStationId, trips, tripLoading, flyTo, mapShellRef })
     const yearBounds = useMemo(() => getRouteYearBounds(bikeRoutes), [bikeRoutes])
     const shouldShowMapUi = !error
     const shouldShowMapLegend = !loading && !error
@@ -141,6 +150,7 @@ function MapPage({ filters }) {
                         <MapLegend
                             activeLayer={activeLayer}
                             showBikeRoutes={showBikeRoutes}
+                            hasTripFlowFocus={hasTripFlowFocus}
                             hiddenHealthCategories={hiddenHealthCategories}
                             hiddenRouteClasses={hiddenRouteClasses}
                             onToggleHealthCategory={toggleHealthCategory}
@@ -164,6 +174,7 @@ function MapPage({ filters }) {
                 <MapInsightsPanel
                     activeLayer={activeLayer}
                     insights={insights}
+                    tripFlowHover={tripFlowHover}
                     usageMode={usageMode}
                     currentTime={currentTime}
                     selectedYear={selectedYear}

@@ -32,7 +32,9 @@ def get_station_ride_counts(
 def get_trips_between_stations(
     month_range: Annotated[MonthRange, Depends()],
     filters: Annotated[StationFilters, Depends()],
-    limit: int | None = Query(default=100, ge=1, le=1000)
+    limit: int | None = Query(default=None, ge=1, le=1000)
 ):
-    """Get the count of rides between each station pair."""
+    """Get the count of rides between each station pair. When limit is omitted,
+    station-scoped requests return every partner pair; citywide requests are
+    capped server-side."""
     return get_trips_between_stations_stats(month_range, filters, limit=limit)

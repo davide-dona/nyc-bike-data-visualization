@@ -10,6 +10,7 @@ export const RULE         = 'rgba(11,12,14,0.12)'
 export const RULE_STRONG  = 'rgba(11,12,14,0.22)'
 export const ERROR        = '#a32d2d'
 export const WARM_HIGHLIGHT = '#e58c2b'
+export const RUST         = '#c2501a'
 
 // RGB tuples - for DeckGL getFillColor / getLineColor
 export const INK_RGB         = [11, 12, 14]
@@ -20,6 +21,7 @@ export const ACCENT_INK_RGB  = [10, 42, 122]
 export const ACCENT_SOFT_RGB = [184, 201, 236]
 export const WHITE_RGB       = [255, 255, 255]
 export const WARM_HIGHLIGHT_RGB = [229, 140, 43]
+export const RUST_RGB        = [194, 80, 26]
 
 // Semantic - station health (muted but still semantic)
 export const HEALTHY_RGB  = [47, 125, 79]

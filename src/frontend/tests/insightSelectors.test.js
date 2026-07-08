@@ -6,12 +6,14 @@ import {
     aggregatePeakHourDistribution,
     aggregateRoutesByBorough,
     aggregateRoutesByFacilityClass,
-    topCorridors,
-    topPartnersByFlow,
+    rankCorridors,
     topStationsByUsage,
+    tripFlowFocusStats,
+    tripFlowOverviewStats,
 } from '@/features/map/utils/insightSelectors.js'
 import { selectStations } from '@/features/map/utils/stationUsageSelector.js'
-import { orientTripsToFocus } from '@/features/map/utils/tripArcsSelector.js'
+import { classifyBalance, orientTripsToFocus, selectTrips } from '@/features/map/utils/tripArcsSelector.js'
+import { computeFocusBounds } from '@/features/map/utils/tripFlowBounds.js'
 
 const route = (overrides) => ({
     instDate: '2020-06-01',
@@ -148,6 +150,7 @@ describe('topStationsByUsage', () => {
 })
 
 const trip = (overrides) => ({
+    corridor_key: 'A|B',
     start_station_id: 'A',
     start_station_name: 'A',
     start_station_lat: 40.7,
@@ -162,27 +165,112 @@ const trip = (overrides) => ({
     ...overrides,
 })
 
-describe('topCorridors', () => {
-    it('ranks pairs by total daily flow with two-line pair labels and totals', () => {
-        const { labels, values } = topCorridors([
-            trip({ start_station_name: 'Low', total_daily_flow: 1 }),
-            trip({ start_station_name: 'High', total_daily_flow: 9 }),
+describe('rankCorridors', () => {
+    it('ranks corridors by total daily flow with names, value, and split', () => {
+        const rows = rankCorridors([
+            trip({ corridor_key: 'A|Low', end_station_name: 'Low', total_daily_flow: 1 }),
+            trip({ corridor_key: 'A|High', end_station_name: 'High', total_daily_flow: 9 }),
         ], 10)
 
-        expect(labels).toEqual([['High', '<> B'], ['Low', '<> B']])
-        expect(values).toEqual([9, 1])
+        expect(rows.map((row) => row.endName)).toEqual(['High', 'Low'])
+        expect(rows[0]).toMatchObject({ key: 'A|High', startName: 'A', value: 9, outbound: 0.6, inbound: 0.4 })
     })
 
-    it('handles short lists and does not mutate its input order', () => {
+    it('caps at n, does not mutate input order, and handles empty input', () => {
         const trips = [trip({ total_daily_flow: 1 }), trip({ total_daily_flow: 2 })]
-        const { labels } = topCorridors(trips, 1)
-        expect(labels).toHaveLength(1)
+        expect(rankCorridors(trips, 1)).toHaveLength(1)
         expect(trips[0].total_daily_flow).toBe(1) // input untouched
+        expect(rankCorridors([], 10)).toEqual([])
+        expect(rankCorridors(null, 10)).toEqual([])
+    })
+})
+
+describe('tripFlowOverviewStats', () => {
+    it('totals daily rides, counts corridors, and takes the flow-weighted median distance', () => {
+        // Distances: short corridor carries most of the flow, so the weighted
+        // median lands on it even though the plain median would not.
+        const short = trip({ end_station_lat: 40.701, end_station_lon: -73.9, total_daily_flow: 8 })
+        const long = trip({ end_station_lat: 41.0, end_station_lon: -73.9, total_daily_flow: 2 })
+        const stats = tripFlowOverviewStats([long, short])
+
+        expect(stats.totalDailyRides).toBe(10)
+        expect(stats.corridorCount).toBe(2)
+        expect(stats.medianDistanceKm).toBeCloseTo(0.111, 2) // the short corridor
     })
 
-    it('returns empty series for empty input', () => {
-        expect(topCorridors([], 10)).toEqual({ labels: [], values: [] })
-        expect(topCorridors(null, 10).labels).toEqual([])
+    it('returns zeros for empty input', () => {
+        expect(tripFlowOverviewStats([])).toEqual({ totalDailyRides: 0, corridorCount: 0, medianDistanceKm: 0 })
+    })
+})
+
+describe('tripFlowFocusStats', () => {
+    it('derives partner count and outbound share from oriented rows', () => {
+        const stats = tripFlowFocusStats([
+            trip({ total_daily_flow: 4, a_to_b_flow: 3, b_to_a_flow: 1 }),
+            trip({ corridor_key: 'A|C', end_station_id: 'C', total_daily_flow: 6, a_to_b_flow: 2, b_to_a_flow: 4 }),
+        ])
+
+        expect(stats.totalDailyRides).toBe(10)
+        expect(stats.partnerCount).toBe(2)
+        expect(stats.outboundShare).toBeCloseTo(0.5)
+    })
+
+    it('returns a zero share when there is no flow', () => {
+        expect(tripFlowFocusStats([]).outboundShare).toBe(0)
+    })
+})
+
+describe('classifyBalance', () => {
+    it('classifies dominant directions beyond the ±0.15 balance threshold', () => {
+        expect(classifyBalance(58, 42)).toBe('outbound') // balance ≈ 0.16
+        expect(classifyBalance(42, 58)).toBe('inbound')
+        expect(classifyBalance(57, 43)).toBe('balanced') // balance ≈ 0.14
+        expect(classifyBalance(50, 50)).toBe('balanced')
+        expect(classifyBalance(0, 0)).toBe('balanced')
+    })
+})
+
+describe('selectTrips corridor_key', () => {
+    const apiPair = {
+        station_a_id: 'B',
+        station_a_name: 'B',
+        station_a_lat: 40.8,
+        station_a_lon: -74.0,
+        station_b_id: 'A',
+        station_b_name: 'A',
+        station_b_lat: 40.7,
+        station_b_lon: -73.9,
+        groups: [{ total_rides: 48, hours_count: 48, a_to_b_count: 30, b_to_a_count: 18 }],
+    }
+
+    it('is sorted by station id and survives orientation unchanged', () => {
+        const [row] = selectTrips([apiPair])
+        expect(row.corridor_key).toBe('A|B')
+
+        const [oriented] = orientTripsToFocus([row], 'A')
+        expect(oriented.start_station_id).toBe('A')
+        expect(oriented.corridor_key).toBe('A|B')
+    })
+})
+
+describe('computeFocusBounds', () => {
+    it('frames the corridors covering 90% of flow, excluding far outliers', () => {
+        const near = trip({ end_station_lat: 40.71, end_station_lon: -73.91, total_daily_flow: 95 })
+        const outlier = trip({ corridor_key: 'A|Far', end_station_lat: 40.94, end_station_lon: -74.29, total_daily_flow: 5 })
+        const [[minLng, minLat], [maxLng, maxLat]] = computeFocusBounds([outlier, near])
+
+        expect(maxLat).toBeCloseTo(40.71)
+        expect(minLng).toBeCloseTo(-73.91)
+        expect(minLat).toBeCloseTo(40.7)
+        expect(maxLng).toBeCloseTo(-73.9)
+    })
+
+    it('always includes the focused start endpoint and handles empty input', () => {
+        const only = trip({ total_daily_flow: 1 })
+        const bounds = computeFocusBounds([only])
+        expect(bounds).toEqual([[-74.0, 40.7], [-73.9, 40.8]])
+        expect(computeFocusBounds([])).toBeNull()
+        expect(computeFocusBounds(null)).toBeNull()
     })
 })
 
@@ -206,8 +294,8 @@ describe('orientTripsToFocus', () => {
     })
 })
 
-describe('topPartnersByFlow', () => {
-    it('ranks partners by total flow with partner names and direction splits', () => {
+describe('rankCorridors on oriented focus rows', () => {
+    it('reads outbound/inbound relative to the focused station', () => {
         const oriented = orientTripsToFocus([
             trip({ total_daily_flow: 2 }),
             trip({
@@ -216,17 +304,10 @@ describe('topPartnersByFlow', () => {
                 total_daily_flow: 8, a_to_b_flow: 5, b_to_a_flow: 3,
             }),
         ], 'A')
-        const { labels, inbound, outbound } = topPartnersByFlow(oriented, 10)
+        const rows = rankCorridors(oriented, 10)
 
-        expect(labels).toEqual(['C', 'B'])
-        expect(outbound).toEqual([3, 0.6]) // focused-to-partner
-        expect(inbound).toEqual([5, 0.4])  // partner-to-focused
-    })
-
-    it('caps the list at n and returns empty series for empty input', () => {
-        const oriented = orientTripsToFocus([trip(), trip({ end_station_id: 'C', end_station_name: 'C', total_daily_flow: 3 })], 'A')
-        expect(topPartnersByFlow(oriented, 1).labels).toEqual(['C'])
-        expect(topPartnersByFlow([], 10)).toEqual({ labels: [], inbound: [], outbound: [] })
-        expect(topPartnersByFlow(null, 10).labels).toEqual([])
+        expect(rows.map((row) => row.endName)).toEqual(['C', 'B'])
+        expect(rows[0].outbound).toBe(3) // focused-to-partner
+        expect(rows[0].inbound).toBe(5)  // partner-to-focused
     })
 })

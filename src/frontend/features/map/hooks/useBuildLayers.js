@@ -39,7 +39,15 @@ export function useBuildLayers({ filters, currentTime, activeLayer, showBikeRout
         selectedStationIds: selectedInfrastructureStationIds,
         selectedStations: selectedInfrastructureStations,
     } = useInfrastructureStationSelection(stations)
-    const { hoveredRouteId, hoveredTripStationId, handleRoutePick, handleTripStationHover } = useLayerHoverState()
+    const {
+        hoveredRouteId,
+        hoveredTripStationId,
+        hoveredCorridorKey,
+        handleRoutePick,
+        handleTripStationHover,
+        handleArcHover,
+        setHoveredCorridor,
+    } = useLayerHoverState()
 
     // Historical view: keep only the segments active in the selected year.
     // Memoized so scrubbing the year slider stays a cheap array pass.
@@ -74,8 +82,10 @@ export function useBuildLayers({ filters, currentTime, activeLayer, showBikeRout
         tripStations,
         focusedStationId,
         hoveredTripStationId,
+        hoveredCorridorKey,
         onTripStationPick: onStationPick,
         onTripStationHover: handleTripStationHover,
+        onTripArcHover: handleArcHover,
         availabilityLoading,
         availabilityError,
         stations,
@@ -87,7 +97,7 @@ export function useBuildLayers({ filters, currentTime, activeLayer, showBikeRout
         onRoutePick: handleRoutePick,
         selectedStationIds: selectedInfrastructureStationIds,
         onInfrastructureStationPick,
-    }), [frameStations, maxUsage, maxDelta, trips, maxTripFlow, tripStations, focusedStationId, hoveredTripStationId, onStationPick, stations, activeLayer, stationLoading, stationError, tripLoading, tripError, availabilityLoading, availabilityError, yearFilteredRoutes, showBikeRoutes, hoveredRouteId, selectedInfrastructureStationIds, onInfrastructureStationPick, hiddenHealthCategories, hiddenRouteClasses])
+    }), [frameStations, maxUsage, maxDelta, trips, maxTripFlow, tripStations, focusedStationId, hoveredTripStationId, hoveredCorridorKey, onStationPick, handleTripStationHover, handleArcHover, stations, activeLayer, stationLoading, stationError, tripLoading, tripError, availabilityLoading, availabilityError, yearFilteredRoutes, showBikeRoutes, hoveredRouteId, handleRoutePick, selectedInfrastructureStationIds, onInfrastructureStationPick, hiddenHealthCategories, hiddenRouteClasses])
 
     // Station name for the focus-mode chart title; the trip station list
     // carries id and name for every clickable dot.
@@ -121,6 +131,13 @@ export function useBuildLayers({ filters, currentTime, activeLayer, showBikeRout
         bikeRoutes, yearFilteredRoutes, routesLoading, routesError, refetchRoutes,
     ])
 
+    // Hover link between insight-panel corridor rows and map arcs. Bundled
+    // separately from `insights` so hover changes never recompute that memo.
+    const tripFlowHover = useMemo(() => ({
+        hoveredCorridorKey,
+        onCorridorHover: setHoveredCorridor,
+    }), [hoveredCorridorKey, setHoveredCorridor])
+
     // Consider the loading, error, and data states of only the active layer for the overall status
     const activeLayerState = stateLayers.find(layer => layer.layer === activeLayer)
     const loading = activeLayerState?.loading || false
@@ -137,11 +154,17 @@ export function useBuildLayers({ filters, currentTime, activeLayer, showBikeRout
         refetch,
         clearTripFlowFocus: clearFocus,
         hasTripFlowFocus,
+        focusedStationId,
         selectedInfrastructureStations,
         clearInfrastructureSelection,
         // Unfiltered routes, for deriving the year slider bounds
         bikeRoutes,
         // Per-layer data slices for the insights panel
         insights,
+        // Corridor hover link shared by the insights panel and the arc layer
+        tripFlowHover,
+        // Trip flow query state and rows, for the focus camera
+        tripLoading,
+        trips,
     }
 }

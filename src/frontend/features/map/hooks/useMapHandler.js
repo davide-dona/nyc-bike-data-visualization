@@ -1,7 +1,11 @@
 import { useCallback, useEffect, useState } from 'react'
+import { FlyToInterpolator } from '@deck.gl/core'
 import { LAYER_OPTIONS, MIN_PITCH, MAX_PITCH, MIN_ZOOM, MAX_ZOOM, INITIAL_VIEW_STATE, MIN_LONGITUDE, MAX_LONGITUDE, MIN_LATITUDE, MAX_LATITUDE } from '../utils/mapConfig.js'
 
 import { clamp } from '@/utils/math.js'
+
+// Duration of programmatic camera moves (ms).
+const FLY_TO_DURATION = 900
 
 /**
  * Hook for handling map-related state and logic.
@@ -44,6 +48,20 @@ export function useMapHandler() {
         })
     }, [])
 
+    // Animated camera move to a target position; zoom is clamped to the
+    // allowed range and the interpolated frames pass through the regular
+    // view-state clamps.
+    const flyTo = useCallback(({ longitude, latitude, zoom }) => {
+        setViewState((prev) => ({
+            ...prev,
+            longitude: clamp(longitude, MIN_LONGITUDE, MAX_LONGITUDE),
+            latitude: clamp(latitude, MIN_LATITUDE, MAX_LATITUDE),
+            zoom: clamp(zoom, MIN_ZOOM, MAX_ZOOM),
+            transitionDuration: FLY_TO_DURATION,
+            transitionInterpolator: new FlyToInterpolator(),
+        }))
+    }, [])
+
     // Handler for view map changes
     const handleViewStateChange = useCallback(({ viewState: nextViewState }) => {
         setViewState({
@@ -71,6 +89,7 @@ export function useMapHandler() {
             touchRotate: true,
         },
         currentTime,
+        flyTo,
         handleViewStateChange,
         hasAnimation,
         hiddenHealthCategories,

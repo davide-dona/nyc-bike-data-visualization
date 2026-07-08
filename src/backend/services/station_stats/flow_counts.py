@@ -4,14 +4,21 @@ from src.backend.models.station_stats.flow_counts import GroupedStationFlowCount
 from src.backend.services.sql.query_builder import Filters
 from src.backend.services.sql.spine import HOURS_CTE
 
+# Ceiling applied to citywide (no station_id) requests that omit an explicit
+# limit, so an unbounded query can never dump every pair in the table.
+CITYWIDE_PAIR_CAP = 1000
+
 def get_trips_between_stations_stats(
     month_range: MonthRange,
     filters: StationFilters,
-    limit: int = 100,
+    limit: int | None = None,
 ) -> list[StationFlowCounts]:
     """Fetch aggregated counts of trips between station pairs in the given month range,
     following the shared spine pattern: a calendar hours CTE provides hours_count and
-    the top pairs are selected in SQL."""
+    the top pairs are selected in SQL. A None limit returns every pair for
+    station-scoped requests and falls back to CITYWIDE_PAIR_CAP citywide."""
+    if limit is None and filters.station_id is None:
+        limit = CITYWIDE_PAIR_CAP
     spine_start, spine_end = month_range.bounds()
 
     f = Filters()
@@ -50,9 +57,11 @@ def get_trips_between_stations_stats(
                  sm_b.station_name, sm_b.lat, sm_b.lon,
                  s.hours_count
         ORDER BY total_rides DESC, fam.station_a_id, fam.station_b_id
-        LIMIT %s
+        {"LIMIT %s" if limit is not None else ""}
     """
-    params = (spine_start, spine_end, *f.params, limit)
+    params = (spine_start, spine_end, *f.params)
+    if limit is not None:
+        params = (*params, limit)
 
     with get_conn() as conn:
         with conn.cursor() as cur:

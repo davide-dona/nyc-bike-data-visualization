@@ -21,6 +21,9 @@ export function selectTrips(tripCounts) {
             } = trip;
             const daysCount = Number(hours_count) / 24; // Convert hours count to days count for average daily flow calculation
             return {
+                // Orientation-independent pair identity, shared by arcs and
+                // insight rows to link hover state across map and panel.
+                corridor_key: [start_station_id, end_station_id].sort().join('|'),
                 start_station_id,
                 start_station_name,
                 start_station_lat,
@@ -84,4 +87,23 @@ export function orientTripsToFocus(trips, focusedStationId) {
  */
 export function selectMaxFlow(trips) {
     return Math.max(...trips.map((trip) => trip.total_daily_flow));
+}
+
+// A corridor counts as directional once one direction carries more than
+// 57.5% of its rides: |out - in| / (out + in) > 0.15, beyond day-to-day noise.
+const BALANCE_THRESHOLD = 0.15
+
+/**
+ * Classifies a corridor's net direction relative to the focused station.
+ * @param {number} outbound - Daily rides leaving the focused station.
+ * @param {number} inbound - Daily rides arriving at the focused station.
+ * @returns {'outbound'|'inbound'|'balanced'} Dominant direction class.
+ */
+export function classifyBalance(outbound, inbound) {
+    const total = outbound + inbound
+    if (!(total > 0)) return 'balanced'
+    const balance = (outbound - inbound) / total
+    if (balance > BALANCE_THRESHOLD) return 'outbound'
+    if (balance < -BALANCE_THRESHOLD) return 'inbound'
+    return 'balanced'
 }

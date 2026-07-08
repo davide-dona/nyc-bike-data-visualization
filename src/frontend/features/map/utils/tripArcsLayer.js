@@ -2,71 +2,142 @@ import { ArcLayer } from '@deck.gl/layers'
 import {
     ACCENT_RGB,
     ACCENT_INK_RGB,
+    ACCENT_SOFT_RGB,
+    INK_MUTED_RGB,
+    WARM_HIGHLIGHT_RGB,
+    RUST_RGB,
 } from '@/utils/editorialTokens.js'
+import { classifyBalance } from './tripArcsSelector.js'
 import { formatCount, formatNumber } from '@/utils/numberFormat.js'
 
-// Arc styling - alpha and width ramps stay; palette is editorial.
-const BASE_ALPHA = 80
-const MAX_ALPHA_RANGE = 175
-const BASE_WIDTH = 3
-const MAX_WIDTH_RANGE = 20
-const SOURCE_COLOR = ACCENT_RGB            // [25, 83, 216]
-const TARGET_COLOR = ACCENT_INK_RGB        // [10, 42, 122]
+// Overview: a dense web of thin translucent arcs where volume drives
+// width, opacity, and a single-hue ramp. Focus: solid diverging colors by
+// net direction, with volume in width and opacity only.
+const OVERVIEW_BASE_WIDTH = 1
+const OVERVIEW_WIDTH_RANGE = 5
+const OVERVIEW_BASE_ALPHA = 25
+const OVERVIEW_ALPHA_RANGE = 205
+const FOCUS_BASE_WIDTH = 1
+const FOCUS_WIDTH_RANGE = 6
+const FOCUS_BASE_ALPHA = 30
+const FOCUS_ALPHA_RANGE = 195
+const HOVER_WIDTH_BONUS = 2
+// Ramp midpoint: below it colors run soft → accent, above accent → ink.
+const RAMP_SPLIT = 0.6
+
+const FOCUS_COLORS = {
+    outbound: ACCENT_RGB,
+    inbound: RUST_RGB,
+    balanced: INK_MUTED_RGB,
+}
 
 /**
- * Normalizes trip usage to a 0–1 range
- * @param {Object} trip 
- * @param {number} maxTripCount 
- * @returns {number}
+ * Normalizes a trip's daily flow to 0-1 with a square-root ramp, so the
+ * busiest (outlier) corridors do not crush the mid-range into invisibility.
+ * @param {Object} trip - Processed trip row.
+ * @param {number} maxTripCount - Maximum total_daily_flow across trips.
+ * @returns {number} Normalized volume in [0, 1].
  */
 function normalizeTripUsage(trip, maxTripCount) {
-    return (Number(trip.total_daily_flow) || 0) / maxTripCount
+    if (!(maxTripCount > 0)) return 0
+    return Math.sqrt((Number(trip.total_daily_flow) || 0) / maxTripCount)
 }
 
 /**
- * Computes arc width based on normalized usage
- * @param {number} normalizedUsage 
- * @returns {number} arc width in pixels
+ * Linear interpolation between two RGB triplets.
+ * @param {number[]} from - Start RGB.
+ * @param {number[]} to - End RGB.
+ * @param {number} t - Interpolation factor in [0, 1].
+ * @returns {number[]} Interpolated RGB.
  */
-function getArcWidth(normalizedUsage) {
-    return BASE_WIDTH + normalizedUsage * MAX_WIDTH_RANGE
+function lerpColor(from, to, t) {
+    return from.map((c, i) => Math.round(c + (to[i] - c) * t))
 }
 
 /**
- * Computes arc color with alpha based on normalized usage
- * @param {number[]} baseColor - RGB triplet
- * @param {number} normalizedUsage 
- * @returns {number[]} - RGBA array
+ * Single-hue volume ramp for overview arcs: soft blue for quiet corridors,
+ * accent at the ramp split, ink blue for the busiest.
+ * @param {number} t - Normalized volume in [0, 1].
+ * @returns {number[]} RGB triplet.
  */
-function getArcColor(baseColor, normalizedUsage) {
-    const alpha = Math.round(BASE_ALPHA + normalizedUsage * MAX_ALPHA_RANGE)
-    return [...baseColor, alpha]
+function rampArcColor(t) {
+    if (t < RAMP_SPLIT) return lerpColor(ACCENT_SOFT_RGB, ACCENT_RGB, t / RAMP_SPLIT)
+    return lerpColor(ACCENT_RGB, ACCENT_INK_RGB, (t - RAMP_SPLIT) / (1 - RAMP_SPLIT))
 }
 
 /**
- * Creates a layer for displaying frequent trips based on their usage
- * @param {Array} trips - Array of trip objects with sourcePosition, targetPosition, and dailyFlow
- * @param {number} maxTripCount - Maximum trip count for scaling widths and colors
- * @returns {ArcLayer}
+ * Resolves an arc's RGBA color for the current mode and hover state. Both
+ * endpoints share the color: overview pair order is canonical (not a travel
+ * direction), and focus arcs encode direction via the diverging hue instead.
+ * @param {Object} trip - Processed (oriented, in focus view) trip row.
+ * @param {number} maxTripCount - Maximum total_daily_flow across trips.
+ * @param {boolean} isFocusView - Whether a station is focused.
+ * @param {string|null} hoveredCorridorKey - Corridor highlighted via panel or map hover.
+ * @returns {number[]} RGBA color.
  */
-export function createTripsArcLayer({ trips, maxTripCount }) {
+function getArcColor(trip, maxTripCount, isFocusView, hoveredCorridorKey) {
+    if (trip.corridor_key === hoveredCorridorKey) return [...WARM_HIGHLIGHT_RGB, 255]
+    const t = normalizeTripUsage(trip, maxTripCount)
+    if (isFocusView) {
+        const balanceClass = classifyBalance(trip.a_to_b_flow, trip.b_to_a_flow)
+        return [...FOCUS_COLORS[balanceClass], Math.round(FOCUS_BASE_ALPHA + t * FOCUS_ALPHA_RANGE)]
+    }
+    return [...rampArcColor(t), Math.round(OVERVIEW_BASE_ALPHA + t * OVERVIEW_ALPHA_RANGE)]
+}
+
+/**
+ * Resolves an arc's width in pixels for the current mode and hover state.
+ * @param {Object} trip - Processed trip row.
+ * @param {number} maxTripCount - Maximum total_daily_flow across trips.
+ * @param {boolean} isFocusView - Whether a station is focused.
+ * @param {string|null} hoveredCorridorKey - Corridor highlighted via panel or map hover.
+ * @returns {number} Width in pixels.
+ */
+function getArcWidth(trip, maxTripCount, isFocusView, hoveredCorridorKey) {
+    const t = normalizeTripUsage(trip, maxTripCount)
+    const width = isFocusView
+        ? FOCUS_BASE_WIDTH + t * FOCUS_WIDTH_RANGE
+        : OVERVIEW_BASE_WIDTH + t * OVERVIEW_WIDTH_RANGE
+    return trip.corridor_key === hoveredCorridorKey ? width + HOVER_WIDTH_BONUS : width
+}
+
+/**
+ * Creates the trip-flow arc layer. Overview mode draws the citywide corridor
+ * web; focus mode draws every corridor of the focused station colored by net
+ * direction. Hovering a corridor (on the map or in the insights panel)
+ * highlights its arc in the warm selection color.
+ * @param {Array} trips - Processed trip rows (oriented to the focused station in focus view).
+ * @param {number} maxTripCount - Maximum total_daily_flow, for volume scaling.
+ * @param {boolean} isFocusView - Whether a station is focused.
+ * @param {string|null} hoveredCorridorKey - Corridor to highlight, null for none.
+ * @param {Function} onArcHover - deck.gl hover handler syncing the highlight to the panel.
+ * @returns {ArcLayer} The deck.gl layer.
+ */
+export function createTripsArcLayer({
+    trips,
+    maxTripCount,
+    isFocusView = false,
+    hoveredCorridorKey = null,
+    onArcHover,
+}) {
     return new ArcLayer({
         id: 'frequent-trips-layer',
         data: trips,
         getSourcePosition: (trip) => [trip.start_station_lon, trip.start_station_lat],
         getTargetPosition: (trip) => [trip.end_station_lon, trip.end_station_lat],
-        getWidth: (trip) => getArcWidth(normalizeTripUsage(trip, maxTripCount)),
-        getSourceColor: (trip) => getArcColor(SOURCE_COLOR, normalizeTripUsage(trip, maxTripCount)),
-        getTargetColor: (trip) => getArcColor(TARGET_COLOR, normalizeTripUsage(trip, maxTripCount)),
+        getWidth: (trip) => getArcWidth(trip, maxTripCount, isFocusView, hoveredCorridorKey),
+        getSourceColor: (trip) => getArcColor(trip, maxTripCount, isFocusView, hoveredCorridorKey),
+        getTargetColor: (trip) => getArcColor(trip, maxTripCount, isFocusView, hoveredCorridorKey),
         updateTriggers: {
-            getWidth: [maxTripCount],
-            getSourceColor: [maxTripCount],
-            getTargetColor: [maxTripCount],
+            getWidth: [maxTripCount, isFocusView, hoveredCorridorKey],
+            getSourceColor: [maxTripCount, isFocusView, hoveredCorridorKey],
+            getTargetColor: [maxTripCount, isFocusView, hoveredCorridorKey],
         },
         pickable: true,
-        opacity: 0.75,
-        widthMinPixels: 1,
-        widthMaxPixels: 8,
+        onHover: onArcHover,
+        opacity: 1,
+        widthMinPixels: 0.8,
+        widthMaxPixels: isFocusView ? 7 : 6,
         widthUnits: 'pixels',
         greatCircle: false,
         parameters: {
@@ -90,4 +161,3 @@ export function tripArcsTooltip(object) {
     const b_to_a = Number(object.b_to_a_flow) || 0
     return `Corridor: ${from} <> ${to}\n Daily Rides: ${formatCount(rides)}\n Total Rides: ${formatCount(totalRides)}\n Daily ${from} → ${to}: ${formatNumber(a_to_b, 2)}\n Daily ${to} → ${from}: ${formatNumber(b_to_a, 2)}`
 }
-

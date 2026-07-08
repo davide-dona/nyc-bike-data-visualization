@@ -8,6 +8,7 @@ import { legendFor, bikeRoutesLegend } from "../utils/mapLegend.js";
  * toggles; every other layer's legend stays static.
  * @param {string} activeLayer - Key of the layer whose legend should be displayed.
  * @param {boolean} showBikeRoutes - When true, an extra bike-routes section is surfaced.
+ * @param {boolean} hasTripFlowFocus - Whether the trip-flow layer has a focused station (switches its legend).
  * @param {Set} hiddenHealthCategories - Station health categories currently hidden on the map.
  * @param {Set} hiddenRouteClasses - Bike-route facility classes currently hidden on the map.
  * @param {Function} onToggleHealthCategory - Toggles one health category's visibility.
@@ -17,6 +18,7 @@ import { legendFor, bikeRoutesLegend } from "../utils/mapLegend.js";
 export default function MapLegend({
     activeLayer,
     showBikeRoutes,
+    hasTripFlowFocus = false,
     hiddenHealthCategories,
     hiddenRouteClasses,
     onToggleHealthCategory,
@@ -24,7 +26,7 @@ export default function MapLegend({
     className = '',
 }) {
     const activeLayerLabel = LAYER_OPTIONS.find((layer) => layer.value === activeLayer)?.label || "Layer";
-    const legend = legendFor(activeLayer, { showBikeRoutes });
+    const legend = legendFor(activeLayer, { showBikeRoutes, hasTripFlowFocus });
     const isInfrastructure = activeLayer === "infrastructure";
 
     return (

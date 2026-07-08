@@ -5,6 +5,7 @@
  */
 
 import { getRouteInstallYear } from './routeYearFilter.js'
+import { haversineKm } from '@/utils/math.js'
 
 const HOURS_IN_DAY = 24
 
@@ -159,44 +160,84 @@ export function topStationsByUsage(stations, mode = 'all', n = 10) {
 }
 
 /**
- * Top station pairs by total daily flow for the citywide overview chart.
- * Labels are two-line arrays (one station name per line) so both endpoints
- * stay readable on the category axis. Values are pair totals: the backend's
- * a/b pair order carries no direction semantics, so no per-direction split
- * is offered here.
- * @param {Array} trips - Processed trip rows from selectTrips.
- * @param {number} n - How many pairs to keep.
- * @returns {{labels: string[][], values: number[]}}
+ * Ranks corridors by total daily flow for the trip-flow corridor list. Works
+ * for both modes: overview rows keep the backend's canonical pair order,
+ * focus rows arrive oriented so outbound/inbound read relative to the
+ * focused station.
+ * @param {Array} trips - Processed trip rows from selectTrips (oriented in focus view).
+ * @param {number} n - How many corridors to keep.
+ * @returns {Array} Ranked rows with key, names, value, and directional split.
  */
-export function topCorridors(trips, n = 10) {
-    const ranked = [...(trips ?? [])]
+export function rankCorridors(trips, n = 12) {
+    return [...(trips ?? [])]
         .sort((a, b) => b.total_daily_flow - a.total_daily_flow)
         .slice(0, n)
+        .map((trip) => ({
+            key: trip.corridor_key,
+            startName: trip.start_station_name,
+            endName: trip.end_station_name,
+            value: trip.total_daily_flow,
+            outbound: trip.a_to_b_flow,
+            inbound: trip.b_to_a_flow,
+        }))
+}
 
+/**
+ * Flow-weighted median of corridor straight-line distances: the distance at
+ * which half of the daily rides happen on shorter corridors. Weighting by
+ * flow keeps a long tail of quiet corridors from skewing the headline.
+ * @param {Array} trips - Processed trip rows with endpoint coordinates.
+ * @returns {number} Median corridor distance in kilometers, 0 when empty.
+ */
+function weightedMedianDistanceKm(trips) {
+    const rows = (trips ?? [])
+        .map((trip) => ({
+            distance: haversineKm(
+                trip.start_station_lat, trip.start_station_lon,
+                trip.end_station_lat, trip.end_station_lon,
+            ),
+            flow: trip.total_daily_flow,
+        }))
+        .sort((a, b) => a.distance - b.distance)
+    const totalFlow = rows.reduce((sum, row) => sum + row.flow, 0)
+    if (!(totalFlow > 0)) return 0
+
+    let cumulative = 0
+    for (const row of rows) {
+        cumulative += row.flow
+        if (cumulative >= totalFlow / 2) return row.distance
+    }
+    return rows[rows.length - 1].distance
+}
+
+/**
+ * Headline stats for the citywide trip-flow overview.
+ * @param {Array} trips - Processed trip rows from selectTrips.
+ * @returns {{totalDailyRides: number, corridorCount: number, medianDistanceKm: number}}
+ */
+export function tripFlowOverviewStats(trips) {
+    const rows = trips ?? []
     return {
-        labels: ranked.map((trip) => [trip.start_station_name, `<> ${trip.end_station_name}`]),
-        values: ranked.map((trip) => trip.total_daily_flow),
+        totalDailyRides: rows.reduce((sum, trip) => sum + trip.total_daily_flow, 0),
+        corridorCount: rows.length,
+        medianDistanceKm: weightedMedianDistanceKm(rows),
     }
 }
 
 /**
- * Top partner stations of the focused station by total daily flow, split by
- * direction. Expects rows oriented with orientTripsToFocus, where the focused
- * station is the start endpoint: a_to_b_flow is outbound (focused to partner)
- * and b_to_a_flow is inbound. Both series stay positive; the diverging chart
- * applies the sign.
+ * Headline stats for a focused station's corridors. Expects rows oriented
+ * with orientTripsToFocus, so a_to_b_flow reads as outbound.
  * @param {Array} orientedTrips - Trip rows oriented to the focused station.
- * @param {number} n - How many partners to keep.
- * @returns {{labels: string[], inbound: number[], outbound: number[]}}
+ * @returns {{totalDailyRides: number, partnerCount: number, outboundShare: number, medianDistanceKm: number}}
  */
-export function topPartnersByFlow(orientedTrips, n = 10) {
-    const ranked = [...(orientedTrips ?? [])]
-        .sort((a, b) => b.total_daily_flow - a.total_daily_flow)
-        .slice(0, n)
-
+export function tripFlowFocusStats(orientedTrips) {
+    const rows = orientedTrips ?? []
+    const totalDailyRides = rows.reduce((sum, trip) => sum + trip.total_daily_flow, 0)
+    const outboundRides = rows.reduce((sum, trip) => sum + trip.a_to_b_flow, 0)
     return {
-        labels: ranked.map((trip) => trip.end_station_name),
-        inbound: ranked.map((trip) => trip.b_to_a_flow),
-        outbound: ranked.map((trip) => trip.a_to_b_flow),
+        totalDailyRides,
+        partnerCount: rows.length,
+        outboundShare: totalDailyRides > 0 ? outboundRides / totalDailyRides : 0,
+        medianDistanceKm: weightedMedianDistanceKm(rows),
     }
 }
