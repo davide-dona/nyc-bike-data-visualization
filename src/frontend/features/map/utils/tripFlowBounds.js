@@ -1,15 +1,7 @@
-import { WebMercatorViewport } from '@deck.gl/core'
-import { MIN_ZOOM } from './mapConfig.js'
-
 // Share of total daily flow the framed corridors must cover. Excluding the
 // long tail keeps one or two far-away partners from zooming the camera out
 // to the whole city.
 const DEFAULT_COVERAGE = 0.9
-// Pixel padding around the fitted bounds.
-const FIT_PADDING = 80
-// Zoom-in ceiling for the fitted view, so stations whose corridors are all
-// adjacent still show a readable neighborhood rather than one block.
-const MAX_FIT_ZOOM = 14
 
 /**
  * Computes the geographic bounds of a focused station's strongest corridors:
@@ -47,23 +39,4 @@ export function computeFocusBounds(orientedTrips, { coverage = DEFAULT_COVERAGE 
     }
 
     return [[minLng, minLat], [maxLng, maxLat]]
-}
-
-/**
- * Resolves the camera target that frames the given bounds inside a viewport,
- * clamping zoom to the allowed range for a fitted view.
- * @param {Array} bounds - [[minLng, minLat], [maxLng, maxLat]].
- * @param {Object} viewport - Viewport size.
- * @param {number} viewport.width - Viewport width in pixels.
- * @param {number} viewport.height - Viewport height in pixels.
- * @returns {{longitude: number, latitude: number, zoom: number}} Camera target for flyTo.
- */
-export function fitViewForBounds(bounds, { width, height }) {
-    const { longitude, latitude, zoom } = new WebMercatorViewport({ width, height })
-        .fitBounds(bounds, { padding: FIT_PADDING })
-    return {
-        longitude,
-        latitude,
-        zoom: Math.min(Math.max(zoom, MIN_ZOOM), MAX_FIT_ZOOM),
-    }
 }

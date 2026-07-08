@@ -3,12 +3,21 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 /**
  * Handler hook for the infrastructure station multi-select: toggles stations
  * on click (shift-click extends the selection), keeps selections valid as
- * station data refreshes, and exposes the selected station objects.
+ * station data refreshes, clears when leaving the infrastructure layer, and
+ * exposes the selected station objects.
  * @param {Array} stations - Current stations with live availability data.
+ * @param {string} activeLayer - The active map layer key.
  * @returns {Object} Selection ids/objects, the pick handler, and the clear action.
  */
-export function useInfrastructureStationSelection(stations = []) {
+export function useInfrastructureStationSelection(stations = [], activeLayer) {
     const [selectedStationIdSet, setSelectedStationIdSet] = useState(() => new Set())
+
+    // The selection (and the sidebar/halo it drives) belongs to the
+    // infrastructure view only, so switching layers resets it.
+    useEffect(() => {
+        if (activeLayer === 'infrastructure') return
+        setSelectedStationIdSet((previousSet) => previousSet.size ? new Set() : previousSet)
+    }, [activeLayer])
 
     const clearSelectedStations = useCallback(() => {
         setSelectedStationIdSet(new Set())

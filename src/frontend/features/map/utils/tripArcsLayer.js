@@ -24,6 +24,11 @@ const FOCUS_ALPHA_RANGE = 195
 const HOVER_WIDTH_BONUS = 2
 // Ramp midpoint: below it colors run soft → accent, above accent → ink.
 const RAMP_SPLIT = 0.6
+// Overview emphasis: the ranked (listed) corridors get an opacity floor and a
+// width bonus while the long tail is dimmed, so the strongest corridors pop.
+const EMPHASIS_ALPHA_FLOOR = 210
+const EMPHASIS_WIDTH_BONUS = 1.5
+const TAIL_ALPHA_FACTOR = 0.4
 
 const FOCUS_COLORS = {
     outbound: ACCENT_RGB,
@@ -73,16 +78,23 @@ function rampArcColor(t) {
  * @param {number} maxTripCount - Maximum total_daily_flow across trips.
  * @param {boolean} isFocusView - Whether a station is focused.
  * @param {string|null} hoveredCorridorKey - Corridor highlighted via panel or map hover.
+ * @param {Set|null} emphasizedCorridorKeys - Ranked corridors emphasized in the overview.
  * @returns {number[]} RGBA color.
  */
-function getArcColor(trip, maxTripCount, isFocusView, hoveredCorridorKey) {
+function getArcColor(trip, maxTripCount, isFocusView, hoveredCorridorKey, emphasizedCorridorKeys) {
     if (trip.corridor_key === hoveredCorridorKey) return [...WARM_HIGHLIGHT_RGB, 255]
     const t = normalizeTripUsage(trip, maxTripCount)
     if (isFocusView) {
         const balanceClass = classifyBalance(trip.a_to_b_flow, trip.b_to_a_flow)
         return [...FOCUS_COLORS[balanceClass], Math.round(FOCUS_BASE_ALPHA + t * FOCUS_ALPHA_RANGE)]
     }
-    return [...rampArcColor(t), Math.round(OVERVIEW_BASE_ALPHA + t * OVERVIEW_ALPHA_RANGE)]
+    let alpha = Math.round(OVERVIEW_BASE_ALPHA + t * OVERVIEW_ALPHA_RANGE)
+    if (emphasizedCorridorKeys) {
+        alpha = emphasizedCorridorKeys.has(trip.corridor_key)
+            ? Math.max(alpha, EMPHASIS_ALPHA_FLOOR)
+            : Math.round(alpha * TAIL_ALPHA_FACTOR)
+    }
+    return [...rampArcColor(t), alpha]
 }
 
 /**
@@ -91,13 +103,15 @@ function getArcColor(trip, maxTripCount, isFocusView, hoveredCorridorKey) {
  * @param {number} maxTripCount - Maximum total_daily_flow across trips.
  * @param {boolean} isFocusView - Whether a station is focused.
  * @param {string|null} hoveredCorridorKey - Corridor highlighted via panel or map hover.
+ * @param {Set|null} emphasizedCorridorKeys - Ranked corridors emphasized in the overview.
  * @returns {number} Width in pixels.
  */
-function getArcWidth(trip, maxTripCount, isFocusView, hoveredCorridorKey) {
+function getArcWidth(trip, maxTripCount, isFocusView, hoveredCorridorKey, emphasizedCorridorKeys) {
     const t = normalizeTripUsage(trip, maxTripCount)
-    const width = isFocusView
+    let width = isFocusView
         ? FOCUS_BASE_WIDTH + t * FOCUS_WIDTH_RANGE
         : OVERVIEW_BASE_WIDTH + t * OVERVIEW_WIDTH_RANGE
+    if (emphasizedCorridorKeys?.has(trip.corridor_key)) width += EMPHASIS_WIDTH_BONUS
     return trip.corridor_key === hoveredCorridorKey ? width + HOVER_WIDTH_BONUS : width
 }
 
@@ -110,6 +124,7 @@ function getArcWidth(trip, maxTripCount, isFocusView, hoveredCorridorKey) {
  * @param {number} maxTripCount - Maximum total_daily_flow, for volume scaling.
  * @param {boolean} isFocusView - Whether a station is focused.
  * @param {string|null} hoveredCorridorKey - Corridor to highlight, null for none.
+ * @param {Set|null} emphasizedCorridorKeys - Ranked corridors emphasized in the overview, null for none.
  * @param {Function} onArcHover - deck.gl hover handler syncing the highlight to the panel.
  * @returns {ArcLayer} The deck.gl layer.
  */
@@ -118,20 +133,23 @@ export function createTripsArcLayer({
     maxTripCount,
     isFocusView = false,
     hoveredCorridorKey = null,
+    emphasizedCorridorKeys = null,
     onArcHover,
 }) {
+    // Stable trigger key so accessor caches rebuild when the ranked set changes
+    const emphasisKey = emphasizedCorridorKeys ? [...emphasizedCorridorKeys].sort().join('|') : null
     return new ArcLayer({
         id: 'frequent-trips-layer',
         data: trips,
         getSourcePosition: (trip) => [trip.start_station_lon, trip.start_station_lat],
         getTargetPosition: (trip) => [trip.end_station_lon, trip.end_station_lat],
-        getWidth: (trip) => getArcWidth(trip, maxTripCount, isFocusView, hoveredCorridorKey),
-        getSourceColor: (trip) => getArcColor(trip, maxTripCount, isFocusView, hoveredCorridorKey),
-        getTargetColor: (trip) => getArcColor(trip, maxTripCount, isFocusView, hoveredCorridorKey),
+        getWidth: (trip) => getArcWidth(trip, maxTripCount, isFocusView, hoveredCorridorKey, emphasizedCorridorKeys),
+        getSourceColor: (trip) => getArcColor(trip, maxTripCount, isFocusView, hoveredCorridorKey, emphasizedCorridorKeys),
+        getTargetColor: (trip) => getArcColor(trip, maxTripCount, isFocusView, hoveredCorridorKey, emphasizedCorridorKeys),
         updateTriggers: {
-            getWidth: [maxTripCount, isFocusView, hoveredCorridorKey],
-            getSourceColor: [maxTripCount, isFocusView, hoveredCorridorKey],
-            getTargetColor: [maxTripCount, isFocusView, hoveredCorridorKey],
+            getWidth: [maxTripCount, isFocusView, hoveredCorridorKey, emphasisKey],
+            getSourceColor: [maxTripCount, isFocusView, hoveredCorridorKey, emphasisKey],
+            getTargetColor: [maxTripCount, isFocusView, hoveredCorridorKey, emphasisKey],
         },
         pickable: true,
         onHover: onArcHover,

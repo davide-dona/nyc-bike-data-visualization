@@ -24,6 +24,7 @@ import { BASE_TILE_URL } from './mapConfig.js'
  * @param {string|null} focusedStationId - Focused station id, null in overview.
  * @param {string|null} hoveredTripStationId - Hovered trip station id.
  * @param {string|null} hoveredCorridorKey - Corridor highlighted via panel or arc hover.
+ * @param {Set|null} emphasizedCorridorKeys - Ranked corridors emphasized in the overview.
  * @param {Function} onTripStationPick - Pick handler focusing a station.
  * @param {Function} onTripStationHover - Hover handler for trip stations.
  * @param {Function} onTripArcHover - Hover handler for corridor arcs.
@@ -37,7 +38,9 @@ import { BASE_TILE_URL } from './mapConfig.js'
  * @param {string|null} hoveredRouteId - Hovered bike route segment id.
  * @param {Function} onRoutePick - Hover/pick handler for route segments.
  * @param {Array} selectedStationIds - Selected infrastructure station ids.
+ * @param {string|null} hoveredInfrastructureStationId - Hovered infrastructure station id.
  * @param {Function} onInfrastructureStationPick - Pick handler toggling station selection.
+ * @param {Function} onInfrastructureStationHover - Hover handler for infrastructure stations.
  * @returns {Array} The deck.gl layers to render.
  */
 export function buildDeckLayers({
@@ -55,6 +58,7 @@ export function buildDeckLayers({
     focusedStationId,
     hoveredTripStationId,
     hoveredCorridorKey,
+    emphasizedCorridorKeys,
     onTripStationPick,
     onTripStationHover,
     onTripArcHover,
@@ -68,7 +72,9 @@ export function buildDeckLayers({
     hoveredRouteId,
     onRoutePick,
     selectedStationIds,
+    hoveredInfrastructureStationId,
     onInfrastructureStationPick,
+    onInfrastructureStationHover,
 }) {
     // Base tile layer is always included
     const base = [createBaseTileLayer(BASE_TILE_URL)]
@@ -86,6 +92,7 @@ export function buildDeckLayers({
                 focusedStationId,
                 hoveredStationId: hoveredTripStationId,
                 hoveredCorridorKey,
+                emphasizedCorridorKeys,
                 onStationPick: onTripStationPick,
                 onStationHover: onTripStationHover,
                 onArcHover: onTripArcHover,
@@ -107,10 +114,12 @@ export function buildDeckLayers({
             if (showBikeRoutes && visibleRoutes.length > 0) {
                 base.push(createBikeRoutesLayer({ routes: visibleRoutes, hoveredrouteID: hoveredRouteId, onRoutePick }))
             }
-            base.push(createStationAvailabilityLayer({
+            base.push(...createStationAvailabilityLayer({
                 stations: visibleStations,
                 selectedStationIds,
+                hoveredStationId: hoveredInfrastructureStationId,
                 onStationPick: onInfrastructureStationPick,
+                onStationHover: onInfrastructureStationHover,
             }))
         }
     }

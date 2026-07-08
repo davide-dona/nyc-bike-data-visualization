@@ -60,6 +60,19 @@ describe('stationUsageSelector usage modes', () => {
         expect(getMaxDelta(stations, 'outgoing')).toBeCloseTo(10 - 10 / 24)
         expect(getMaxDelta(stations, 'incoming')).toBeCloseTo(9 - 11 / 24)
     })
+
+    it('the all max bounds every per-mode max so a shared elevation domain keeps heights additive', () => {
+        const stations = selectStations(USAGE_FIXTURE)
+        const maxAll = getMaxUsage(stations, 'all')
+
+        // incoming + outgoing = all per bucket, so normalizing every mode by
+        // the all max keeps incoming + outgoing heights summing to the all height
+        expect(maxAll).toBeGreaterThanOrEqual(getMaxUsage(stations, 'outgoing'))
+        expect(maxAll).toBeGreaterThanOrEqual(getMaxUsage(stations, 'incoming'))
+        const [station] = stations
+        expect(station.hourlyByMode.incoming[8] + station.hourlyByMode.outgoing[8])
+            .toBeCloseTo(station.hourlyByMode.all[8])
+    })
 })
 
 describe('classifyStationHealth', () => {

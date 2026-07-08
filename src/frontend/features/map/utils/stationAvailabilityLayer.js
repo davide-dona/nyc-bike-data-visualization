@@ -1,4 +1,3 @@
-import { ScatterplotLayer } from '@deck.gl/layers'
 import {
     HEALTHY_RGB,
     DANGER_RGB,
@@ -7,33 +6,40 @@ import {
 } from '@/utils/editorialTokens.js'
 import { formatCount } from '@/utils/numberFormat.js'
 import { HEALTH_CATEGORY } from './stationAvailabilitySelector.js'
+import { createStationDotsLayers } from './stationDotsLayer.js'
+
+const STATION_RADIUS = 22
 
 /**
- * Creates a scatterplot layer for displaying station availability information.
- * @param {Array} stations - An array of station objects, each containing:
- *   - latitude: number
- *   - longitude: number
- *   - capacity: number (total docks)
- *   - health_category: string (HEALTH_CATEGORY value)
- * @returns
+ * Builds the infrastructure station dot layers via the shared station-dot
+ * factory: uniform outlined dots colored by health category, the shared warm
+ * selection halo for picked stations, and an invisible enlarged hit layer.
+ * @param {Array} stations - Station objects with latitude, longitude, and health_category.
+ * @param {Array} selectedStationIds - Selected station ids, get the halo ring.
+ * @param {string|null} hoveredStationId - Hovered station id, enlarged.
+ * @param {Function} onStationPick - Click handler toggling station selection.
+ * @param {Function} onStationHover - Hover handler.
+ * @returns {Array} The infrastructure station deck.gl layers.
  */
-export function createStationAvailabilityLayer({ stations, selectedStationIds = [], onStationPick }) {
-    const selectedIds = new Set(selectedStationIds)
-    return new ScatterplotLayer({
+export function createStationAvailabilityLayer({
+    stations,
+    selectedStationIds = [],
+    hoveredStationId = null,
+    onStationPick,
+    onStationHover,
+}) {
+    return createStationDotsLayers({
         id: 'station-availability-layer',
-        data: stations,
-        getPosition: (d) => [d.longitude, d.latitude],
-        getRadius: (d) => Math.sqrt(d.capacity) * 8, // larger stations appear bigger
-        getFillColor: (d) => selectedIds.has(d.id) ? [249, 115, 22, 240] : getStationColor(d.health_category),
-        getLineColor: (d) => selectedIds.has(d.id) ? [255, 255, 255] : [255, 255, 255],
-        getLineWidth: (d) => selectedIds.has(d.id) ? 3 : 1,
-        lineWidthMinPixels: 1,
-        stroked: true,
-        filled: true,
-        radiusMinPixels: 4,
-        radiusMaxPixels: 30,
-        pickable: true,
-        onClick: onStationPick,
+        stations,
+        getColor: (d) => getStationColor(d.health_category),
+        selectedStationIds,
+        hoveredStationId,
+        baseRadius: STATION_RADIUS,
+        minPixels: 5,
+        maxPixels: 40,
+        withHitLayer: true,
+        onPick: onStationPick,
+        onHover: onStationHover,
     })
 }
 

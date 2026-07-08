@@ -11,6 +11,8 @@ import useLayerHoverState from './useLayerHoverState.js'
 import { filterRoutesByYear } from '../utils/routeYearFilter.js'
 import { buildDeckLayers } from '../utils/buildDeckLayers.js'
 import { selectMapInsights } from '../utils/selectMapInsights.js'
+import { rankCorridors } from '../utils/insightSelectors.js'
+import { TRIP_FLOW_LIST_SIZE } from '@/utils/config.js'
 
 /**
  * Orchestrating handler hook for the map page: composes the per-layer data
@@ -38,13 +40,15 @@ export function useBuildLayers({ filters, currentTime, activeLayer, showBikeRout
         onStationPick: onInfrastructureStationPick,
         selectedStationIds: selectedInfrastructureStationIds,
         selectedStations: selectedInfrastructureStations,
-    } = useInfrastructureStationSelection(stations)
+    } = useInfrastructureStationSelection(stations, activeLayer)
     const {
         hoveredRouteId,
         hoveredTripStationId,
+        hoveredInfrastructureStationId,
         hoveredCorridorKey,
         handleRoutePick,
         handleTripStationHover,
+        handleInfrastructureStationHover,
         handleArcHover,
         setHoveredCorridor,
     } = useLayerHoverState()
@@ -55,6 +59,14 @@ export function useBuildLayers({ filters, currentTime, activeLayer, showBikeRout
         () => filterRoutesByYear(bikeRoutes, selectedYear),
         [bikeRoutes, selectedYear],
     )
+
+    // The corridors listed in the insights panel are emphasized on the map so
+    // the strongest ones pop out of the overview web. Focus view keeps its
+    // diverging colors, so no emphasis set there.
+    const emphasizedCorridorKeys = useMemo(() => {
+        if (isFocusView || trips.length === 0) return null
+        return new Set(rankCorridors(trips, TRIP_FLOW_LIST_SIZE).map((row) => row.key))
+    }, [trips, isFocusView])
 
     // Combine loading, error, and data-arrival states for easier handling in the component.
     // hasData is derived from the source arrays (not the deck.gl layer instances) so the
@@ -83,6 +95,7 @@ export function useBuildLayers({ filters, currentTime, activeLayer, showBikeRout
         focusedStationId,
         hoveredTripStationId,
         hoveredCorridorKey,
+        emphasizedCorridorKeys,
         onTripStationPick: onStationPick,
         onTripStationHover: handleTripStationHover,
         onTripArcHover: handleArcHover,
@@ -96,8 +109,10 @@ export function useBuildLayers({ filters, currentTime, activeLayer, showBikeRout
         hoveredRouteId,
         onRoutePick: handleRoutePick,
         selectedStationIds: selectedInfrastructureStationIds,
+        hoveredInfrastructureStationId,
         onInfrastructureStationPick,
-    }), [frameStations, maxUsage, maxDelta, trips, maxTripFlow, tripStations, focusedStationId, hoveredTripStationId, hoveredCorridorKey, onStationPick, handleTripStationHover, handleArcHover, stations, activeLayer, stationLoading, stationError, tripLoading, tripError, availabilityLoading, availabilityError, yearFilteredRoutes, showBikeRoutes, hoveredRouteId, handleRoutePick, selectedInfrastructureStationIds, onInfrastructureStationPick, hiddenHealthCategories, hiddenRouteClasses])
+        onInfrastructureStationHover: handleInfrastructureStationHover,
+    }), [frameStations, maxUsage, maxDelta, trips, maxTripFlow, tripStations, focusedStationId, hoveredTripStationId, hoveredCorridorKey, emphasizedCorridorKeys, onStationPick, handleTripStationHover, handleArcHover, stations, activeLayer, stationLoading, stationError, tripLoading, tripError, availabilityLoading, availabilityError, yearFilteredRoutes, showBikeRoutes, hoveredRouteId, handleRoutePick, selectedInfrastructureStationIds, hoveredInfrastructureStationId, onInfrastructureStationPick, handleInfrastructureStationHover, hiddenHealthCategories, hiddenRouteClasses])
 
     // Station name for the focus-mode chart title; the trip station list
     // carries id and name for every clickable dot.

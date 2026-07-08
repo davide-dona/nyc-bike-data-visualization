@@ -6,6 +6,7 @@ import useMapFullscreen from './hooks/useMapFullscreen.js'
 import useMapCursor from './hooks/useMapCursor.js'
 import useMapClickActions from './hooks/useMapClickActions.js'
 import { useTripFlowCamera } from './hooks/useTripFlowCamera.js'
+import { useInfrastructureCamera } from './hooks/useInfrastructureCamera.js'
 import { getRouteYearBounds } from './utils/routeYearFilter.js'
 import MapController from './components/MapController.jsx'
 import MapLegend from './components/MapLegend.jsx'
@@ -72,6 +73,8 @@ function MapPage({ filters }) {
 
     // Frame the focused station's corridors; return to the citywide view on reset.
     useTripFlowCamera({ activeLayer, focusedStationId, trips, tripLoading, flyTo, mapShellRef })
+    // Fly to the selected infrastructure station(s); fly back out when cleared.
+    useInfrastructureCamera({ activeLayer, selectedStations: selectedInfrastructureStations, flyTo, mapShellRef })
     const yearBounds = useMemo(() => getRouteYearBounds(bikeRoutes), [bikeRoutes])
     const shouldShowMapUi = !error
     const shouldShowMapLegend = !loading && !error

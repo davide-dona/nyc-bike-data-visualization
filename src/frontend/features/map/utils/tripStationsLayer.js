@@ -1,125 +1,50 @@
-import { ScatterplotLayer } from "@deck.gl/layers";
-import {
-    INK_MUTED_RGB,
-    WARM_HIGHLIGHT_RGB,
-} from "@/utils/editorialTokens.js";
+import { INK_MUTED_RGB, WARM_HIGHLIGHT_RGB } from "@/utils/editorialTokens.js";
+import { createStationDotsLayers } from "./stationDotsLayer.js";
 
-const STATION_COLOR_DEFAULT = INK_MUTED_RGB;
-const STATION_COLOR_SELECTED = WARM_HIGHLIGHT_RGB;
 // Overview dots recede behind the corridor web: smaller, semi-transparent.
-const STATION_COLOR_OVERVIEW = [...INK_MUTED_RGB, 150];
+const STATION_COLOR_OVERVIEW = [...INK_MUTED_RGB, 170];
 
-const STATION_RADIUS_BASE = 24;
-const STATION_RADIUS_BASE_OVERVIEW = 14;
-const STATION_RADIUS_HOVER_MULTIPLIER = 2;
-const STATION_RADIUS_MAX = 160;
-
-const STATION_PICK_RADIUS_MULTIPLIER = 3.5;
-const STATION_PICK_RADIUS_MAX = 160;
+const STATION_RADIUS_FOCUS = 24;
+const STATION_RADIUS_OVERVIEW = 16;
 
 /**
- * Computes a station dot's visual radius, enlarging the hovered station.
- * @param {Object} d - Station datum.
- * @param {string|null} hoveredStationId - Currently hovered station id.
- * @param {boolean} isFocusView - Whether a station is focused (overview dots are smaller).
- * @returns {number} Radius in meters.
- */
-function getVisualRadius(d, hoveredStationId, isFocusView = true) {
-    const base = isFocusView ? STATION_RADIUS_BASE : STATION_RADIUS_BASE_OVERVIEW;
-    if (d.id !== hoveredStationId) return base;
-    return Math.min(base * STATION_RADIUS_HOVER_MULTIPLIER, STATION_RADIUS_MAX);
-}
-
-/**
- * Builds the visible trip-flow station dots layer. In the citywide overview
+ * Builds the trip-flow station dot layers via the shared station-dot factory:
+ * outlined dots plus an invisible enlarged hit layer. In the citywide overview
  * the dots recede (smaller, semi-transparent) so the corridor web stays the
- * hero; in focus view they regain full weight as click targets.
+ * hero; in focus view they regain full weight and the focused station carries
+ * the shared warm selection halo.
  * @param {Array} stations - Clickable stations with coordinates.
- * @param {string|null} focusedStationId - Focused station id, dims the rest.
+ * @param {string|null} focusedStationId - Focused station id, gets the halo.
  * @param {string|null} hoveredStationId - Hovered station id, enlarged.
  * @param {boolean} isFocusView - Whether a station is focused.
- * @returns {ScatterplotLayer} The deck.gl layer.
+ * @param {Function} onStationPick - Pick handler focusing a station.
+ * @param {Function} onStationHover - Hover handler.
+ * @returns {Array} The trip-flow station deck.gl layers.
  */
-export function createTripStationsLayer({
+export function createTripStationsLayers({
     stations,
     focusedStationId = null,
     hoveredStationId = null,
     isFocusView = false,
-}) {
-    return new ScatterplotLayer({
-        id: "trip-flow-stations-layer",
-        data: stations,
-        getPosition: (d) => [d.longitude, d.latitude],
-        getRadius: (d) => getVisualRadius(d, hoveredStationId, isFocusView),
-        getFillColor: (d) => {
-            if (d.id === focusedStationId || d.id === hoveredStationId) return STATION_COLOR_SELECTED;
-            return isFocusView ? STATION_COLOR_DEFAULT : STATION_COLOR_OVERVIEW;
-        },
-        getLineColor: [255, 255, 255],
-        lineWidthMinPixels: 1,
-        stroked: true,
-        filled: true,
-        radiusUnits: "meters",
-        radiusMinPixels: isFocusView ? 4 : 2.5,
-        radiusMaxPixels: 110,
-        pickable: false,
-        transitions: {
-            getRadius: {
-                duration: 220,
-                easing: (t) => t * t * (3 - 2 * t),
-            },
-            getFillColor: {
-                duration: 180,
-            },
-        },
-
-        updateTriggers: {
-            getFillColor: [focusedStationId, hoveredStationId, isFocusView],
-            getRadius: [hoveredStationId, isFocusView],
-        },
-    });
-}
-
-/**
- * Builds the invisible, larger hit-target layer that makes station dots easy
- * to hover and click.
- * @param {Array} stations - Clickable stations with coordinates.
- * @param {string|null} hoveredStationId - Hovered station id (keeps picks in sync).
- * @param {Function} onStationPick - Pick handler focusing a station.
- * @param {Function} onStationHover - Hover handler.
- * @returns {ScatterplotLayer} The deck.gl hit layer.
- */
-export function createTripStationsHitLayer({
-    stations,
-    hoveredStationId = null,
     onStationPick,
     onStationHover,
 }) {
-    return new ScatterplotLayer({
-        id: "trip-flow-stations-layer-hit",
-        data: stations,
-        getPosition: (d) => [d.longitude, d.latitude],
-        getRadius: (d) => {
-            const visualRadius = getVisualRadius(d, hoveredStationId);
-            return Math.min(
-                visualRadius * STATION_PICK_RADIUS_MULTIPLIER, STATION_PICK_RADIUS_MAX,
-            );
+    return createStationDotsLayers({
+        id: "trip-flow-stations-layer",
+        stations,
+        getColor: (d) => {
+            if (d.id === hoveredStationId) return WARM_HIGHLIGHT_RGB;
+            return isFocusView ? INK_MUTED_RGB : STATION_COLOR_OVERVIEW;
         },
-        getFillColor: [0, 0, 0, 0],
-        stroked: false,
-        filled: true,
-        radiusUnits: "meters",
-        radiusMinPixels: 15,
-        radiusMaxPixels: 140,
-        pickable: true,
-        onClick: onStationPick,
+        selectedStationIds: focusedStationId ? [focusedStationId] : [],
+        hoveredStationId,
+        baseRadius: isFocusView ? STATION_RADIUS_FOCUS : STATION_RADIUS_OVERVIEW,
+        minPixels: isFocusView ? 5 : 3.5,
+        maxPixels: 110,
+        withHitLayer: true,
+        onPick: onStationPick,
         onHover: onStationHover,
-        updateTriggers: {
-            getRadius: [hoveredStationId],
-        },
-        parameters: {
-            depthTest: false,
-        },
+        colorUpdateTriggers: [isFocusView],
     });
 }
 

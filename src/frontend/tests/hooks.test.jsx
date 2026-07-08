@@ -1,6 +1,8 @@
 import { describe, it, vi } from 'vitest'
-import { renderHook, waitFor } from '@testing-library/react'
+import { act, renderHook, waitFor } from '@testing-library/react'
 import { createQueryWrapper } from './testQueryClient.jsx'
+
+import { useInfrastructureStationSelection } from '@/features/map/hooks/useInfrastructureStationSelection.js'
 
 import { useDatasetDateRange } from '../features/header/hooks/useDatasetDateRange.js'
 import useDayHourStats from '../features/temporal/hooks/useDayHourStats.js'
@@ -56,5 +58,29 @@ describe('hooks smoke tests', () => {
     it('useRainImpact resolves without throwing', async () => {
         const { result } = renderHook(() => useRainImpact(TEST_FILTERS), { wrapper })
         await waitFor(() => expect(result.current).toBeDefined())
+    })
+})
+
+describe('useInfrastructureStationSelection', () => {
+    const STATIONS = [
+        { id: 'a', name: 'Station A' },
+        { id: 'b', name: 'Station B' },
+    ]
+
+    it('clears the selection when leaving the infrastructure layer', () => {
+        const { result, rerender } = renderHook(
+            ({ activeLayer }) => useInfrastructureStationSelection(STATIONS, activeLayer),
+            { initialProps: { activeLayer: 'infrastructure' } },
+        )
+
+        act(() => result.current.onStationPick({ object: { id: 'a' } }, {}))
+        expect(result.current.selectedStationIds).toEqual(['a'])
+
+        rerender({ activeLayer: 'trip_flow' })
+        expect(result.current.selectedStationIds).toEqual([])
+
+        // Returning to the layer must not resurrect the old selection
+        rerender({ activeLayer: 'infrastructure' })
+        expect(result.current.selectedStationIds).toEqual([])
     })
 })

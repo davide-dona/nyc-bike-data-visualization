@@ -1,4 +1,4 @@
-import { createTripStationsHitLayer, createTripStationsLayer } from "./tripStationsLayer.js";
+import { createTripStationsLayers } from "./tripStationsLayer.js";
 import { createTripsArcLayer } from "./tripArcsLayer.js";
 
 /**
@@ -9,6 +9,7 @@ import { createTripsArcLayer } from "./tripArcsLayer.js";
  * @param {string|null} focusedStationId - Focused station identifier, null in the citywide overview.
  * @param {string|null} hoveredStationId - Hovered station identifier.
  * @param {string|null} hoveredCorridorKey - Corridor highlighted via panel or arc hover.
+ * @param {Set|null} emphasizedCorridorKeys - Ranked corridors emphasized in the overview.
  * @param {Function} onStationPick - Click handler that focuses the picked station.
  * @param {Function} onStationHover - Hover handler for station dots.
  * @param {Function} onArcHover - Hover handler for corridor arcs.
@@ -21,6 +22,7 @@ export function createTripFlowLayers({
     focusedStationId = null,
     hoveredStationId = null,
     hoveredCorridorKey = null,
+    emphasizedCorridorKeys = null,
     onStationPick,
     onStationHover,
     onArcHover,
@@ -32,17 +34,14 @@ export function createTripFlowLayers({
         maxTripCount,
         isFocusView,
         hoveredCorridorKey,
+        emphasizedCorridorKeys: isFocusView ? null : emphasizedCorridorKeys,
         onArcHover,
     }))
-    layers.push(createTripStationsLayer({
+    layers.push(...createTripStationsLayers({
         stations,
         focusedStationId,
         hoveredStationId,
         isFocusView,
-    }))
-    layers.push(createTripStationsHitLayer({
-        stations,
-        hoveredStationId,
         onStationPick,
         onStationHover,
     }))

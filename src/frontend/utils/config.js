@@ -9,3 +9,5 @@ export const DAY_ORDER = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'
 // Limit the number of stations to fetch for performance reasons
 export const LIMIT_STATIONS = 3000
 export const LIMIT_TRIPS_OVERVIEW = 1000 // Citywide corridors drawn on the overview
+// Ranked corridor rows listed (and emphasized on the map) in trip flow insights
+export const TRIP_FLOW_LIST_SIZE = 12

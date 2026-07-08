@@ -4,10 +4,7 @@ import InsightStatTile from './InsightStatTile.jsx'
 import TripFlowCorridorList from './TripFlowCorridorList.jsx'
 import { rankCorridors, tripFlowFocusStats, tripFlowOverviewStats } from '../utils/insightSelectors.js'
 import { formatCount, formatNumber } from '@/utils/numberFormat.js'
-import { LIMIT_TRIPS_OVERVIEW } from '@/utils/config.js'
-
-// Ranked corridor rows shown under the stat tiles.
-const LIST_SIZE = 12
+import { LIMIT_TRIPS_OVERVIEW, TRIP_FLOW_LIST_SIZE } from '@/utils/config.js'
 
 /**
  * Insight frame for the trip flow layer: headline stat tiles plus a ranked
@@ -23,7 +20,7 @@ export default function TripFlowInsights({ insights, tripFlowHover }) {
     const status = insights
     const { hoveredCorridorKey, onCorridorHover } = tripFlowHover
 
-    const rows = useMemo(() => rankCorridors(trips, LIST_SIZE), [trips])
+    const rows = useMemo(() => rankCorridors(trips, TRIP_FLOW_LIST_SIZE), [trips])
     const stats = useMemo(
         () => (isFocusView ? tripFlowFocusStats(trips) : tripFlowOverviewStats(trips)),
         [trips, isFocusView],
@@ -59,7 +56,7 @@ export default function TripFlowInsights({ insights, tripFlowHover }) {
     return (
         <InsightFrame
             title="Strongest corridors citywide"
-            note={`Top ${LIMIT_TRIPS_OVERVIEW} corridors drawn on the map, strongest ${LIST_SIZE} listed. Hover a row to trace its corridor. Click a station to see all of its corridors.`}
+            note={`Top ${LIMIT_TRIPS_OVERVIEW} corridors drawn on the map, strongest ${TRIP_FLOW_LIST_SIZE} listed and emphasized on the map. Hover a row to trace its corridor. Click a station to see all of its corridors.`}
             status={status}
             emptyMessage={rows.length === 0
                 ? 'No trips recorded for the current filters.'

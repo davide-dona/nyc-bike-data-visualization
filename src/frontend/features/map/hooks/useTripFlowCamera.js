@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
-import { computeFocusBounds, fitViewForBounds } from '../utils/tripFlowBounds.js'
+import { computeFocusBounds } from '../utils/tripFlowBounds.js'
+import { fitViewForBounds } from '../utils/cameraBounds.js'
 import { INITIAL_VIEW_STATE } from '../utils/mapConfig.js'
 
 // Fallback viewport size when the map shell has not been measured yet.
