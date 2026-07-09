@@ -1,52 +1,26 @@
 \section{Bike Lanes Dataset}
-Our third source of data is NYC's bike-route network, published by NYC OpenData\footnote{\url{https://data.cityofnewyork.us/d/mzxg-pwib}} as dataset \texttt{mzxg-pwib}.
-It is used to render bike infrastructure (lanes, paths, and their protection level) in the visualization.
+Our third data source is NYC's bike-route network, published by NYC OpenData\footnote{\url{https://data.cityofnewyork.us/d/mzxg-pwib}} as dataset \texttt{mzxg-pwib}. It provides the city's cycling infrastructure and forms the infrastructure layer of the final visualization.
 
 \subsection{Dataset Structure}
-The bike-lanes dataset describes New York City's bicycle infrastructure at the segment level. Unlike
-the trip dataset, where each row is an individual ride, here each row corresponds to a physical piece
-of the network: a lane, path, or related facility drawn as a line on the map. This makes the dataset
-especially useful for spatial analysis, because the raw table is already close to its visual form. The
-core fields tell us where a segment is, what kind of facility it is, whether it is still active, and
-when it was installed or retired.
 
-From the perspective of the final visualization, this dataset provides the infrastructure layer. It is
-the source of the map geometry, but also of the attributes that control how each segment is classified
-and styled. A protected route segment should be interpreted differently from a shared lane, and a
-current segment should be treated differently from a retired one. For that reason, the dataset is not
-just a geographic background: it is an analytical object that lets us talk about the structure and
-evolution of the bike network itself.
+The dataset describes New York City's bicycle infrastructure at the segment level. Each row represents a physical bike-lane segment, including its geometry, location, status, installation history, and facility type.
 
 \subsubsection{Original Structure}
+
 The original CSV contains one row per route segment and includes the following relevant attributes:
 \begin{itemize}
-  \item \textbf{Segment ID}: the identifier of the route segment within the source dataset.
-  \item \textbf{Bike ID}: a bike-network identifier used by the source to track the same segment
-  across revisions.
-  \item \textbf{Status}: whether the segment is currently active or has been retired from service.
-  \item \textbf{Installation Date}: the date on which the segment was added to the network.
-  \item \textbf{Retirement Date}: the date on which the segment was removed or replaced, when
-  available.
-  \item \textbf{the\_geom}: the segment geometry, stored as a line representation and used to draw
-  the route on the map.
-  \item \textbf{Street}: the street where the segment is located.
-  \item \textbf{From Street}: the starting cross street or intersection reference.
-  \item \textbf{To Street}: the ending cross street or intersection reference.
-  \item \textbf{Facility Class}: the level of protection or treatment provided by the segment.
-  This field is central to the visualization, because it distinguishes protected paths from lower-
-  protection or shared facilities such as sharrow lanes.
-  \item \textbf{Borough}: the borough in which the segment lies.
+  \item \textbf{Segment ID}: unique identifier of the route segment.
+  \item \textbf{Bike ID}: identifier used to track the segment across revisions.
+  \item \textbf{Status}: whether the segment is active or retired.
+  \item \textbf{Installation Date}: date the segment entered service.
+  \item \textbf{Retirement Date}: date the segment was removed, if applicable.
+  \item \textbf{the\_geom}: line geometry used for map rendering.
+  \item \textbf{Street}, \textbf{From Street}, \textbf{To Street}: street location.
+  \item \textbf{Facility Class}: type of cycling infrastructure.
+  \item \textbf{Borough}: borough containing the segment.
 \end{itemize}
 
-In the analysis, this structure is used to derive three families of summaries: counts by borough,
-counts by status, and counts by facility class. These summaries help reveal how the network is
-distributed across the city, which parts of the network are current, and which kinds of facilities are
-most common. They also provide the rationale for how the map layer should be read and styled.
-
-The raw file also contains a few columns that are not necessary for the analysis presented in this
-report. The fields \texttt{prevbikeid}, \texttt{gwsys2}, \texttt{spur}, \texttt{ft2facilit}, and
-\texttt{tf2facilit} were dropped during preprocessing because they do not contribute to the network
-breakdowns or to the map rendering used in the final visualization.
+The analysis derives summaries by borough, status, and facility class. Unused fields (\texttt{prevbikeid}, \texttt{gwsys2}, \texttt{spur}, \texttt{ft2facilit}, and \texttt{tf2facilit}) were removed during preprocessing.
 
 \subsection{Analysis and Insights}
 \begin{comment}
@@ -60,70 +34,39 @@ breakdowns or to the map rendering used in the final visualization.
         dataset contributes to the final visualization.
 \end{comment}
 
-This dataset is the spatial counterpart to the trip data. If the trip dataset explains demand, the
-bike-lanes dataset explains supply: where cycling infrastructure exists, what level of protection it
-offers, and how the network has changed over time. In the report, the exploration is organised around
-three questions that directly connect to the final map.
+The analysis focuses on four aspects that directly support the final visualization.
 
-The first question is where the network is concentrated. A borough-level breakdown shows that the
-largest number of segments are in Manhattan and Brooklyn, while the outer boroughs contain fewer
-segments. This does not merely describe a count; it reveals the geography of cycling investment. Dense
-segment counts in central boroughs imply a more mature and interconnected infrastructure, while lower
-counts elsewhere suggest a sparser network or a more fragmented build-out. The borough view therefore
-helps explain why the final map appears most visually dense in the core of the city.
+A breakdown by borough shows that bike-lane segments are concentrated in Manhattan and Brooklyn, while the remaining boroughs contain fewer segments. A second breakdown compares segment status, showing that most infrastructure is currently active. Figure~\ref{fig:segments_concentration} summarizes the distribution of segments by borough, facility class, and status.
 
-The second question is what kind of facilities dominate the network. The facility-class distribution is
-important because it encodes the degree of separation between cyclists and traffic. Protected paths and
-protected lanes support a very different riding experience from shared lanes or sharrows, and that
-difference matters both analytically and visually. In the map, this field can be used to assign visual
-priority, making the safer or more substantial infrastructure stand out. In the analysis, it also helps
-us understand whether the city has expanded primarily through high-comfort infrastructure or through
-lighter interventions that share space with motor vehicles.
+\begin{figure}[ptb]
+  \centering
+  \includegraphics[width=\textwidth]{../media/segments_concentration.png}
+  \caption{Breakdown of bike-lane segments by borough, facility class and status.}
+  \label{fig:segments_concentration}
+\end{figure}
 
-The third question is how the network has grown over time. The installation timeline shows the build-up
-of the system year by year and gives a sense of the pace of infrastructure expansion. Sudden increases in
-the number of installed segments usually correspond to citywide policy pushes, corridor projects, or
-larger protected-lane programmes. This timeline is useful for interpretation because it contextualises
-the current network: a dense cluster of segments on the map may reflect decades of incremental growth,
-or it may be the result of a recent acceleration in capital investment.
+The facility-class distribution distinguishes protected lanes from shared facilities and is used to style the network in the visualization.
 
-The map of the network is the key output of the dataset. By plotting \texttt{the\_geom}, the analysis
-turns the table into a geographic layer that can be overlaid with trip demand and station data. The map
-is not only descriptive but also diagnostic: it shows whether the dataset is spatially coherent, where
-segments cluster, and how the network spans the city. Segments concentrate visually in Manhattan and
-Brooklyn, reflecting the geographic distribution observed in the borough counts. In the final visualization,
-this layer becomes the infrastructure context against which trip flows and station activity can be interpreted.
+The installation timeline illustrates the gradual expansion of the bike network over time, reflecting continued investment in cycling infrastructure. Figure~\ref{fig:installation_timeline} shows the number of installed segments over the years.
 
-Taken together, these analyses show that the bike-lanes dataset is useful for more than just drawing a
-line map. It supports a structural reading of the network, a historical reading of its expansion, and a
-cartographic reading of its spatial coverage. These three views are complementary and together justify
-why the dataset is included as a separate source in the project.
+\begin{figure}[ptb]
+  \centering
+  \includegraphics[width=\textwidth]{../media/installation_timeline.png}
+  \caption{Bike-lane installation timeline.}
+  \label{fig:installation_timeline}
+\end{figure}
 
 \subsection{Data Quality}
-The bike-lanes data is comparatively clean for a public GIS-style dataset, but it still needs
-preprocessing and careful interpretation.
 
-One data-management issue is column redundancy. Several fields in the raw CSV are not relevant to the
-analysis or to the final visualization. The removed columns \texttt{prevbikeid}, \texttt{gwsys2},
-\texttt{spur}, \texttt{ft2facilit}, and \texttt{tf2facilit} do not change the core structure of the
-segment table, so dropping them makes the dataset easier to work with without reducing analytical value.
+The dataset is generally clean but requires limited preprocessing.
 
-Status handling is another important quality consideration. The raw file includes both current and
-retired segments, and those records should not be mixed blindly. Retired segments are useful for
-understanding how the network evolved, but they should be excluded or clearly separated when the goal is
-to depict the active bike network. Otherwise, the map would overstate the amount of usable
-infrastructure.
+Unused columns were removed to simplify the analysis without affecting the visualization.
 
-Date fields are also uneven. Installation and retirement dates may be missing for some records, and this
-especially affects historical segments. As a result, the installation timeline should be read as a
-slightly conservative view of growth: years with missing dates are undercounted, and the earliest phases
-of the network may appear smaller than they really were.
+Current and retired segments are treated separately so that obsolete infrastructure is not included in the active network layer.
 
-The geometry field deserves special attention as well. Because \texttt{the\_geom} stores the route as a
-line geometry, malformed or missing values prevent a segment from being rendered. Those rows are not
-useful for the map layer and must be filtered or repaired before plotting. In practice, this is the main
-reason the analysis uses a sampled set of segments for the interactive map: rendering the full dataset at once would be heavier and less responsive, while a sample is sufficient to demonstrate the overall
-spatial pattern.
+Installation and retirement dates are occasionally missing, causing slight underestimation in historical summaries.
+
+Records with missing or invalid geometries cannot be displayed and are filtered before mapping. For the interactive visualization, only a sample of segments is rendered to improve responsiveness while preserving the overall spatial pattern.
 
 \begin{comment}
     Possible future improvement: group facility classes into a smaller set of categories to simplify

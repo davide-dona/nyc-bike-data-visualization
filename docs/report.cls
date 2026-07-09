@@ -26,6 +26,9 @@
 \RequirePackage{parskip}
 \RequirePackage{emptypage}
 \RequirePackage{svg}
+\RequirePackage{siunitx}
+\RequirePackage{fnpct}
+\RequirePackage{subcaption}
 
 % Command to get the current month name
 \newcommand{\MonthName}{
