@@ -9,7 +9,7 @@
 # remove the volume first: docker compose -f docker-compose.dev.yml down -v
 services:
   postgres:
-    image: ghcr.io/446f6e6e79/nyc-bike-db:${DB_TAG:-dev}
+    image: ghcr.io/davide-dona/nyc-bike-db:${DB_TAG:-dev}
     container_name: NYC-Bike-Dev-Postgres
     environment:
       POSTGRES_DB: citibike
