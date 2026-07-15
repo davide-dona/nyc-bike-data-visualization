@@ -365,6 +365,14 @@
     @apply border-ink bg-ink text-white;
   }
 
+  .map-toggle-button:disabled {
+    @apply cursor-not-allowed opacity-55;
+  }
+
+  .map-toggle-button:disabled:hover {
+    @apply bg-paper-raised text-ink;
+  }
+
   .map-toggle-button__label {
     letter-spacing: 0.08em;
   }

@@ -54,6 +54,7 @@ export default function MapController({
                     <UsageModeToggle
                         usageMode={usageMode}
                         setUsageMode={setUsageMode}
+                        disabled={disabled}
                     />
                 )}
 

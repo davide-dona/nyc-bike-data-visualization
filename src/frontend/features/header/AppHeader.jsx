@@ -28,11 +28,11 @@ function AppHeader({ onFiltersChange, forceDisableFilters = false }) {
         handleDateRangeCommit,
         handleUserFilterChange,
     } = useHeaderFilters(onFiltersChange);
+    const { dateRange: datasetRange, loading: datasetRangeLoading } = useDatasetDateRange();
     const activeDataFetches = useSafeIsFetching();
-    const areDateFiltersDisabled = activeDataFetches > 0;
-    const areUserFiltersDisabled = activeDataFetches > 0 || forceDisableFilters;
+    const areDateFiltersDisabled = datasetRangeLoading || activeDataFetches > 0;
+    const areUserFiltersDisabled = forceDisableFilters;
     const shouldShowLockHint = isTemporalRoute && forceDisableFilters;
-    const { dateRange: datasetRange } = useDatasetDateRange();
     const kicker =
         datasetRange?.min_date && datasetRange?.max_date
             ? `NYC / ${datasetRange.min_date.slice(0, 4)}–${datasetRange.max_date.slice(0, 4)}`
