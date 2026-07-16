@@ -55,19 +55,22 @@ export default function InfrastructureStationSidebar({ selectedStations = [], fi
         <aside className={`infra-sidebar${selectedStations.length > 0 ? ' is-open' : ''}`} role="dialog" aria-label="Station details sidebar">
             <div className="infra-sidebar__header">
                 <div>
-                    <p className="infra-sidebar__eyebrow">Infrastructure</p>
-                    <h3 className="infra-sidebar__title">
+                    <div className='flex justify-between items-center mb-1'>
+                        <p className="infra-sidebar__eyebrow">Infrastructure</p>
+                        <button type="button" className="infra-sidebar__close" onClick={onClose} aria-label="Close station sidebar">
+                            <i className="fa-solid fa-xmark" aria-hidden="true" />
+                        </button>
+                    </div>
+                    <h3 className="infra-sidebar__title mt-5">
                         {isGrouped ? `${selectedStations.length} stations selected` : primaryStation.name}
                     </h3>
                     <p className="infra-sidebar__subtitle">
                         {isGrouped
                             ? 'Grouped station selection with aggregated live capacity and ride statistics.'
-                            : `Station ${primaryStation.id} - live availability plus historical ride and flow statistics.`}
+                            : `Station ID ${primaryStation.id}: live availability plus historical ride and flow statistics per station.`}
                     </p>
                 </div>
-                <button type="button" className="infra-sidebar__close" onClick={onClose} aria-label="Close station sidebar">
-                    <i className="fa-solid fa-xmark" aria-hidden="true" />
-                </button>
+
             </div>
 
             <section className="infra-sidebar__metrics-grid">

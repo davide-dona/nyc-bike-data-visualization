@@ -51,22 +51,22 @@ export const MAP_LAYER_GUIDES = {
     infrastructure: {
         mapName: 'Infrastructure',
         title: 'How To Read It',
-        summary: 'This layer focuses on station capacity and bike-route context. Use it to evaluate where infrastructure appears balanced or potentially undersized versus demand.',
+        summary: 'This layer maps station capacities and bike-route types. Use it to examine how cycling infrastructure is structured and distributed across the city. As default, the map shows the live availability of bikes and docks at each station',
         hints: [
             {
                 mapType: 'Infrastructure',
-                title: 'Toggle routes strategically',
-                text: 'Enable bike routes to assess whether high-capacity stations are supported by route coverage, then disable to inspect station signals without clutter.',
+                title: 'Station Availability',
+                text: 'Click any station to open a sidebar displaying real-time dock availability, historical data, and flow demand, with map markers color-coded to reflect each station\'s current status.',
             },
             {
                 mapType: 'Infrastructure',
-                title: 'Check capacity clusters',
-                text: 'Look for areas where many nearby stations show similar capacity levels. Uniform clusters often reflect planning zones or network hierarchy.',
+                title: 'Bike Routes',
+                text: 'Use the bike route toggle to see how the city\'s cycling infrastructure is distributed and connected, with color-coded routes indicating their type.',
             },
             {
                 mapType: 'Infrastructure',
-                title: 'Pair with usage insights',
-                text: 'Use this layer after Station usage: places with repeated pressure and modest infrastructure are prime candidates for deeper operational analysis.',
+                title: 'Historical Bike Routes Insights',
+                text: 'Use the year slider to explore the evolution of the city\'s cycling infrastructure, paired with plots highlighting the segments added and removed each year.',
             },
         ],
     },
