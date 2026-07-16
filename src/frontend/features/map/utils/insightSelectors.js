@@ -4,7 +4,7 @@
  * series, trip flow rows) so the panel never triggers extra fetches.
  */
 
-import { getRouteInstallYear } from './routeYearFilter.js'
+import { getRouteInstallYear, getRouteRetireYear } from './routeYearFilter.js'
 import { haversineKm } from '@/utils/math.js'
 
 const HOURS_IN_DAY = 24
@@ -22,32 +22,42 @@ export const BORO_LABELS = {
 export const FACILITY_CLASS_ORDER = ['I', 'II', 'III', 'L']
 
 /**
- * Counts route segments by installation year over the full network history,
- * retired segments included: the chart reads as "how much was built when".
- * Labels are contiguous from the earliest installation year to currentYear so
- * gap years render as empty slots instead of silently disappearing.
- * @param {Array} routes - BikeRoute objects with instDate ('YYYY-MM-DD').
+ * Counts route segments installed and removed per year over the full network
+ * history: the chart reads as "how much was built and how much was taken out
+ * when". Removals are bucketed by retiredDate; segments still in service
+ * never count as removed. Labels are contiguous from the earliest event year
+ * to currentYear so gap years render as empty slots.
+ * @param {Array} routes - BikeRoute objects with instDate/retiredDate.
  * @param {number} [currentYear] - Upper bound for the label range.
- * @returns {{labels: string[], values: number[]}}
+ * @returns {{labels: string[], installed: number[], removed: number[]}}
  */
-export function aggregateInstallationsByYear(routes, currentYear = new Date().getFullYear()) {
-    const countsByYear = new Map()
+export function aggregateNetworkChangesByYear(routes, currentYear = new Date().getFullYear()) {
+    const installedByYear = new Map()
+    const removedByYear = new Map()
     let minYear = currentYear
 
     for (const route of routes ?? []) {
-        const year = getRouteInstallYear(route)
-        if (!Number.isFinite(year) || year <= 0 || year > currentYear) continue
-        countsByYear.set(year, (countsByYear.get(year) ?? 0) + 1)
-        if (year < minYear) minYear = year
+        const installYear = getRouteInstallYear(route)
+        if (Number.isFinite(installYear) && installYear > 0 && installYear <= currentYear) {
+            installedByYear.set(installYear, (installedByYear.get(installYear) ?? 0) + 1)
+            if (installYear < minYear) minYear = installYear
+        }
+        const retireYear = getRouteRetireYear(route)
+        if (Number.isFinite(retireYear) && retireYear > 0 && retireYear <= currentYear) {
+            removedByYear.set(retireYear, (removedByYear.get(retireYear) ?? 0) + 1)
+            if (retireYear < minYear) minYear = retireYear
+        }
     }
 
     const labels = []
-    const values = []
+    const installed = []
+    const removed = []
     for (let year = minYear; year <= currentYear; year += 1) {
         labels.push(String(year))
-        values.push(countsByYear.get(year) ?? 0)
+        installed.push(installedByYear.get(year) ?? 0)
+        removed.push(removedByYear.get(year) ?? 0)
     }
-    return { labels, values }
+    return { labels, installed, removed }
 }
 
 /**

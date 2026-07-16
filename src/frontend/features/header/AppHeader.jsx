@@ -7,6 +7,7 @@ import { useDatasetDateRange } from "./hooks/useDatasetDateRange.js";
 import useSafeIsFetching from "./hooks/useSafeIsFetching.js";
 import useDateRangeSeed from "./hooks/useDateRangeSeed.js";
 import useLockHint from "./hooks/useLockHint.js";
+import FloatingTooltip from "@/components/FloatingTooltip.jsx";
 
 const PAGES = [
     { to: "/map", label: "Map", icon: "fa-solid fa-map-location-dot" },
@@ -105,20 +106,18 @@ function AppHeader({ onFiltersChange, forceDisableFilters = false }) {
                             disabled={areUserFiltersDisabled}
                         />
                     {shouldShowLockHint && (
-                        <p
-                            ref={lockHintRef}
-                            className={`app-header__filter-lock-hint${isLockHintVisible ? " is-visible" : ""}`}
+                        <FloatingTooltip
+                            visible={isLockHintVisible}
+                            position={lockHintPosition}
+                            nodeRef={lockHintRef}
                             role="note"
-                            aria-live="polite"
-                            style={{
-                                "--filter-lock-hint-x": `${lockHintPosition.x}px`,
-                                "--filter-lock-hint-y": `${lockHintPosition.y}px`,
-                            }}
+                            ariaLive="polite"
+                            className="app-header__filter-lock-hint"
                         >
                             Class filters are locked while comparison surfaces
                             are active. Remove all surfaces or press Reset to
                             unlock them.
-                        </p>
+                        </FloatingTooltip>
                     )}
                     </div>
                 </div>

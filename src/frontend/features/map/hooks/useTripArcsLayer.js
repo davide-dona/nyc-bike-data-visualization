@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import useApiQueryWithFilters from '@/clients/baseApiQuery.js'
-import { selectTrips, selectMaxFlow, orientTripsToFocus } from '../utils/tripArcsSelector.js'
+import { selectTrips, selectMaxFlow, orientTripsToFocus, filterTripsByDirection } from '../utils/tripArcsSelector.js'
 import { fetchStationFlowCounts } from '../services/stationFlowCountsApi.js'
 import { LIMIT_TRIPS_OVERVIEW } from '@/utils/config.js'
 
@@ -12,9 +12,10 @@ import { LIMIT_TRIPS_OVERVIEW } from '@/utils/config.js'
  * without a refetch.
  * @param {Object} filters - Optional filters such as date range or user type.
  * @param {string|null} focusedStationId - Station whose corridors to fetch, null for the overview.
+ * @param {'all'|'incoming'|'outgoing'} [tripDirection='all'] - Direction filter, applied in focus view only.
  * @returns {Object} Trips (oriented to the focused station in focus view), max flow, view flag, and query states.
  */
-export function useTripArcsLayer({ filters, focusedStationId }) {
+export function useTripArcsLayer({ filters, focusedStationId, tripDirection = 'all' }) {
     const isFocusView = Boolean(focusedStationId)
 
     // Citywide top corridors; the default date-range gate applies.
@@ -43,12 +44,14 @@ export function useTripArcsLayer({ filters, focusedStationId }) {
 
     const activeQuery = isFocusView ? focusQuery : overviewQuery
 
-    // Focus view rows are oriented so start_* is always the focused station;
-    // overview rows keep the backend's canonical pair order.
+    // Focus view rows are oriented so start_* is always the focused station,
+    // then filtered by the direction toggle; overview rows keep the backend's
+    // canonical pair order (direction has no meaning without a focus).
     const trips = useMemo(() => {
         const rows = selectTrips(activeQuery.data)
-        return isFocusView ? orientTripsToFocus(rows, focusedStationId) : rows
-    }, [activeQuery.data, isFocusView, focusedStationId])
+        if (!isFocusView) return rows
+        return filterTripsByDirection(orientTripsToFocus(rows, focusedStationId), tripDirection)
+    }, [activeQuery.data, isFocusView, focusedStationId, tripDirection])
     const maxTripFlow = useMemo(() => (trips.length > 0 ? selectMaxFlow(trips) : 0), [trips])
 
     return {

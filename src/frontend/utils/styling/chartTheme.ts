@@ -6,11 +6,12 @@ import {
     FONT_SANS,
     FONT_MONO,
 } from '../editorialTokens.js'
+import { toRgba } from '../color.js'
 
 // Single source for the near-black tooltip surface and accent border shared
 // by every Chart.js and Plotly tooltip.
-export const CHART_TOOLTIP_BG = 'rgba(11, 12, 14, 0.94)'
-export const CHART_TOOLTIP_BORDER = 'rgba(25, 83, 216, 0.72)'
+export const CHART_TOOLTIP_BG = toRgba(INK, 0.94)
+export const CHART_TOOLTIP_BORDER = toRgba(ACCENT, 0.72)
 
 /** Plotly hoverlabel config matching the Chart.js tooltip theme. */
 export const PLOTLY_HOVERLABEL = {
@@ -24,13 +25,21 @@ export const PLOTLY_HOVERLABEL = {
 let applied = false
 
 /**
- * Apply editorial defaults to Chart.js once at app startup. Every subsequent
- * `new Chart(...)` picks these up automatically, so per-chart config only
- * needs to override what is truly chart-specific.
+ * Apply editorial defaults to Chart.js once at app startup, and publish the
+ * shared tooltip surface as CSS custom properties so stylesheets (floating
+ * tooltip, deck.gl tooltip) use the exact same tokens. Every subsequent
+ * `new Chart(...)` picks these defaults up automatically, so per-chart config
+ * only needs to override what is truly chart-specific.
  */
 export function applyEditorialChartDefaults() {
     if (applied) return
     applied = true
+
+    const rootStyle = document.documentElement.style
+    rootStyle.setProperty('--tooltip-bg', CHART_TOOLTIP_BG)
+    rootStyle.setProperty('--tooltip-border', CHART_TOOLTIP_BORDER)
+    rootStyle.setProperty('--tooltip-text', PAPER_RAISED)
+    rootStyle.setProperty('--tooltip-font', FONT_MONO)
 
     Chart.defaults.font.family = FONT_SANS
     Chart.defaults.font.size = 12

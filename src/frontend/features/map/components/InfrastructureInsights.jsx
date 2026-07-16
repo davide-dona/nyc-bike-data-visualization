@@ -2,7 +2,7 @@ import { useCallback, useMemo } from 'react'
 import InsightFrame from './InsightFrame.jsx'
 import InsightBarChart from './InsightBarChart.jsx'
 import {
-    aggregateInstallationsByYear,
+    aggregateNetworkChangesByYear,
     aggregateRoutesByBorough,
     aggregateRoutesByFacilityClass,
 } from '../utils/insightSelectors.js'
@@ -10,10 +10,12 @@ import {
     FACILITY_CSS_COLORS,
     FACILITY_LABELS,
 } from '../utils/bikeRoutesLayer.js'
+import { BAR_SOLID, BAR_RUST } from '@/utils/styling'
 
 /**
- * Insight frames for the infrastructure layer: installations per year plus
- * borough and facility-class breakdowns of the year-filtered network.
+ * Insight frames for the infrastructure layer: segments installed and removed
+ * per year (diverging bars) plus borough and facility-class breakdowns of the
+ * year-filtered network.
  * @param {Object} insights - Infrastructure data slice (routes, yearFilteredRoutes, query status).
  * @param {number|null} selectedYear - Selected network year, null for present.
  * @param {Function} setSelectedYear - Sets the network year filter.
@@ -24,10 +26,15 @@ export default function InfrastructureInsights({ insights, selectedYear, setSele
     const { routes, yearFilteredRoutes } = insights
     const status = insights
 
-    const installations = useMemo(
-        () => aggregateInstallationsByYear(routes, yearBounds.maxYear),
+    const networkChanges = useMemo(
+        () => aggregateNetworkChangesByYear(routes, yearBounds.maxYear),
         [routes, yearBounds.maxYear],
     )
+    // Removed counts render as negative bars below the zero line.
+    const changeGroups = useMemo(() => [
+        { label: 'Installed', values: networkChanges.installed, color: BAR_SOLID },
+        { label: 'Removed', values: networkChanges.removed.map((count) => -count), color: BAR_RUST },
+    ], [networkChanges])
     const byBorough = useMemo(() => aggregateRoutesByBorough(yearFilteredRoutes), [yearFilteredRoutes])
     const byFacilityClass = useMemo(() => aggregateRoutesByFacilityClass(yearFilteredRoutes), [yearFilteredRoutes])
 
@@ -50,30 +57,31 @@ export default function InfrastructureInsights({ insights, selectedYear, setSele
     }, [selectedYear, setSelectedYear, yearBounds.maxYear])
 
     // Keep year ticks readable in mono: cap the tick count as history grows
-    const yearLabelStep = Math.max(1, Math.ceil(installations.labels.length / 16))
+    const yearLabelStep = Math.max(1, Math.ceil(networkChanges.labels.length / 16))
     const yearScopeNote = selectedYear == null ? `the present (${yearBounds.maxYear})` : String(selectedYear)
 
     return (
         <>
             <InsightFrame
-                title="Segments installed per year"
-                note="Click a year to filter the map. Full network history shown, retired segments included."
+                title="Segments installed and removed per year"
+                note="Bars above the line count new segments, bars below count retired ones. Click a year to see the network as it stood then."
                 status={status}
             >
                 <InsightBarChart
-                    labels={installations.labels}
-                    values={installations.values}
+                    labels={networkChanges.labels}
+                    groups={changeGroups}
+                    diverging
                     highlightLabel={String(selectedYear ?? yearBounds.maxYear)}
                     onBarClick={handleYearClick}
                     xAxisTitle="Year"
-                    yAxisTitle="Segments installed"
+                    yAxisTitle="Segments"
                     xLabelStep={yearLabelStep}
                 />
             </InsightFrame>
             <div className="map-insights__row">
                 <InsightFrame
                     title="Segments by borough"
-                    note={`Network as of ${yearScopeNote}.`}
+                    note={`Compares network size across boroughs as of ${yearScopeNote}.`}
                     status={status}
                 >
                     <InsightBarChart
@@ -85,7 +93,7 @@ export default function InfrastructureInsights({ insights, selectedYear, setSele
                 </InsightFrame>
                 <InsightFrame
                     title="Segments by facility class"
-                    note={`Colors mirror the map legend. Network as of ${yearScopeNote}.`}
+                    note={`Shows how much of the network each protection level covers as of ${yearScopeNote}.`}
                     status={status}
                 >
                     <InsightBarChart

@@ -89,6 +89,46 @@ export function selectMaxFlow(trips) {
     return Math.max(...trips.map((trip) => trip.total_daily_flow));
 }
 
+/**
+ * Returns the minimum and maximum daily flow across the trips, for legend
+ * labeling of the volume ramp.
+ * @param {Array} trips - Array of processed trip objects from selectTrips.
+ * @returns {{minFlow: number, maxFlow: number}|null} The bounds, null when empty.
+ */
+export function selectFlowBounds(trips) {
+    if (!trips?.length) return null
+    let minFlow = Infinity
+    let maxFlow = -Infinity
+    for (const trip of trips) {
+        const flow = trip.total_daily_flow
+        if (flow < minFlow) minFlow = flow
+        if (flow > maxFlow) maxFlow = flow
+    }
+    return { minFlow, maxFlow }
+}
+
+/**
+ * Filters oriented focus-view trips by direction relative to the focused
+ * station. Rows keep their shape but total_daily_flow becomes the directional
+ * flow (and the opposite direction is zeroed), so arcs, rankings, and stats
+ * all read the filtered direction consistently.
+ * @param {Array} orientedTrips - Trip rows oriented with orientTripsToFocus.
+ * @param {'all'|'incoming'|'outgoing'} direction - Direction to keep.
+ * @returns {Array} The filtered trip rows.
+ */
+export function filterTripsByDirection(orientedTrips, direction) {
+    if (direction !== 'incoming' && direction !== 'outgoing') return orientedTrips
+    const keepField = direction === 'outgoing' ? 'a_to_b_flow' : 'b_to_a_flow'
+    const zeroField = direction === 'outgoing' ? 'b_to_a_flow' : 'a_to_b_flow'
+    return (orientedTrips ?? [])
+        .filter((trip) => (Number(trip[keepField]) || 0) > 0)
+        .map((trip) => ({
+            ...trip,
+            total_daily_flow: trip[keepField],
+            [zeroField]: 0,
+        }))
+}
+
 // A corridor counts as directional once one direction carries more than
 // 57.5% of its rides: |out - in| / (out + in) > 0.15, beyond day-to-day noise.
 const BALANCE_THRESHOLD = 0.15

@@ -81,7 +81,7 @@
     }
 
     .app-title {
-        @apply font-display text-white text-[28px] md:text-[32px]
+        @apply font-sans text-white text-[28px] md:text-[32px]
          font-semibold tracking-display leading-none m-0;
     }
 
@@ -161,25 +161,10 @@
         @apply relative;
     }
 
+    /* Content sizing for the lock hint; the surface look and positioning
+       come from the shared .floating-tooltip class. */
     .app-header__filter-lock-hint {
-        @apply fixed w-[340px] max-w-[calc(100vw-4rem)]
-           px-3 py-2 border border-white/30 bg-ink/90 backdrop-blur-sm text-white/90
-           font-mono text-[10px] tracking-[0.02em]
-           opacity-0 pointer-events-none;
-        z-index: 9999;
-        left: var(--filter-lock-hint-x, 0px);
-        top: var(--filter-lock-hint-y, 0px);
-        transform: scale(0.98);
-        transform-origin: top left;
-        transition:
-            opacity 120ms ease,
-            transform 120ms ease;
-    }
-
-    .app-header__filter-lockzone.is-locked
-        .app-header__filter-lock-hint.is-visible {
-        opacity: 1;
-        transform: scale(1);
+        @apply w-[340px] max-w-[calc(100vw-4rem)] text-[10px] tracking-[0.02em];
     }
 
     /* ---------- Shared page surface primitives ---------- */
@@ -209,7 +194,7 @@
     }
 
     .page-card__title {
-        @apply font-display text-[26px] md:text-[32px] font-semibold
+        @apply font-sans text-[26px] md:text-[32px] font-semibold
            text-ink tracking-display leading-[1.1];
     }
 
@@ -272,7 +257,7 @@
     }
 
     .viz-guide__title {
-        @apply m-0 font-display text-[20px] leading-tight text-ink inline-flex items-center gap-3 flex-wrap;
+        @apply m-0 font-sans text-[20px] leading-tight text-ink inline-flex items-center gap-3 flex-wrap;
         position: absolute;
         left: 0;
         top: 2rem;

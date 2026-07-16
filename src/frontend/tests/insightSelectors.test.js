@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest'
 
 import {
     BORO_LABELS,
-    aggregateInstallationsByYear,
+    aggregateNetworkChangesByYear,
     aggregatePeakHourDistribution,
     aggregateRoutesByBorough,
     aggregateRoutesByFacilityClass,
@@ -12,7 +12,7 @@ import {
     tripFlowOverviewStats,
 } from '@/features/map/utils/insightSelectors.js'
 import { selectStations } from '@/features/map/utils/stationUsageSelector.js'
-import { classifyBalance, orientTripsToFocus, selectTrips } from '@/features/map/utils/tripArcsSelector.js'
+import { classifyBalance, filterTripsByDirection, orientTripsToFocus, selectFlowBounds, selectTrips } from '@/features/map/utils/tripArcsSelector.js'
 import { computeFocusBounds } from '@/features/map/utils/tripFlowBounds.js'
 
 const route = (overrides) => ({
@@ -23,24 +23,40 @@ const route = (overrides) => ({
     ...overrides,
 })
 
-describe('aggregateInstallationsByYear', () => {
-    it('builds contiguous year labels from the earliest installation to currentYear', () => {
-        const { labels, values } = aggregateInstallationsByYear(
+describe('aggregateNetworkChangesByYear', () => {
+    it('builds contiguous year labels from the earliest event to currentYear', () => {
+        const { labels, installed, removed } = aggregateNetworkChangesByYear(
             [route({ instDate: '2019-03-01' }), route({ instDate: '2019-11-11' }), route({ instDate: '2021-01-01' })],
             2022,
         )
         expect(labels).toEqual(['2019', '2020', '2021', '2022'])
         // 2020 and 2022 are gap years and must render as explicit zeros
-        expect(values).toEqual([2, 0, 1, 0])
+        expect(installed).toEqual([2, 0, 1, 0])
+        expect(removed).toEqual([0, 0, 0, 0])
     })
 
-    it('ignores missing, unparseable, and future installation dates', () => {
-        const { labels, values } = aggregateInstallationsByYear(
-            [route({ instDate: null }), route({ instDate: 'garbage' }), route({ instDate: '2031-01-01' }), route({ instDate: '2022-05-05' })],
+    it('buckets removals by retirement year, segments still in service excluded', () => {
+        const { labels, installed, removed } = aggregateNetworkChangesByYear(
+            [
+                route({ instDate: '2019-03-01', retiredDate: '2021-06-15' }),
+                route({ instDate: '2020-01-01', retiredDate: null }),
+                route({ instDate: '2020-02-02', retiredDate: '2021-01-01' }),
+            ],
+            2022,
+        )
+        expect(labels).toEqual(['2019', '2020', '2021', '2022'])
+        expect(installed).toEqual([1, 2, 0, 0])
+        expect(removed).toEqual([0, 0, 2, 0])
+    })
+
+    it('ignores missing, unparseable, and future dates', () => {
+        const { labels, installed, removed } = aggregateNetworkChangesByYear(
+            [route({ instDate: null }), route({ instDate: 'garbage' }), route({ instDate: '2031-01-01' }), route({ instDate: '2022-05-05', retiredDate: '2031-01-01' })],
             2022,
         )
         expect(labels).toEqual(['2022'])
-        expect(values).toEqual([1])
+        expect(installed).toEqual([1])
+        expect(removed).toEqual([0])
     })
 })
 
@@ -271,6 +287,46 @@ describe('computeFocusBounds', () => {
         expect(bounds).toEqual([[-74.0, 40.7], [-73.9, 40.8]])
         expect(computeFocusBounds([])).toBeNull()
         expect(computeFocusBounds(null)).toBeNull()
+    })
+})
+
+describe('filterTripsByDirection', () => {
+    it('keeps only corridors with flow in the requested direction and re-weights them', () => {
+        const oriented = [
+            trip({ a_to_b_flow: 3, b_to_a_flow: 1, total_daily_flow: 4 }),
+            trip({ corridor_key: 'A|C', end_station_id: 'C', a_to_b_flow: 0, b_to_a_flow: 5, total_daily_flow: 5 }),
+        ]
+
+        const outgoing = filterTripsByDirection(oriented, 'outgoing')
+        expect(outgoing).toHaveLength(1)
+        expect(outgoing[0]).toMatchObject({ total_daily_flow: 3, a_to_b_flow: 3, b_to_a_flow: 0 })
+
+        const incoming = filterTripsByDirection(oriented, 'incoming')
+        expect(incoming).toHaveLength(2)
+        expect(incoming[0]).toMatchObject({ total_daily_flow: 1, a_to_b_flow: 0 })
+        expect(incoming[1]).toMatchObject({ total_daily_flow: 5 })
+    })
+
+    it("passes rows through untouched for 'all' or unknown directions", () => {
+        const oriented = [trip()]
+        expect(filterTripsByDirection(oriented, 'all')).toBe(oriented)
+        expect(filterTripsByDirection(oriented, undefined)).toBe(oriented)
+    })
+})
+
+describe('selectFlowBounds', () => {
+    it('returns the min and max daily flow across trips', () => {
+        const bounds = selectFlowBounds([
+            trip({ total_daily_flow: 3 }),
+            trip({ total_daily_flow: 12 }),
+            trip({ total_daily_flow: 7 }),
+        ])
+        expect(bounds).toEqual({ minFlow: 3, maxFlow: 12 })
+    })
+
+    it('returns null for empty input', () => {
+        expect(selectFlowBounds([])).toBeNull()
+        expect(selectFlowBounds(null)).toBeNull()
     })
 })
 

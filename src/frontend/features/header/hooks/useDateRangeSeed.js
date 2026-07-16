@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import { MAX_COVERED_MONTHS } from '@/utils/config.js'
+import { defaultWindowStart } from '../utils/dateFormatter.js'
 
 /**
  * Handler hook that seeds the date-range filter once: as soon as the dataset
@@ -17,8 +18,7 @@ export default function useDateRangeSeed({ datasetRange, dateRange, onCommit }) 
 
         const maxDate = new Date(datasetRange.max_date)
         const minDate = new Date(datasetRange.min_date)
-        const seedStartDate = new Date(maxDate.getFullYear(), maxDate.getMonth() - (MAX_COVERED_MONTHS - 1), 1)
-        const startDate = seedStartDate < minDate ? minDate : seedStartDate
+        const startDate = defaultWindowStart(minDate, maxDate, MAX_COVERED_MONTHS)
 
         return {
             start_date: `${startDate.getFullYear()}-${String(startDate.getMonth() + 1).padStart(2, '0')}-01`,

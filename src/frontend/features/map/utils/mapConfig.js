@@ -6,6 +6,14 @@ export const LAYER_OPTIONS = [
     // Future layers can be added here
 ]
 
+// Options for the all/incoming/outgoing direction toggle shared by the
+// station-usage and trip-flow layers
+export const USAGE_MODE_OPTIONS = [
+    { value: 'all', label: 'All' },
+    { value: 'incoming', label: 'Incoming' },
+    { value: 'outgoing', label: 'Outgoing' },
+]
+
 // Initial view state centered on NYC
 export const INITIAL_VIEW_STATE = {
     longitude: -73.97,

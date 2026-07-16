@@ -1,4 +1,11 @@
 import { BAR_SOLID, BAR_PINNED } from '@/utils/styling'
+import {
+    INK,
+    INK_MUTED,
+    RULE,
+    FONT_SANS,
+    FONT_MONO,
+} from '@/utils/editorialTokens.js'
 
 // Unit-separator control char: cannot appear in station names or year labels,
 // so joined keys round-trip safely even when labels contain spaces.
@@ -67,6 +74,19 @@ export function buildBarColors(labels, highlightLabel, colors) {
 }
 
 /**
+ * Builds a group dataset's background color: a flat group color normally, or
+ * per-bar colors with the highlighted label in the amber selection color.
+ * @param {Array} labels - Category labels.
+ * @param {Object} group - The { label, values, color } group.
+ * @param {string|null} highlightLabel - Label painted in the selection color.
+ * @returns {string|Array<string>} Color or per-bar colors for the dataset.
+ */
+function buildGroupColors(labels, group, highlightLabel) {
+    if (highlightLabel == null) return group.color
+    return labels.map((label) => (label === highlightLabel ? BAR_PINNED : group.color))
+}
+
+/**
  * Builds the Chart.js datasets: one dataset per group when groups are given
  * (grouped/diverging mode), otherwise a single highlighted series.
  * @param {Array} labels - Category labels.
@@ -81,7 +101,7 @@ export function buildDatasets(labels, values, groups, highlightLabel, colors) {
         return groups.map((group) => ({
             label: group.label,
             data: group.values,
-            backgroundColor: group.color,
+            backgroundColor: buildGroupColors(labels, group, highlightLabel),
             borderRadius: 0,
             borderSkipped: false,
             barPercentage: 0.86,
@@ -94,4 +114,189 @@ export function buildDatasets(labels, values, groups, highlightLabel, colors) {
         borderRadius: 0,
         borderSkipped: false,
     }]
+}
+
+/**
+ * Applies value/color/highlight changes to a live chart in place, so scrub
+ * controls repaint without recreating the chart.
+ * @param {Object} chart - The live Chart.js instance.
+ * @param {Object} live - Current { values, groups, colors, highlightLabel }.
+ * @returns {void}
+ */
+export function applyBarPaint(chart, { values, groups, colors, highlightLabel }) {
+    if (Array.isArray(groups) && groups.length > 0) {
+        chart.data.datasets.forEach((dataset, index) => {
+            const group = groups[index]
+            if (!group) return
+            dataset.data = group.values ?? []
+            dataset.backgroundColor = buildGroupColors(chart.data.labels, group, highlightLabel)
+        })
+        return
+    }
+    chart.data.datasets[0].data = values
+    chart.data.datasets[0].backgroundColor = buildBarColors(chart.data.labels, highlightLabel, colors)
+}
+
+/**
+ * Default tooltip title: multi-line category labels arrive as arrays and read
+ * as one line.
+ * @param {string|string[]} label - The category label.
+ * @returns {string} The single-line title.
+ */
+const defaultTooltipTitle = (label) =>
+    Array.isArray(label) ? label.join(' ') : String(label ?? '')
+
+/**
+ * Builds the full Chart.js config for the insights bar chart. Values, colors,
+ * highlight, and the tooltip/click callbacks are read through the `live` ref
+ * at call time, so paint-only changes never force a chart recreation.
+ * @param {Array} categoryLabels - Decoded category labels.
+ * @param {boolean} horizontal - Draw bars horizontally (category axis on y).
+ * @param {boolean} diverging - Butterfly layout; ticks and tooltips show absolute values.
+ * @param {boolean} hasBarClick - Whether bars are clickable (enables pointer cursor).
+ * @param {string} xAxisTitle - Title of the x axis.
+ * @param {string} yAxisTitle - Title of the y axis.
+ * @param {number} xLabelStep - Show every Nth category tick on vertical charts.
+ * @param {Object} live - Ref holding { values, groups, colors, highlightLabel, onBarClick, formatValue, formatTooltipTitle, formatTooltipLabel }.
+ * @returns {Object} The Chart.js config.
+ */
+export function buildInsightBarChartConfig({
+    categoryLabels,
+    horizontal,
+    diverging,
+    hasBarClick,
+    xAxisTitle,
+    yAxisTitle,
+    xLabelStep,
+    live,
+}) {
+    const hasGroups = Array.isArray(live.current.groups) && live.current.groups.length > 0
+    const categoryAxis = {
+        title: {
+            display: Boolean(horizontal ? yAxisTitle : xAxisTitle),
+            text: horizontal ? yAxisTitle : xAxisTitle,
+            font: { family: FONT_SANS, size: 13, weight: '500' },
+            color: INK,
+        },
+        ticks: {
+            maxRotation: 0,
+            autoSkip: false,
+            callback: horizontal
+                ? function categoryTick(value) { return truncateTickLabel(this.getLabelForValue(value)) }
+                : (value, index) => (index % xLabelStep === 0 ? categoryLabels[index] : ''),
+            font: { family: FONT_MONO, size: 10 },
+            color: INK_MUTED,
+        },
+        grid: { display: false },
+        border: { display: false },
+    }
+    const valueAxis = {
+        beginAtZero: true,
+        title: {
+            display: Boolean(horizontal ? xAxisTitle : yAxisTitle),
+            text: horizontal ? xAxisTitle : yAxisTitle,
+            font: { family: FONT_SANS, size: 13, weight: '500' },
+            color: INK,
+        },
+        ticks: {
+            maxTicksLimit: 5,
+            // Diverging rows encode direction by side, so both sides of the
+            // zero line read as magnitudes.
+            callback: (value) => live.current.formatValue(diverging ? Math.abs(value) : value),
+            font: { family: FONT_MONO, size: 10 },
+            color: INK_MUTED,
+        },
+        grid: { color: RULE },
+        border: { display: false },
+    }
+    if (diverging) {
+        categoryAxis.stacked = true
+        valueAxis.stacked = true
+    }
+
+    return {
+        type: 'bar',
+        data: {
+            labels: categoryLabels,
+            datasets: buildDatasets(
+                categoryLabels,
+                live.current.values,
+                live.current.groups,
+                live.current.highlightLabel,
+                live.current.colors,
+            ),
+        },
+        options: {
+            indexAxis: horizontal ? 'y' : 'x',
+            animation: {
+                duration: 440,
+                easing: 'easeOutQuart',
+            },
+            responsive: true,
+            maintainAspectRatio: false,
+            onClick: hasBarClick
+                ? (event, _elements, chart) => {
+                    const hits = chart.getElementsAtEventForMode(event, 'index', { intersect: true }, false)
+                    if (!hits.length) return
+                    const index = hits[0].index
+                    live.current.onBarClick?.(index, categoryLabels[index])
+                }
+                : undefined,
+            onHover: hasBarClick
+                ? (event, _elements, chart) => {
+                    const hits = chart.getElementsAtEventForMode(event, 'index', { intersect: true }, false)
+                    chart.canvas.style.cursor = hits.length ? 'pointer' : 'default'
+                }
+                : undefined,
+            plugins: {
+                legend: {
+                    display: hasGroups,
+                    position: 'top',
+                    labels: {
+                        boxWidth: 10,
+                        boxHeight: 10,
+                        useBorderRadius: false,
+                        font: { family: FONT_MONO, size: 10 },
+                        color: INK_MUTED,
+                        filter: (item) => Boolean(item.text),
+                    },
+                },
+                tooltip: {
+                    padding: { top: 12, right: 14, bottom: 12, left: 14 },
+                    displayColors: hasGroups,
+                    usePointStyle: true,
+                    borderRadius: 0,
+                    titleSpacing: 4,
+                    bodySpacing: 5,
+                    callbacks: {
+                        title: (items) => {
+                            const item = items[0]
+                            if (!item) return ''
+                            const label = item.chart.data.labels[item.dataIndex]
+                            const custom = live.current.formatTooltipTitle
+                            return custom ? custom(label) : defaultTooltipTitle(label)
+                        },
+                        label: (tooltipCtx) => {
+                            const parsedValue = horizontal ? tooltipCtx.parsed.x : tooltipCtx.parsed.y
+                            const rawValue = diverging ? Math.abs(parsedValue) : parsedValue
+                            const custom = live.current.formatTooltipLabel
+                            if (custom) {
+                                return custom({
+                                    value: rawValue,
+                                    datasetLabel: tooltipCtx.dataset.label,
+                                    label: tooltipCtx.chart.data.labels[tooltipCtx.dataIndex],
+                                })
+                            }
+                            const valueLabel = live.current.formatValue(rawValue)
+                            const datasetLabel = tooltipCtx.dataset.label
+                            return datasetLabel ? `${datasetLabel}: ${valueLabel}` : ` ${valueLabel}`
+                        },
+                    },
+                },
+            },
+            scales: horizontal
+                ? { x: valueAxis, y: categoryAxis }
+                : { x: categoryAxis, y: valueAxis },
+        },
+    }
 }

@@ -1,13 +1,12 @@
 import DeckGL from '@deck.gl/react'
-import { useMemo } from 'react'
 import { useMapHandler } from './hooks/useMapHandler.js'
 import { useBuildLayers } from './hooks/useBuildLayers.js'
 import useMapFullscreen from './hooks/useMapFullscreen.js'
 import useMapCursor from './hooks/useMapCursor.js'
 import useMapClickActions from './hooks/useMapClickActions.js'
+import useMapPageStatus from './hooks/useMapPageStatus.js'
 import { useTripFlowCamera } from './hooks/useTripFlowCamera.js'
 import { useInfrastructureCamera } from './hooks/useInfrastructureCamera.js'
-import { getRouteYearBounds } from './utils/routeYearFilter.js'
 import MapController from './components/MapController.jsx'
 import MapLegend from './components/MapLegend.jsx'
 import LayerSelector from './components/LayerSelector.jsx'
@@ -16,7 +15,6 @@ import StatusMessage from '../../components/StatusMessage.jsx'
 import mapTooltip from './utils/mapTooltip.js'
 import VisualizationGuide from '../../components/VisualizationGuide.jsx'
 import MapInsightsPanel from './components/MapInsightsPanel.jsx'
-import { MAP_LAYER_GUIDES } from './utils/mapGuides.js'
 
 /**
  * Page for the interactive map: composes the layer selector, the DeckGL map
@@ -67,6 +65,11 @@ function MapPage({ filters }) {
         bikeRoutes,
         insights,
         tripFlowHover,
+        tripFlowPin,
+        clearCorridorPin,
+        tripDirection,
+        setTripDirection,
+        tripFlowBounds,
         tripLoading,
         trips,
     } = useBuildLayers({ filters, currentTime, activeLayer, showBikeRoutes, usageMode, hiddenHealthCategories, hiddenRouteClasses, selectedYear })
@@ -75,16 +78,22 @@ function MapPage({ filters }) {
     useTripFlowCamera({ activeLayer, focusedStationId, trips, tripLoading, flyTo, mapShellRef })
     // Fly to the selected infrastructure station(s); fly back out when cleared.
     useInfrastructureCamera({ activeLayer, selectedStations: selectedInfrastructureStations, flyTo, mapShellRef })
-    const yearBounds = useMemo(() => getRouteYearBounds(bikeRoutes), [bikeRoutes])
-    const shouldShowMapUi = !error
-    const shouldShowMapLegend = !loading && !error
-    // Data can also be "not ready yet" without a query in flight (e.g. before
-    // the date range seeds the filters), so missing data reads as loading
-    const isAwaitingData = !error && !hasData
-    const shouldShowStatusOverlay = loading || error || isAwaitingData
-    const guide = MAP_LAYER_GUIDES[activeLayer] ?? MAP_LAYER_GUIDES.station_usage
+    const {
+        yearBounds,
+        shouldShowMapUi,
+        shouldShowMapLegend,
+        isAwaitingData,
+        shouldShowStatusOverlay,
+        guide,
+    } = useMapPageStatus({ activeLayer, loading, error, hasData, bikeRoutes })
 
-    const handleMapClick = useMapClickActions({ activeLayer, clearTripFlowFocus, clearInfrastructureSelection })
+    const handleMapClick = useMapClickActions({
+        activeLayer,
+        clearTripFlowFocus,
+        hasCorridorPin: Boolean(tripFlowPin.pinnedCorridorKey),
+        clearCorridorPin,
+        clearInfrastructureSelection,
+    })
 
     return (
         <section className="page-card">
@@ -141,8 +150,11 @@ function MapPage({ filters }) {
                             setShowBikeRoutes={setShowBikeRoutes}
                             usageMode={usageMode}
                             setUsageMode={setUsageMode}
+                            tripDirection={tripDirection}
+                            setTripDirection={setTripDirection}
                             clearTripFlowFocus={clearTripFlowFocus}
                             hasTripFlowFocus={hasTripFlowFocus}
+                            hasCorridorPin={Boolean(tripFlowPin.pinnedCorridorKey)}
                             selectedYear={selectedYear}
                             setSelectedYear={setSelectedYear}
                             yearBounds={yearBounds}
@@ -154,6 +166,7 @@ function MapPage({ filters }) {
                             activeLayer={activeLayer}
                             showBikeRoutes={showBikeRoutes}
                             hasTripFlowFocus={hasTripFlowFocus}
+                            tripFlowBounds={tripFlowBounds}
                             hiddenHealthCategories={hiddenHealthCategories}
                             hiddenRouteClasses={hiddenRouteClasses}
                             onToggleHealthCategory={toggleHealthCategory}
@@ -178,6 +191,7 @@ function MapPage({ filters }) {
                     activeLayer={activeLayer}
                     insights={insights}
                     tripFlowHover={tripFlowHover}
+                    tripFlowPin={tripFlowPin}
                     usageMode={usageMode}
                     currentTime={currentTime}
                     selectedYear={selectedYear}

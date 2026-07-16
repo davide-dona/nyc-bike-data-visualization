@@ -1,5 +1,5 @@
-import { useMemo, useRef, useState } from "react";
 import useTemporalStats from "./hooks/useTemporalStats.js";
+import useTemporalPageState from "./hooks/useTemporalPageState.js";
 import useCompareTemporalLayers from "./hooks/useCompareTemporalLayers.js";
 import useCompareLayerState from "./hooks/useCompareLayerState.js";
 import useTemporalLayerViews from "./hooks/useTemporalLayerViews.js";
@@ -11,9 +11,9 @@ import SurfaceHistograms from "./components/SurfaceHistograms";
 import SurfaceLineChart from "./components/SurfaceLineChart.jsx";
 import CompareControlPanel from "./components/CompareControlPanel.jsx";
 import CompareLayerList from "./components/CompareLayerList.jsx";
-import AddLayerTooltip from "./components/AddLayerTooltip.jsx";
+import FloatingTooltip from "@/components/FloatingTooltip.jsx";
 import VisualizationGuide from "../../components/VisualizationGuide";
-import { buildLayerKey, stripClassFilters } from "./utils/compareLayers.js";
+import { stripClassFilters } from "./utils/compareLayers.js";
 
 /**
  * Page for the temporal stats: composes the metric selector, the 3D surface
@@ -25,26 +25,18 @@ import { buildLayerKey, stripClassFilters } from "./utils/compareLayers.js";
  * @returns The rendered TemporalPage.
  */
 function TemporalPage({ filters, onCompareModeChange }) {
-    const [activeMetric, setActiveMetric] = useState("total_rides");
-    const [coordinates, setCoordinates] = useState(null);
-    const overlayRef = useRef(null);
+    const {
+        activeMetric,
+        setActiveMetric,
+        coordinates,
+        setCoordinates,
+        overlayRef,
+        filtersKey,
+        baseClassFilters,
+        baseLayerKey,
+    } = useTemporalPageState(filters);
 
     const stats = useTemporalStats(filters);
-
-    // One stable key drives the reset-on-filter-change behavior of both the
-    // compare state machine and the pinned slice, on the same render.
-    const filtersKey = useMemo(() => JSON.stringify(filters ?? {}), [filters]);
-    const baseClassFilters = useMemo(
-        () => ({
-            user_type: filters?.user_type,
-            bike_type: filters?.bike_type,
-        }),
-        [filters],
-    );
-    const baseLayerKey = useMemo(
-        () => buildLayerKey(baseClassFilters),
-        [baseClassFilters],
-    );
 
     const {
         isCompareMode,
@@ -110,7 +102,7 @@ function TemporalPage({ filters, onCompareModeChange }) {
         handleAddLayerMouseEnter,
         handleAddLayerMouseMove,
         handleAddLayerMouseLeave,
-    } = useAddLayerTooltip({ overlayRef, isActive: isPendingSelectionDuplicate });
+    } = useAddLayerTooltip({ isActive: isPendingSelectionDuplicate });
 
     const isActionsDisabled = mergedLoading || mergedError;
 
@@ -185,12 +177,15 @@ function TemporalPage({ filters, onCompareModeChange }) {
                             />
                         </CompareControlPanel>
 
-                        {showTooltip && tooltipText && (
-                            <AddLayerTooltip
-                                text={tooltipText}
+                        {tooltipText && (
+                            <FloatingTooltip
+                                visible={showTooltip}
                                 position={tooltipPosition}
-                                tooltipRef={addLayerTooltipRef}
-                            />
+                                nodeRef={addLayerTooltipRef}
+                                className="surface-compare-add-tooltip"
+                            >
+                                {tooltipText}
+                            </FloatingTooltip>
                         )}
                     </div>
                 </div>

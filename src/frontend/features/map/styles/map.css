@@ -10,10 +10,6 @@
     @apply font-mono text-[11px] uppercase tracking-eyebrow text-ink-muted whitespace-nowrap;
   }
 
-  .year-slider__value {
-    @apply font-mono text-[11px] text-ink w-[14ch] text-right whitespace-nowrap tabular-nums;
-  }
-
   .map-shell {
     @apply relative w-full h-[78vh] overflow-hidden border border-rule bg-ink;
   }
@@ -101,12 +97,34 @@
     letter-spacing: 0.08em;
   }
 
+  /* Top offset clears the map-controls row (routes toggle + year slider) so
+     those controls stay visible and clickable while the sidebar is open. */
   .infra-sidebar {
-  @apply absolute top-4 right-4 bottom-4 z-40 flex w-[22rem] max-w-[calc(100%-2rem)] flex-col gap-4 overflow-y-auto
+  @apply absolute top-20 right-4 bottom-4 z-40 flex w-[22rem] max-w-[calc(100%-2rem)] flex-col gap-4 overflow-y-auto
          border border-rule-invert bg-ink/90 px-4 py-4 text-white/90 backdrop-blur-md
          shadow-[0_20px_60px_rgba(2,6,23,0.35)]
          opacity-0 translate-x-4 pointer-events-none
          transition-[transform,opacity] duration-100 ease-out;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.28) transparent;
+}
+
+/* Slim themed scrollbar matching the ink surface */
+.infra-sidebar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.infra-sidebar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.infra-sidebar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.22);
+  border-radius: 999px;
+}
+
+.infra-sidebar::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.4);
 }
 
 .infra-sidebar.is-open {
@@ -275,8 +293,10 @@
     @apply flex flex-col gap-2;
   }
 
+  /* Fixed-width, right-aligned value column so the bars end on one shared
+     edge and the numbers line up across rows. */
   .infra-sidebar__bar-row {
-    @apply grid grid-cols-[minmax(0,1.5fr)_minmax(0,1.2fr)_auto] items-center gap-2;
+    @apply grid grid-cols-[minmax(0,1.5fr)_minmax(0,1.2fr)_3.25rem] items-center gap-3;
   }
 
   .infra-sidebar__bar-label {
@@ -296,7 +316,7 @@
   }
 
   .infra-sidebar__bar-value {
-    @apply font-mono text-[10px] uppercase tracking-[0.12em] text-white/60 tabular-nums;
+    @apply font-mono text-[10px] uppercase tracking-[0.12em] text-white/60 tabular-nums text-right;
   }
 
   .infra-sidebar__loading,
@@ -333,11 +353,14 @@
     }
   }
 
+  /* deck.gl's built-in tooltip box, aligned to the shared tooltip tokens
+     published by applyEditorialChartDefaults(). */
   .deck-tooltip {
-    @apply font-mono text-[11px] leading-tight border border-rule text-white/90;
-    background-color: rgba(18, 18, 18, 0.9);
-    -webkit-backdrop-filter: blur(6px);
-    backdrop-filter: blur(6px);
+    @apply text-[11px] leading-tight;
+    font-family: var(--tooltip-font);
+    color: var(--tooltip-text);
+    background-color: var(--tooltip-bg);
+    border: 1px solid var(--tooltip-border);
   }
 
   .deck-tooltip * {
@@ -351,6 +374,19 @@
   .map-controls__secondary {
     @apply self-end flex items-center gap-2 flex-wrap max-w-full pointer-events-auto
            text-xs text-ink bg-paper-raised/10 backdrop-blur-md;
+  }
+
+  /* Solid track so the shared segmented control stays legible over the map tiles */
+  .map-controls__secondary .segmented-control {
+    @apply border-ink/20;
+  }
+
+  .map-controls__secondary .segmented-control__btn {
+    @apply bg-paper-raised;
+  }
+
+  .map-controls__secondary .segmented-control__btn.active {
+    @apply bg-ink text-white;
   }
 
   .map-toggle-button {

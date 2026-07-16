@@ -214,34 +214,11 @@
         @apply cursor-not-allowed opacity-45 bg-paper-raised text-ink-muted border-rule hover:text-ink-muted hover:bg-paper-raised hover:border-rule;
     }
 
+    /* Content sizing for the Add Surface hint; the surface look and
+       positioning come from the shared .floating-tooltip class. */
     .surface-compare-add-tooltip {
-        position: absolute;
         width: 260px;
-        padding: 0.5rem 0.75rem;
-        @apply border border-ink bg-ink/90 backdrop-blur-sm text-white;
-        -webkit-backdrop-filter: blur(6px);
-        backdrop-filter: blur(6px);
-        border-radius: 0;
-        @apply font-mono;
-        font-size: 11px;
         white-space: pre-line;
-        text-align: left;
-        pointer-events: none;
-        z-index: 50;
-        transform: translate(-50%, -100%);
-        animation: surface-tooltip-in 120ms ease;
-        box-shadow: 0 4px 12px rgba(22, 20, 18, 0.24);
-    }
-
-    @keyframes surface-tooltip-in {
-        from {
-            opacity: 0;
-            transform: translate(-50%, -90%);
-        }
-        to {
-            opacity: 1;
-            transform: translate(-50%, -100%);
-        }
     }
 
     .surface-layer-list {

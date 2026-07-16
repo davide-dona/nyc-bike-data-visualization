@@ -1,8 +1,9 @@
 import SpeedController from "./SpeedController"
 import BikeRoutesToggle from "./BikeRoutesToggle"
-import UsageModeToggle from "./UsageModeToggle.jsx"
+import SegmentedControl from "@/components/SegmentedControl.jsx"
 import ResetButton from "./ResetButton.jsx"
 import YearSlider from "./YearSlider.jsx"
+import { USAGE_MODE_OPTIONS } from "../utils/mapConfig.js"
 
 /**
  * Component for controlling the active map layer and animation settings. 
@@ -16,8 +17,11 @@ import YearSlider from "./YearSlider.jsx"
  * @param {Function} setShowBikeRoutes - Function to update the showBikeRoutes state in the parent component, allowing the user to toggle bike routes on the infrastructure layer.
  * @param {string} usageMode - Which metric the station usage layer encodes ('all' | 'incoming' | 'outgoing').
  * @param {Function} setUsageMode - Function to update the usageMode state in the parent component.
+ * @param {string} tripDirection - Direction filter of the trip-flow focus view ('all' | 'incoming' | 'outgoing').
+ * @param {Function} setTripDirection - Setter for the trip-flow direction filter.
  * @param {Function} clearTripFlowFocus - Returns the trip flow layer to the citywide overview.
  * @param {boolean} hasTripFlowFocus - Whether a station is currently focused on the trip flow layer.
+ * @param {boolean} hasCorridorPin - Whether a leaderboard corridor pin is active on the trip flow layer.
  * @param {number|null} selectedYear - Historical year for the bike-route network, null for present.
  * @param {Function} setSelectedYear - Setter for the selected network year.
  * @param {Object} yearBounds - {minYear, maxYear} derived from the route data.
@@ -32,8 +36,11 @@ export default function MapController({
     setShowBikeRoutes,
     usageMode,
     setUsageMode,
+    tripDirection,
+    setTripDirection,
     clearTripFlowFocus,
     hasTripFlowFocus,
+    hasCorridorPin = false,
     selectedYear,
     setSelectedYear,
     yearBounds,
@@ -51,10 +58,12 @@ export default function MapController({
 
             <div className="map-controls__secondary">
                 {activeLayer === 'station_usage' && (
-                    <UsageModeToggle
-                        usageMode={usageMode}
-                        setUsageMode={setUsageMode}
+                    <SegmentedControl
+                        options={USAGE_MODE_OPTIONS}
+                        value={usageMode}
+                        onChange={setUsageMode}
                         disabled={disabled}
+                        ariaLabel="Station usage metric"
                     />
                 )}
 
@@ -76,8 +85,18 @@ export default function MapController({
                 )}
 
                 {activeLayer === 'trip_flow' && (
+                    <SegmentedControl
+                        options={USAGE_MODE_OPTIONS}
+                        value={tripDirection}
+                        onChange={setTripDirection}
+                        disabled={disabled || !hasTripFlowFocus}
+                        ariaLabel="Trip flow direction"
+                    />
+                )}
+
+                {activeLayer === 'trip_flow' && (
                     <ResetButton
-                        disabled={!hasTripFlowFocus}
+                        disabled={!hasTripFlowFocus && !hasCorridorPin}
                         onClick={clearTripFlowFocus}
                     />
                 )}

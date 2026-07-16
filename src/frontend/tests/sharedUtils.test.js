@@ -85,3 +85,20 @@ describe('tooltip position utils', () => {
             .toEqual({ x: 12, y: 12 })
     })
 })
+
+describe('defaultWindowStart', () => {
+    it('starts the window months - 1 months before the max month, on day 1', async () => {
+        const { defaultWindowStart } = await import('@/features/header/utils/dateFormatter.js')
+        const start = defaultWindowStart(new Date(2020, 0, 1), new Date(2026, 5, 30), 12)
+        expect(start.getFullYear()).toBe(2025)
+        expect(start.getMonth()).toBe(6) // July, 11 months before June
+        expect(start.getDate()).toBe(1)
+    })
+
+    it('clamps to minDate when the dataset covers fewer months', async () => {
+        const { defaultWindowStart } = await import('@/features/header/utils/dateFormatter.js')
+        const minDate = new Date(2026, 2, 1)
+        const start = defaultWindowStart(minDate, new Date(2026, 5, 30), 12)
+        expect(start).toBe(minDate)
+    })
+})

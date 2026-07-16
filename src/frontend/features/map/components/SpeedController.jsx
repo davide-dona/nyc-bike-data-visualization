@@ -1,240 +1,42 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useSpeedHandler } from "../hooks/useSpeedHandler.js";
 import PlayIcon from "./PlayIcon.jsx";
 import PauseIcon from "./PauseIcon.jsx";
+import useTimeWheel from "../hooks/useTimeWheel.js";
 import {
-    HOURS_IN_DAY,
-    BASE_FRAME_MS,
-    MINUTES_IN_HOUR,
-    MINUTES_IN_DAY,
     MAX_MINUTE_INDEX,
-    TIME_DRAG_THRESHOLD_PX,
     SPEED_OPTIONS,
-    clamp,
-    normalizeTime,
-    formatTimeLabel,
     formatSpeedLabel,
-    createHourMarks,
 } from "../utils/speedController.js";
-
-export { HOURS_IN_DAY };
 
 /**
  * Circular draggable time wheel used to scrub the map time frame. The wheel
  * wraps seamlessly past midnight in both directions: the tick strip is
  * periodic, so 23:59 -> 00:00 is just another step. Playback speed is chosen
- * from the discrete SPEED_OPTIONS steps.
+ * from the discrete SPEED_OPTIONS steps. All interaction logic lives in the
+ * useTimeWheel handler hook; this component only renders.
  * @param {Function} setCurrentTime - Function to update the current time in the parent component.
  * @param {number} currentTime - The current time in hours (can be a fractional value representing minutes).
  * @param {boolean} [disabled=false] - When true, all pointer/keyboard interaction is suppressed.
  * @returns {JSX.Element} The scrubbable time wheel + speed step controls.
  */
 export default function SpeedController({ setCurrentTime, currentTime, disabled = false }) {
-    const trackRef = useRef(null);
-    const activePointerIdRef = useRef(null);
-    const dragStartXRef = useRef(0);
-    const dragStartMinuteIndexRef = useRef(0);
-    const dragTrackWidthRef = useRef(0);
-    const hasDraggedRef = useRef(false);
-    const [isDragging, setIsDragging] = useState(false);
     const {
+        trackRef,
+        isDragging,
         isPlaying,
         setIsPlaying,
-        setSpeed,
         speed,
-    } = useSpeedHandler({
-        setCurrentTime,
-        currentTime,
-        hoursInDay: HOURS_IN_DAY,
-        baseFrameMs: BASE_FRAME_MS,
-    });
-
-    useEffect(() => {
-        if (disabled) {
-            setIsPlaying(false);
-        }
-    }, [disabled, setIsPlaying]);
-
-    const hourMarks = useMemo(() => createHourMarks(), []);
-    const currentTimeLabel = useMemo(() => formatTimeLabel(currentTime), [currentTime]);
-    const currentMinuteIndex = useMemo(() => {
-        const normalizedTime = normalizeTime(currentTime);
-        return clamp(Math.floor(normalizedTime * MINUTES_IN_HOUR), 0, MAX_MINUTE_INDEX);
-    }, [currentTime]);
-
-    // One day of minutes spans one period (100%) of the periodic tick strip
-    const currentPosition = (currentMinuteIndex / MINUTES_IN_DAY) * 100;
-    const stripTransform = `translateX(calc(50% - ${currentPosition}%))`;
-    const isInteractionDisabled = disabled;
-
-    const stopDragging = useCallback(() => {
-        const track = trackRef.current;
-        if (track != null && activePointerIdRef.current != null && track.hasPointerCapture(activePointerIdRef.current)) {
-            track.releasePointerCapture(activePointerIdRef.current);
-        }
-        activePointerIdRef.current = null;
-        dragStartXRef.current = 0;
-        dragStartMinuteIndexRef.current = 0;
-        dragTrackWidthRef.current = 0;
-        setIsDragging(false);
-        hasDraggedRef.current = false;
-    }, []);
-
-    const handlePointerDown = (event) => {
-        if (isInteractionDisabled) {
-            return;
-        }
-
-        if (event.button !== 0) {
-            return;
-        }
-
-        event.preventDefault();
-
-        const track = trackRef.current;
-        if (track == null) {
-            return;
-        }
-
-        activePointerIdRef.current = event.pointerId;
-        track.setPointerCapture(event.pointerId);
-        setIsDragging(true);
-        dragStartXRef.current = event.clientX;
-        dragStartMinuteIndexRef.current = currentMinuteIndex;
-        dragTrackWidthRef.current = track.getBoundingClientRect().width;
-        hasDraggedRef.current = false;
-    };
-
-    const handlePointerMove = (event) => {
-        if (isInteractionDisabled) {
-            return;
-        }
-
-        if (!isDragging || activePointerIdRef.current !== event.pointerId) {
-            return;
-        }
-
-        if (!hasDraggedRef.current) {
-            const dragDelta = Math.abs(event.clientX - dragStartXRef.current);
-            if (dragDelta < TIME_DRAG_THRESHOLD_PX) {
-                return;
-            }
-            hasDraggedRef.current = true;
-        }
-
-        event.preventDefault();
-        const trackWidth = dragTrackWidthRef.current;
-        if (trackWidth <= 0) {
-            return;
-        }
-
-        // The visible rail spans one full day, so a drag across the whole
-        // track is 24 hours. No clamping: the wheel is circular and wraps.
-        const deltaX = event.clientX - dragStartXRef.current;
-        const minuteDelta = (deltaX / trackWidth) * MINUTES_IN_DAY;
-        const nextMinuteIndex = dragStartMinuteIndexRef.current - minuteDelta;
-        setCurrentTime(normalizeTime(nextMinuteIndex / MINUTES_IN_HOUR));
-    };
-
-    const handlePointerUp = (event) => {
-        if (isInteractionDisabled) {
-            return;
-        }
-
-        if (activePointerIdRef.current !== event.pointerId) {
-            return;
-        }
-        stopDragging();
-    };
-
-    const handlePointerCancel = (event) => {
-        if (isInteractionDisabled) {
-            return;
-        }
-
-        if (activePointerIdRef.current !== event.pointerId) {
-            return;
-        }
-        stopDragging();
-    };
-
-    const stepSpeed = useCallback(
-        (direction) => {
-            const currentIndex = SPEED_OPTIONS.indexOf(speed);
-            const safeIndex = currentIndex === -1 ? SPEED_OPTIONS.indexOf(1) : currentIndex;
-            const nextIndex = clamp(safeIndex + direction, 0, SPEED_OPTIONS.length - 1);
-            setSpeed(SPEED_OPTIONS[nextIndex]);
-        },
-        [speed, setSpeed],
-    );
-
-    const handleSpeedKeyDown = (event) => {
-        if (isInteractionDisabled) {
-            return;
-        }
-
-        const stepMap = {
-            ArrowLeft: -1,
-            ArrowDown: -1,
-            ArrowRight: 1,
-            ArrowUp: 1,
-        };
-
-        if (event.key === "Home") {
-            event.preventDefault();
-            setSpeed(SPEED_OPTIONS[0]);
-            return;
-        }
-
-        if (event.key === "End") {
-            event.preventDefault();
-            setSpeed(SPEED_OPTIONS[SPEED_OPTIONS.length - 1]);
-            return;
-        }
-
-        if (!(event.key in stepMap)) {
-            return;
-        }
-
-        event.preventDefault();
-        stepSpeed(stepMap[event.key]);
-    };
-
-    const handleKeyDown = (event) => {
-        if (isInteractionDisabled) {
-            return;
-        }
-
-        const stepMap = {
-            ArrowLeft: 1,
-            ArrowDown: 1,
-            ArrowRight: -1,
-            ArrowUp: -1,
-            PageDown: 15,
-            PageUp: -15,
-        };
-
-        if (event.key === "Home") {
-            event.preventDefault();
-            setCurrentTime(0);
-            return;
-        }
-
-        if (event.key === "End") {
-            event.preventDefault();
-            setCurrentTime(MAX_MINUTE_INDEX / MINUTES_IN_HOUR);
-            return;
-        }
-
-        if (!(event.key in stepMap)) {
-            return;
-        }
-
-        event.preventDefault();
-        // Wraps around midnight instead of clamping: the wheel is circular
-        const nextMinuteIndex = currentMinuteIndex + stepMap[event.key];
-        setCurrentTime(normalizeTime(nextMinuteIndex / MINUTES_IN_HOUR));
-    };
+        setSpeed,
+        hourMarks,
+        currentTimeLabel,
+        currentMinuteIndex,
+        stripTransform,
+        handlePointerDown,
+        handlePointerMove,
+        handlePointerUp,
+        handlePointerCancel,
+        handleKeyDown,
+        handleSpeedKeyDown,
+    } = useTimeWheel({ setCurrentTime, currentTime, disabled });
 
     return (
         <div className={`map-speed-controls${disabled ? " is-disabled" : ""}`}>

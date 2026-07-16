@@ -32,3 +32,17 @@ export function normalizeBounds(dateRange) {
         totalMonths,
     }
 }
+
+/**
+ * Computes the start of the default last-N-months window: the first day of
+ * the month `months - 1` months before maxDate's month, clamped to minDate
+ * when the dataset covers fewer months.
+ * @param {Date} minDate - Earliest available date.
+ * @param {Date} maxDate - Latest available date.
+ * @param {number} months - Window size in months.
+ * @returns {Date} The window's start date.
+ */
+export function defaultWindowStart(minDate, maxDate, months) {
+    const start = new Date(maxDate.getFullYear(), maxDate.getMonth() - (months - 1), 1)
+    return start < minDate ? minDate : start
+}

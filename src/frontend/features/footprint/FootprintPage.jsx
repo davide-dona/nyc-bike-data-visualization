@@ -1,13 +1,10 @@
-import { useMemo, useState } from 'react'
-import useFootprintDaily from './hooks/useFootprintDaily.js'
+import useFootprintPageState from './hooks/useFootprintPageState.js'
 import FootprintTiles from './components/FootprintTiles.jsx'
 import ModeComparisonBar from './components/ModeComparisonBar.jsx'
 import CumulativeAvoidedBand from './components/CumulativeAvoidedBand.jsx'
 import AssumptionsBox from './components/AssumptionsBox.jsx'
 import SubstitutionRateControl from './components/SubstitutionRateControl.jsx'
 import VisualizationGuide from '../../components/VisualizationGuide.jsx'
-import { SUBSTITUTION_RATE } from './utils/emissionFactors.js'
-import { sumFootprintTotals } from './utils/footprintMath.js'
 
 /**
  * Component for the green mobility page: ridden kilometres translated into
@@ -15,16 +12,15 @@ import { sumFootprintTotals } from './utils/footprintMath.js'
  * @param {Object} filters - The filters to apply to the data, such as date range or user-selected filters.
  */
 function FootprintPage({ filters = {} }) {
-    // Assumed share of rides replacing a car trip; drives tiles and band alike
-    const [substitutionRate, setSubstitutionRate] = useState(SUBSTITUTION_RATE.mid)
-    // One date-grouped fetch serves every chart; the totals are its sums
     const {
+        substitutionRate,
+        setSubstitutionRate,
         dailyStats,
+        totals,
         loading: dailyLoading,
         error: dailyError,
         refetch: refetchDaily,
-    } = useFootprintDaily(filters)
-    const totals = useMemo(() => sumFootprintTotals(dailyStats), [dailyStats])
+    } = useFootprintPageState(filters)
 
     return (
         <section className="page-card">

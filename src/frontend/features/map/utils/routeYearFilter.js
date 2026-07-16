@@ -15,6 +15,13 @@ const currentYear = () => new Date().getFullYear()
 export const getRouteInstallYear = (route) => Number(route.instDate?.slice(0, 4))
 
 /**
+ * Extracts a route's retirement year from its ISO retiredDate string.
+ * @param {Object} route - BikeRoute object with retiredDate ('YYYY-MM-DD' or null).
+ * @returns {number} The retirement year, or NaN when the route was never retired.
+ */
+export const getRouteRetireYear = (route) => Number(route.retiredDate?.slice(0, 4))
+
+/**
  * Returns the segments that were part of the network during the given year:
  * installed by the end of it and not retired before it started. Mirrors the
  * backend /bike_routes/history semantics, including treating segments without

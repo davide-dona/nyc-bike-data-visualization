@@ -24,6 +24,7 @@ import { BASE_TILE_URL } from './mapConfig.js'
  * @param {string|null} focusedStationId - Focused station id, null in overview.
  * @param {string|null} hoveredTripStationId - Hovered trip station id.
  * @param {string|null} hoveredCorridorKey - Corridor highlighted via panel or arc hover.
+ * @param {string|null} pinnedCorridorKey - Corridor pinned via a leaderboard click.
  * @param {Set|null} emphasizedCorridorKeys - Ranked corridors emphasized in the overview.
  * @param {Function} onTripStationPick - Pick handler focusing a station.
  * @param {Function} onTripStationHover - Hover handler for trip stations.
@@ -58,6 +59,7 @@ export function buildDeckLayers({
     focusedStationId,
     hoveredTripStationId,
     hoveredCorridorKey,
+    pinnedCorridorKey,
     emphasizedCorridorKeys,
     onTripStationPick,
     onTripStationHover,
@@ -85,13 +87,14 @@ export function buildDeckLayers({
     }
     if (activeLayer === 'trip_flow') {
         if (!tripLoading && !tripError) {
-            base.push(createTripFlowLayers({
+            base.push(...createTripFlowLayers({
                 trips,
                 maxTripCount: maxTripFlow,
                 stations: tripStations,
                 focusedStationId,
                 hoveredStationId: hoveredTripStationId,
                 hoveredCorridorKey,
+                pinnedCorridorKey,
                 emphasizedCorridorKeys,
                 onStationPick: onTripStationPick,
                 onStationHover: onTripStationHover,

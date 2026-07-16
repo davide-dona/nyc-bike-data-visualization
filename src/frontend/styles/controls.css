@@ -89,11 +89,51 @@
     @apply cursor-not-allowed opacity-50;
   }
 
+  /* Shared compact numeric text input (NumericInput component) */
+  .numeric-input {
+    @apply w-[14ch] px-2 py-0.5 font-mono text-[11px] text-ink text-right tabular-nums
+           bg-transparent border-b border-ink/25
+           placeholder:text-ink-muted
+           transition-colors duration-150
+           hover:border-ink/50
+           focus:outline-none focus:border-accent;
+  }
+
+  .numeric-input:disabled {
+    @apply cursor-not-allowed opacity-55;
+  }
+
   .panel-frame {
     @apply relative w-full border-t border-ink border-x border-b border-rule bg-paper-raised p-5;
   }
 
   .panel-frame__title {
     @apply m-0 mb-4 font-mono text-[11px] uppercase tracking-eyebrow text-ink-muted;
+  }
+
+  /* Shared chart frame internals used by ChartFrame across all pages. */
+  .chart-frame__plot {
+    @apply relative w-full h-[30vh] min-h-[240px];
+  }
+
+  .chart-frame__plot--tall {
+    @apply h-[36vh] min-h-[300px];
+  }
+
+  .chart-frame__plot--auto {
+    @apply h-auto min-h-[180px];
+  }
+
+  .chart-frame__empty {
+    @apply w-full h-full border border-rule bg-paper text-ink-muted font-mono text-[11px] uppercase tracking-eyebrow;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 0.75rem;
+  }
+
+  .chart-frame__note {
+    @apply m-0 mt-3 font-mono text-xs leading-relaxed text-ink-muted;
   }
 }

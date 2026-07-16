@@ -4,33 +4,37 @@ import InsightStatTile from './InsightStatTile.jsx'
 import TripFlowCorridorList from './TripFlowCorridorList.jsx'
 import { rankCorridors, tripFlowFocusStats, tripFlowOverviewStats } from '../utils/insightSelectors.js'
 import { formatCount, formatNumber } from '@/utils/numberFormat.js'
-import { LIMIT_TRIPS_OVERVIEW, TRIP_FLOW_LIST_SIZE } from '@/utils/config.js'
+import { TRIP_FLOW_LIST_SIZE } from '@/utils/config.js'
 
 /**
  * Insight frame for the trip flow layer: headline stat tiles plus a ranked
  * corridor list. The overview summarizes the citywide corridor web; focusing
  * a station switches to its partners with an outbound/inbound split per row.
- * Hovering a row traces the matching arc on the map and vice versa.
+ * Hovering a row traces the matching arc on the map and vice versa; clicking
+ * a row pins its corridor while the rest of the web dims.
  * @param {Object} insights - Trip flow data slice (trips, focus state, query status).
  * @param {Object} tripFlowHover - Corridor hover link ({ hoveredCorridorKey, onCorridorHover }).
+ * @param {Object} tripFlowPin - Corridor pin link ({ pinnedCorridorKey, onCorridorToggle }).
  * @returns The rendered trip flow insight frame.
  */
-export default function TripFlowInsights({ insights, tripFlowHover }) {
+export default function TripFlowInsights({ insights, tripFlowHover, tripFlowPin }) {
     const { trips, isFocusView, focusedStationName } = insights
     const status = insights
     const { hoveredCorridorKey, onCorridorHover } = tripFlowHover
+    const { pinnedCorridorKey, onCorridorToggle } = tripFlowPin
 
     const rows = useMemo(() => rankCorridors(trips, TRIP_FLOW_LIST_SIZE), [trips])
     const stats = useMemo(
         () => (isFocusView ? tripFlowFocusStats(trips) : tripFlowOverviewStats(trips)),
         [trips, isFocusView],
     )
+    const strongestCorridor = rows[0] ?? null
 
     if (isFocusView) {
         return (
             <InsightFrame
                 title={`Corridors of ${focusedStationName ?? 'the focused station'}`}
-                note="Every corridor of the focused station is drawn on the map; the strongest are listed here. Hover a row to trace its corridor. Click the station again, click empty map, or press Reset View for the citywide picture."
+                note="Bars rank this station's corridors by average daily rides. Hover a row to trace its arc, click a row to pin it on the map."
                 status={status}
                 emptyMessage={rows.length === 0
                     ? 'No trips recorded for the focused station with the current filters.'
@@ -47,6 +51,8 @@ export default function TripFlowInsights({ insights, tripFlowHover }) {
                     rows={rows}
                     hoveredCorridorKey={hoveredCorridorKey}
                     onCorridorHover={onCorridorHover}
+                    pinnedCorridorKey={pinnedCorridorKey}
+                    onCorridorToggle={onCorridorToggle}
                     showSplit
                 />
             </InsightFrame>
@@ -56,7 +62,7 @@ export default function TripFlowInsights({ insights, tripFlowHover }) {
     return (
         <InsightFrame
             title="Strongest corridors citywide"
-            note={`Top ${LIMIT_TRIPS_OVERVIEW} corridors drawn on the map, strongest ${TRIP_FLOW_LIST_SIZE} listed and emphasized on the map. Hover a row to trace its corridor. Click a station to see all of its corridors.`}
+            note="Bars rank the busiest station pairs by average daily rides. Hover a row to trace its arc, click a row to pin it, click a station dot for that station's full picture."
             status={status}
             emptyMessage={rows.length === 0
                 ? 'No trips recorded for the current filters.'
@@ -64,14 +70,21 @@ export default function TripFlowInsights({ insights, tripFlowHover }) {
             autoHeight
         >
             <div className="map-insights__stat-row">
-                <InsightStatTile value={formatCount(stats.totalDailyRides)} label="Daily rides" hint={`top ${LIMIT_TRIPS_OVERVIEW} corridors`} />
+                <InsightStatTile value={formatCount(stats.totalDailyRides)} label="Daily rides" hint="across drawn corridors" />
                 <InsightStatTile value={formatCount(stats.corridorCount)} label="Corridors" hint="drawn on the map" />
                 <InsightStatTile value={`${formatNumber(stats.medianDistanceKm, 1)} km`} label="Median corridor" hint="flow-weighted" />
+                <InsightStatTile
+                    value={strongestCorridor ? formatCount(strongestCorridor.value) : '0'}
+                    label="Strongest corridor"
+                    hint={strongestCorridor ? `${strongestCorridor.startName} ↔ ${strongestCorridor.endName}` : 'daily rides'}
+                />
             </div>
             <TripFlowCorridorList
                 rows={rows}
                 hoveredCorridorKey={hoveredCorridorKey}
                 onCorridorHover={onCorridorHover}
+                pinnedCorridorKey={pinnedCorridorKey}
+                onCorridorToggle={onCorridorToggle}
             />
         </InsightFrame>
     )

@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import useDateRangeBounds from './useDateBounds.js'
 import { formatIsoDate, lastDayOfMonth } from '@/utils/dateFormat.js'
+import { defaultWindowStart } from '../utils/dateFormatter.js'
+import { MAX_COVERED_MONTHS } from '@/utils/config.js'
 
 /**
  * Handler hook owning the whole date window picker state machine: the
@@ -56,7 +58,9 @@ export default function useDateWindowPicker({ value, onCommit, disabled = false 
     useEffect(() => {
         if (!bounds) return
         if (start === null || end === null) {
-            const s = bounds.minDate
+            // Mirror the seeded default (last covered months) so the picker
+            // never flashes the full dataset span before the seed commits.
+            const s = defaultWindowStart(bounds.minDate, bounds.maxDate, MAX_COVERED_MONTHS)
             const e = bounds.maxDate
             setStart({ year: s.getFullYear(), month: s.getMonth() })
             setEnd({ year: e.getFullYear(), month: e.getMonth() })

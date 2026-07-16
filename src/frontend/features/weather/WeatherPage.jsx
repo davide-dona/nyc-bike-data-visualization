@@ -91,10 +91,6 @@ function WeatherPage({ filters = {} }) {
                             text: 'Find where trends bend: a small weather change can trigger a strong drop or rise after a critical point.',
                         },
                         {
-                            title: 'Compare with other views',
-                            text: 'Use the ridgeline to inspect when each weather code concentrates over hours and weekdays, then connect that pattern to temporal peaks.',
-                        },
-                        {
                             title: 'Read the curves',
                             text: 'The temperature curve shows how demand climbs with warmth - casual riders react more strongly than members. The rain bars show how much ridership survives each precipitation intensity relative to dry hours.',
                         },

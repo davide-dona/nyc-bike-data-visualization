@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { useApiQueriesWithFilters } from "../../../clients/baseApiQuery.js";
-import { fetchStats } from "../services/statsApi.js";
+import { fetchStats } from "@/services/statsApi.js";
 import {
     createLayerQueries,
     hasDateRange,

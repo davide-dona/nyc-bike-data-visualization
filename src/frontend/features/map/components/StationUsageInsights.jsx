@@ -5,7 +5,7 @@ import {
     aggregatePeakHourDistribution,
     topStationsByUsage,
 } from '../utils/insightSelectors.js'
-import { LIMIT_STATIONS } from '@/utils/config.js'
+import { formatCount, formatCompact } from '@/utils/numberFormat.js'
 
 const HOURS_IN_DAY = 24
 
@@ -43,7 +43,7 @@ export default function StationUsageInsights({ insights, usageMode, currentTime 
         <div className="map-insights__row">
             <InsightFrame
                 title="Stations by peak hour"
-                note={`The amber bar follows the map's time wheel. Counting ${modeNote}.`}
+                note={`Counts stations by the hour of day when their traffic peaks, using ${modeNote}. Tall bars mark the hours when most of the network is at its busiest.`}
                 status={status}
             >
                 <InsightBarChart
@@ -53,11 +53,13 @@ export default function StationUsageInsights({ insights, usageMode, currentTime 
                     xAxisTitle="Hour of Day"
                     yAxisTitle="Stations peaking"
                     xLabelStep={3}
+                    formatTooltipTitle={(label) => `Peak at ${String(label).padStart(2, '0')}:00`}
+                    formatTooltipLabel={({ value }) => `${formatCount(value)} stations peak at this hour`}
                 />
             </InsightFrame>
             <InsightFrame
                 title="Busiest stations"
-                note={`Top 10 of the ${LIMIT_STATIONS} busiest stations fetched for the current filters. Counting ${modeNote}.`}
+                note={`Ranks the ten busiest stations by average daily rides, using ${modeNote}. Compare bar lengths to see how quickly traffic drops after the top few hubs.`}
                 status={status}
             >
                 <InsightBarChart
@@ -65,6 +67,7 @@ export default function StationUsageInsights({ insights, usageMode, currentTime 
                     labels={busiestStations.labels}
                     values={busiestStations.values}
                     xAxisTitle="Avg rides / day"
+                    formatTooltipLabel={({ value }) => `${formatCompact(value)} avg rides per day`}
                 />
             </InsightFrame>
         </div>

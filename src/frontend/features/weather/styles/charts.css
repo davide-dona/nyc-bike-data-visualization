@@ -1,10 +1,18 @@
 @layer components {
   .scatter-plot-frame {
-    @apply relative border-t border-ink border-x border-b border-rule w-full;
+    @apply relative border-t border-ink border-x border-b border-rule w-full bg-paper-raised;
+  }
+
+  .scatter-plot-frame__title {
+    @apply m-0 px-8 pt-6 font-mono text-[11px] uppercase tracking-eyebrow text-ink-muted;
+  }
+
+  .scatter-plot-frame__note {
+    @apply m-0 px-8 pb-6 font-mono text-xs leading-relaxed text-ink-muted;
   }
 
   .scatter-plot {
-    @apply w-full h-[78vh] min-h-[320px] bg-paper-raised p-8;
+    @apply w-full h-[78vh] min-h-[320px] bg-paper-raised px-8 py-4;
   }
 
   .weather-ridgeline-frame {
@@ -13,6 +21,7 @@
 
   .weather-ridgeline-frame--hidden .weather-ridgeline-toolbar,
   .weather-ridgeline-frame--hidden .weather-ridgeline-plot,
+  .weather-ridgeline-frame--hidden .weather-ridgeline-note,
   .weather-ridgeline-frame--hidden .weather-ridgeline-empty {
     visibility: hidden;
   }
@@ -72,5 +81,53 @@
 
   .weather-deepdive-plot {
     @apply relative w-full h-[34vh] min-h-[260px];
+  }
+}
+
+@layer components {
+  /* Weather scatter tooltip content; the surface look comes from the shared
+     .floating-tooltip class. */
+  .weather-tooltip-frame {
+    @apply w-[280px];
+  }
+
+  .weather-tooltip__header {
+    @apply mb-3 pb-2.5 border-b border-accent/40;
+  }
+
+  .weather-tooltip__title {
+    @apply flex items-center gap-2 font-bold text-[13px] tracking-[0.02em];
+  }
+
+  .weather-tooltip__subtitle {
+    @apply mt-0.5 text-[10px] uppercase tracking-[0.04em] text-white/60;
+  }
+
+  .weather-tooltip__section {
+    @apply px-2.5 py-2 border border-accent/25;
+  }
+
+  .weather-tooltip__section--tinted {
+    @apply mb-3 border-accent/30 bg-accent/10;
+  }
+
+  .weather-tooltip__section-title {
+    @apply mb-1.5 text-[9px] font-semibold uppercase tracking-[0.06em] text-white/50;
+  }
+
+  .weather-tooltip__row {
+    @apply flex items-baseline gap-1 text-[11px];
+  }
+
+  .weather-tooltip__row + .weather-tooltip__row {
+    @apply mt-1;
+  }
+
+  .weather-tooltip__muted {
+    @apply text-white/70;
+  }
+
+  .weather-tooltip__se {
+    @apply ml-1 text-white/55;
   }
 }

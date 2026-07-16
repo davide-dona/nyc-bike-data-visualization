@@ -4,7 +4,7 @@
   }
 
   .footprint-tile__value {
-    @apply m-0 font-display text-2xl tracking-display text-ink;
+    @apply m-0 font-mono text-2xl text-ink;
   }
 
   .footprint-tile__label {
@@ -21,15 +21,6 @@
 
   .footprint-plot {
     @apply relative w-full h-[34vh] min-h-[260px];
-  }
-
-  .footprint-empty {
-    @apply w-full h-full border border-rule bg-paper text-ink-muted font-mono text-[11px] uppercase tracking-eyebrow;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    padding: 0.75rem;
   }
 
   .footprint-rate {
@@ -54,7 +45,7 @@
   }
 
   .footprint-assumptions__heading {
-    @apply m-0 mb-2 font-display text-sm text-ink;
+    @apply m-0 mb-2 font-sans text-sm text-ink;
   }
 
   .footprint-assumptions__heading + .footprint-assumptions__heading,

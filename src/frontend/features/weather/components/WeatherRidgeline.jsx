@@ -7,7 +7,7 @@ import {
     INK_MUTED,
     PAPER_RAISED,
     RULE,
-    FONT_DISPLAY,
+    FONT_SANS,
     RULE_STRONG,
 } from "../../../utils/editorialTokens.js";
 import { WMO_WEATHER_CODES } from "../utils/wmoCodeHandler.js";
@@ -129,7 +129,7 @@ function WeatherRidgeline({ data, loading, error, onRefetch }) {
                             xaxis: {
                                 title: {
                                     text: dimension === "hour" ? "Hour of Day" : "Day of Week",
-                                    font: { family: FONT_DISPLAY, size: 13, weight: "500" },
+                                    font: { family: FONT_SANS, size: 13, weight: "500" },
                                     standoff: 50,
                                 },
                                 tickmode: "array",
@@ -142,7 +142,7 @@ function WeatherRidgeline({ data, loading, error, onRefetch }) {
                             yaxis: {
                                 title: {
                                     text: "Weather",
-                                    font: { family: FONT_DISPLAY, size: 13, weight: "500" },
+                                    font: { family: FONT_SANS, size: 13, weight: "500" },
                                     standoff: 30,
                                 },
                                 tickmode: "array",
@@ -167,6 +167,11 @@ function WeatherRidgeline({ data, loading, error, onRefetch }) {
                     </div>
                 )}
             </div>
+
+            <p className="chart-frame__note weather-ridgeline-note">
+                Each ridge shows when one weather condition occurs across the day or the week.
+                Peaks mark the hours or days that condition concentrates in.
+            </p>
 
             {showOverlay && <StatusMessage loading={loading} error={error} onRefetch={onRefetch} />}
         </div>

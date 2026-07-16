@@ -1,6 +1,6 @@
 import CompareFilterDropdown from './CompareFilterDropdown.jsx'
 import { CLASS_FILTER_KEYS } from '../utils/compareLayers.js'
-import { FILTERS } from '@/features/header/components/RiderBikeFilter.jsx'
+import { FILTERS } from '@/features/header/utils/filterOptions.js'
 
 /**
  * The Compare toggle button plus the compare panel shell: filter dropdowns,

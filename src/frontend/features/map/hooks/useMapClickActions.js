@@ -1,22 +1,35 @@
 import { useCallback } from 'react'
 
 /**
- * Handler hook for layer-aware map clicks: clicking empty map exits the
- * trip-flow focus or clears the infrastructure station selection, while
- * station and arc picks pass through untouched.
+ * Handler hook for layer-aware map clicks: clicking empty map first clears an
+ * active corridor pin, then exits the trip-flow focus, or clears the
+ * infrastructure station selection; station and arc picks pass through
+ * untouched.
  * @param {string} activeLayer - The active map layer key.
  * @param {Function} clearTripFlowFocus - Returns trip flow to the citywide overview.
+ * @param {boolean} hasCorridorPin - Whether a leaderboard corridor pin is active.
+ * @param {Function} clearCorridorPin - Clears the corridor pin only.
  * @param {Function} clearInfrastructureSelection - Clears the station selection.
  * @returns {Function} The deck.gl onClick handler.
  */
-export default function useMapClickActions({ activeLayer, clearTripFlowFocus, clearInfrastructureSelection }) {
+export default function useMapClickActions({
+    activeLayer,
+    clearTripFlowFocus,
+    hasCorridorPin = false,
+    clearCorridorPin = () => {},
+    clearInfrastructureSelection,
+}) {
     return useCallback((info) => {
         const pickedObject = info?.object
 
-        // Clicking empty map exits the trip-flow focus back to the overview;
-        // station and arc picks carry an object, so they never clear it here.
+        // Clicking empty map peels back one level of trip-flow state: an
+        // active corridor pin clears first, another click exits the focus.
+        // Station and arc picks carry an object, so they never clear here.
         if (activeLayer === 'trip_flow') {
-            if (!pickedObject) clearTripFlowFocus()
+            if (!pickedObject) {
+                if (hasCorridorPin) clearCorridorPin()
+                else clearTripFlowFocus()
+            }
             return
         }
 
@@ -30,5 +43,5 @@ export default function useMapClickActions({ activeLayer, clearTripFlowFocus, cl
         if (!pickedObject) {
             clearInfrastructureSelection()
         }
-    }, [activeLayer, clearInfrastructureSelection, clearTripFlowFocus])
+    }, [activeLayer, clearInfrastructureSelection, clearTripFlowFocus, hasCorridorPin, clearCorridorPin])
 }

@@ -1,4 +1,5 @@
 @import './base.css';
+@import './floating-tooltip.css';
 @import './layout.css';
 @import './controls.css';
 @import '../features/map/styles/map.css';

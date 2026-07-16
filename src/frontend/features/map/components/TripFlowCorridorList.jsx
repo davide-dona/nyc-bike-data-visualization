@@ -5,14 +5,24 @@ import { BAR_SOLID, BAR_RUST } from '@/utils/styling'
  * Ranked corridor list for the trip-flow insights panel. Rows are ordered by
  * daily rides; in split mode a small legend names the two fill tones and each
  * row shows its outbound/inbound balance. Row hover is linked to the map's
- * arc highlight through the corridor key.
+ * arc highlight through the corridor key, and a row click pins its corridor
+ * on the map.
  * @param {Array} rows - Ranked corridors from rankCorridors, sorted descending.
  * @param {string|null} hoveredCorridorKey - Corridor currently highlighted.
  * @param {Function} onCorridorHover - Receives a corridor key or null.
+ * @param {string|null} pinnedCorridorKey - Corridor currently pinned on the map.
+ * @param {Function} onCorridorToggle - Receives a corridor key, toggling its pin.
  * @param {boolean} showSplit - Whether rows render the outbound/inbound split fill.
  * @returns The rendered corridor list.
  */
-export default function TripFlowCorridorList({ rows, hoveredCorridorKey, onCorridorHover, showSplit = false }) {
+export default function TripFlowCorridorList({
+    rows,
+    hoveredCorridorKey,
+    onCorridorHover,
+    pinnedCorridorKey = null,
+    onCorridorToggle = () => {},
+    showSplit = false,
+}) {
     const maxValue = rows.reduce((max, row) => Math.max(max, row.value), 0)
 
     return (
@@ -37,7 +47,9 @@ export default function TripFlowCorridorList({ rows, hoveredCorridorKey, onCorri
                         rank={index + 1}
                         maxValue={maxValue}
                         isHovered={row.key === hoveredCorridorKey}
+                        isPinned={row.key === pinnedCorridorKey}
                         onHover={onCorridorHover}
+                        onToggle={onCorridorToggle}
                         showSplit={showSplit}
                     />
                 ))}

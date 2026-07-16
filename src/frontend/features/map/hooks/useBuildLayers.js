@@ -1,9 +1,11 @@
-import { useMemo } from 'react'
+import { useCallback, useMemo } from 'react'
 // Station Usage Layer
 import { useStationUsageLayer } from './useStationUsageLayer.js'
 // Trip Flow Layer
 import { useTripFlowLayer } from './useTripFlowLayer.js'
 import { useTripStationFocus } from './useTripStationFocus.js'
+import { useTripCorridorPin } from './useTripCorridorPin.js'
+import { useTripFlowDirection } from './useTripFlowDirection.js'
 // Infrastructure Layer
 import { useInfrastructureLayer } from './useInfrastructureLayer.js'
 import { useInfrastructureStationSelection } from './useInfrastructureStationSelection.js'
@@ -12,6 +14,7 @@ import { filterRoutesByYear } from '../utils/routeYearFilter.js'
 import { buildDeckLayers } from '../utils/buildDeckLayers.js'
 import { selectMapInsights } from '../utils/selectMapInsights.js'
 import { rankCorridors } from '../utils/insightSelectors.js'
+import { selectFlowBounds } from '../utils/tripArcsSelector.js'
 import { TRIP_FLOW_LIST_SIZE } from '@/utils/config.js'
 
 /**
@@ -33,7 +36,9 @@ export function useBuildLayers({ filters, currentTime, activeLayer, showBikeRout
     // Fetch and process data
     const { stations: usageStations, frameStations, maxUsage, maxDelta, loading: stationLoading, error: stationError, refetch: stationRefetch } = useStationUsageLayer({ filters: filters, currentTime, usageMode })
     const { focusedStationId, onStationPick, clearFocus } = useTripStationFocus() // Single focused station for the trip flow layer
-    const { trips, maxTripFlow, isFocusView, stations: tripStations, loading: tripLoading, error: tripError, refetch: tripRefetch } = useTripFlowLayer({ filters, focusedStationId })
+    const { pinnedCorridorKey, toggleCorridorPin, clearCorridorPin } = useTripCorridorPin({ focusedStationId })
+    const { tripDirection, setTripDirection } = useTripFlowDirection({ focusedStationId })
+    const { trips, maxTripFlow, isFocusView, stations: tripStations, loading: tripLoading, error: tripError, refetch: tripRefetch } = useTripFlowLayer({ filters, focusedStationId, tripDirection })
     const { stations, bikeRoutes, loading: availabilityLoading, error: availabilityError, refetch: availabilityRefetch, routesLoading, routesError, refetchRoutes } = useInfrastructureLayer({ showBikeRoutes })
     const {
         clearSelectedStations: clearInfrastructureSelection,
@@ -95,6 +100,7 @@ export function useBuildLayers({ filters, currentTime, activeLayer, showBikeRout
         focusedStationId,
         hoveredTripStationId,
         hoveredCorridorKey,
+        pinnedCorridorKey,
         emphasizedCorridorKeys,
         onTripStationPick: onStationPick,
         onTripStationHover: handleTripStationHover,
@@ -112,7 +118,7 @@ export function useBuildLayers({ filters, currentTime, activeLayer, showBikeRout
         hoveredInfrastructureStationId,
         onInfrastructureStationPick,
         onInfrastructureStationHover: handleInfrastructureStationHover,
-    }), [frameStations, maxUsage, maxDelta, trips, maxTripFlow, tripStations, focusedStationId, hoveredTripStationId, hoveredCorridorKey, emphasizedCorridorKeys, onStationPick, handleTripStationHover, handleArcHover, stations, activeLayer, stationLoading, stationError, tripLoading, tripError, availabilityLoading, availabilityError, yearFilteredRoutes, showBikeRoutes, hoveredRouteId, handleRoutePick, selectedInfrastructureStationIds, hoveredInfrastructureStationId, onInfrastructureStationPick, handleInfrastructureStationHover, hiddenHealthCategories, hiddenRouteClasses])
+    }), [frameStations, maxUsage, maxDelta, trips, maxTripFlow, tripStations, focusedStationId, hoveredTripStationId, hoveredCorridorKey, pinnedCorridorKey, emphasizedCorridorKeys, onStationPick, handleTripStationHover, handleArcHover, stations, activeLayer, stationLoading, stationError, tripLoading, tripError, availabilityLoading, availabilityError, yearFilteredRoutes, showBikeRoutes, hoveredRouteId, handleRoutePick, selectedInfrastructureStationIds, hoveredInfrastructureStationId, onInfrastructureStationPick, handleInfrastructureStationHover, hiddenHealthCategories, hiddenRouteClasses])
 
     // Station name for the focus-mode chart title; the trip station list
     // carries id and name for every clickable dot.
@@ -153,6 +159,20 @@ export function useBuildLayers({ filters, currentTime, activeLayer, showBikeRout
         onCorridorHover: setHoveredCorridor,
     }), [hoveredCorridorKey, setHoveredCorridor])
 
+    // Pin link between leaderboard rows and map arcs: a row click pins its
+    // corridor while the camera stays put and other arcs dim.
+    const tripFlowPin = useMemo(() => ({
+        pinnedCorridorKey,
+        onCorridorToggle: toggleCorridorPin,
+    }), [pinnedCorridorKey, toggleCorridorPin])
+
+    // Daily-flow bounds of the drawn overview corridors, for the legend's
+    // volume-gradient labeling. Focus view uses the diverging legend instead.
+    const tripFlowBounds = useMemo(
+        () => (isFocusView ? null : selectFlowBounds(trips)),
+        [trips, isFocusView],
+    )
+
     // Consider the loading, error, and data states of only the active layer for the overall status
     const activeLayerState = stateLayers.find(layer => layer.layer === activeLayer)
     const loading = activeLayerState?.loading || false
@@ -161,13 +181,20 @@ export function useBuildLayers({ filters, currentTime, activeLayer, showBikeRout
     const hasData = activeLayerState?.hasData ?? false
     const hasTripFlowFocus = Boolean(focusedStationId)
 
+    // Reset View and empty-map clicks return the layer to its default state:
+    // focus and corridor pin are cleared together.
+    const clearTripFlowFocus = useCallback(() => {
+        clearFocus()
+        clearCorridorPin()
+    }, [clearFocus, clearCorridorPin])
+
     return {
         layers,
         loading: loading,
         error: error,
         hasData,
         refetch,
-        clearTripFlowFocus: clearFocus,
+        clearTripFlowFocus,
         hasTripFlowFocus,
         focusedStationId,
         selectedInfrastructureStations,
@@ -178,6 +205,14 @@ export function useBuildLayers({ filters, currentTime, activeLayer, showBikeRout
         insights,
         // Corridor hover link shared by the insights panel and the arc layer
         tripFlowHover,
+        // Corridor pin link shared by the leaderboard and the arc layer
+        tripFlowPin,
+        clearCorridorPin,
+        // Direction filter of the trip-flow focus view
+        tripDirection,
+        setTripDirection,
+        // Volume bounds of the drawn overview corridors, for the legend
+        tripFlowBounds,
         // Trip flow query state and rows, for the focus camera
         tripLoading,
         trips,

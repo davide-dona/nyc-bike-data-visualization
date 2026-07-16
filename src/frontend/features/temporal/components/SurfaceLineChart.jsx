@@ -1,55 +1,11 @@
-import { useMemo } from "react";
 import Plot from "react-plotly.js";
-import StatusMessage from "../../../components/StatusMessage.jsx";
-import { getMetricConfig } from "../utils/metricFormatter.js";
-import { PLOTLY_HOVERLABEL } from "@/utils/styling";
-import {
-    INK_MUTED,
-    PAPER_RAISED,
-    FONT_MONO,
-    RULE_STRONG,
-    FONT_DISPLAY,
-} from "../../../utils/editorialTokens.js";
-
-/**
- * Sorts stats rows by their ISO date string, ascending.
- * @param {Array} rows - Per-date stats rows.
- * @returns {Array} A new sorted array.
- */
-function sortRowsByDate(rows = []) {
-    return [...rows].sort((a, b) => String(a?.date ?? "").localeCompare(String(b?.date ?? "")));
-}
-
-/**
- * Builds the {date, value} line series for a metric, dropping rows without
- * a date or a finite value.
- * @param {Array} rows - Per-date stats rows.
- * @param {Function} metricGetter - Reads the active metric from a row.
- * @returns {Array<{date: string, value: number}>} The sorted series.
- */
-function buildSeries(rows = [], metricGetter) {
-    const sortedRows = sortRowsByDate(rows);
-
-    return sortedRows
-        .map((row) => {
-            const dateValue = row?.date ? String(row.date) : null;
-            const metricValue = Number(metricGetter(row));
-
-            if (!dateValue || !Number.isFinite(metricValue)) {
-                return null;
-            }
-
-            return {
-                date: dateValue,
-                value: metricValue,
-            };
-        })
-        .filter(Boolean);
-}
+import StatusMessage from "@/components/StatusMessage.jsx";
+import useSurfaceLineChart from "../hooks/useSurfaceLineChart.js";
 
 /**
  * Per-date line chart of the selected metric, drawing one line per layer in
- * compare mode.
+ * compare mode. All trace/layout building lives in the useSurfaceLineChart
+ * handler hook; this component only renders.
  * @param {Array} dateData - Per-date stats rows of the base layer.
  * @param {string} activeMetric - Selected metric key.
  * @param {boolean} loading - Whether the chart's queries are in flight.
@@ -68,69 +24,13 @@ function SurfaceLineChart({
     compareMode = false,
     layers = [],
 }) {
-    const metric = useMemo(() => getMetricConfig(activeMetric), [activeMetric]);
+    const { metric, traces, hasData, plotLayout } = useSurfaceLineChart({
+        dateData,
+        activeMetric,
+        compareMode,
+        layers,
+    });
     const showOverlay = loading || error;
-
-    const singleSeries = useMemo(
-        () => buildSeries(dateData ?? [], metric.get),
-        [dateData, metric],
-    );
-
-    const compareTraces = useMemo(() => {
-        if (!compareMode || layers.length <= 1) return [];
-
-        return layers
-            .map((layer, index) => {
-                const series = buildSeries(layer.dateStats ?? [], metric.get);
-                if (series.length === 0) return null;
-
-                return {
-                    type: "scatter",
-                    mode: "lines+markers",
-                    name: layer.label,
-                    x: series.map((point) => point.date),
-                    y: series.map((point) => point.value),
-                    line: {
-                        color: layer.color,
-                        width: index === 0 ? 2.4 : 1.8,
-                    },
-                    marker: {
-                        color: layer.color,
-                        size: index === 0 ? 4.2 : 3.2,
-                    },
-                    hovertemplate:
-                        `<b>${layer.label}</b><br>` +
-                        "Moment: <b>%{x|%b %d, %Y}</b><br>" +
-                        `${metric.noun}: <b>%{y:,.2f}</b> ${metric.unit}<extra></extra>`,
-                };
-            })
-            .filter(Boolean);
-    }, [compareMode, layers, metric]);
-
-    const singleTrace = useMemo(
-        () => ({
-            type: "scatter",
-            mode: "lines+markers",
-            name: metric.label,
-            x: singleSeries.map((point) => point.date),
-            y: singleSeries.map((point) => point.value),
-            line: {
-                color: "#1953d8",
-                width: 2.3,
-            },
-            marker: {
-                color: "#1953d8",
-                size: 3.8,
-            },
-            hovertemplate:
-                "Moment: <b>%{x|%b %d, %Y}</b><br>" +
-                `${metric.noun}: <b>%{y:,.2f}</b> ${metric.unit}<extra></extra>`,
-        }),
-        [singleSeries, metric],
-    );
-
-    const traces = compareTraces.length > 0 ? compareTraces : [singleTrace];
-    const hasData = traces.some((trace) => Array.isArray(trace.y) && trace.y.length > 0);
 
     return (
         <div className={`surface-card${showOverlay ? " surface-card--hidden" : ""}`}>
@@ -142,40 +42,7 @@ function SurfaceLineChart({
                 {hasData ? (
                     <Plot
                         data={traces}
-                        layout={{
-                            paper_bgcolor: PAPER_RAISED,
-                            plot_bgcolor: PAPER_RAISED,
-                            separators: ".'",
-                            margin: { l: 56, r: 20, t: 10, b: 54 },
-                            showlegend: compareTraces.length > 0,
-                            legend: {
-                                orientation: "h",
-                                yanchor: "bottom",
-                                y: 1.02,
-                                xanchor: "left",
-                                x: 0,
-                                font: { family: FONT_MONO, size: 10, color: INK_MUTED },
-                            },
-                            xaxis: {
-                                type: "date",
-                                title: {
-                                    text: "Date",
-                                    font: { family: FONT_DISPLAY, size: 11, color: INK_MUTED },
-                                },
-                                tickfont: { family: FONT_MONO, size: 10, color: INK_MUTED },
-                                gridcolor: "transparent",
-                                zerolinecolor: RULE_STRONG,
-                            },
-                            yaxis: {
-                                title: {
-                                    text: metric.label,
-                                    font: { family: FONT_DISPLAY, size: 11, color: INK_MUTED },
-                                },
-                                tickfont: { family: FONT_MONO, size: 10, color: INK_MUTED },
-                                zerolinecolor: RULE_STRONG,
-                            },
-                            hoverlabel: PLOTLY_HOVERLABEL,
-                        }}
+                        layout={plotLayout}
                         config={{
                             displayModeBar: false,
                             scrollZoom: false,

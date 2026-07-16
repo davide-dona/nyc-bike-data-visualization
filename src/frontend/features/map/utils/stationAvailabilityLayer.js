@@ -4,11 +4,11 @@ import {
     UNKNOWN_RGB,
     ACCENT_RGB,
 } from '@/utils/editorialTokens.js'
-import { formatCount } from '@/utils/numberFormat.js'
 import { HEALTH_CATEGORY } from './stationAvailabilitySelector.js'
 import { createStationDotsLayers } from './stationDotsLayer.js'
 
-const STATION_RADIUS = 22
+// Radius in pixels: constant across zoom so dots never overlap when zooming in.
+const STATION_RADIUS = 6
 
 /**
  * Builds the infrastructure station dot layers via the shared station-dot
@@ -35,8 +35,6 @@ export function createStationAvailabilityLayer({
         selectedStationIds,
         hoveredStationId,
         baseRadius: STATION_RADIUS,
-        minPixels: 5,
-        maxPixels: 40,
         withHitLayer: true,
         onPick: onStationPick,
         onHover: onStationHover,
@@ -69,17 +67,15 @@ function getStationColor(category) {
 }
 
 
-/** * Generates tooltip content for a station availability point.
- * @param {Object} object - The station data object
- * @returns {string} A formatted string with station information for the tooltip.
+/**
+ * Generates tooltip content for a station availability point. Hover shows
+ * only the station name; clicking the station opens the sidebar with the
+ * full availability details.
+ * @param {Object} object - The station data object.
+ * @returns {string} The station name.
  */
-export function stationAvailabilityTooltip( object ) {
-    return `${object.name}\n
-            Status: ${HEALTH_CATEGORY_LABELS[object.health_category] ?? 'Offline'}
-            Available Classical Bikes: ${formatCount(object.classicalBikes)}
-            Available Electric Bikes: ${formatCount(object.electricBikes)}
-            Available Docks: ${formatCount(object.available_docks)}
-            Total Capacity: ${formatCount(object.capacity)}`
+export function stationAvailabilityTooltip(object) {
+    return object?.name ?? 'Unknown Station'
 }
 
 /**

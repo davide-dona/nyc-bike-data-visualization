@@ -7,7 +7,7 @@ import {
     ACCENT_INK,
     RULE,
     RULE_STRONG,
-    FONT_DISPLAY,
+    FONT_SANS,
     FONT_MONO,
 } from '../editorialTokens.js'
 
@@ -28,7 +28,7 @@ export const EDITORIAL_COLORSCALE = [
  * @returns The Plotly axis config.
  */
 export const editorialAxis = (title: string) => ({
-    title: { text: title, font: { family: FONT_DISPLAY, color: INK, size: 14 } },
+    title: { text: title, font: { family: FONT_SANS, color: INK, size: 14 } },
     tickfont: { family: FONT_MONO, color: INK_MUTED, size: 11 },
     gridcolor: RULE,
     backgroundcolor: PAPER_RAISED,
