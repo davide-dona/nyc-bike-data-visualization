@@ -83,24 +83,19 @@ export function tripFlowLegend(isFocusView = false, flowBounds = null) {
     if (isFocusView) {
         return {
             entries: [
-                { swatch: 'rgb(25, 83, 216)', label: 'Net outbound' },
-                { swatch: 'rgb(194, 80, 26)', label: 'Net inbound' },
-                { swatch: 'rgb(110, 106, 98)', label: 'Balanced' },
-                { swatch: 'rgb(229, 140, 43)', label: 'Focused station' },
+                { swatch: 'rgb(25, 83, 216)', label: 'More departures' },
+                { swatch: 'rgb(194, 80, 26)', label: 'More arrivals' },
+                { swatch: 'rgb(110, 106, 98)', label: 'Neutral' },
             ],
         }
     }
-    const hasBounds = Number.isFinite(flowBounds?.minFlow) && Number.isFinite(flowBounds?.maxFlow)
-    const volumeLabel = hasBounds
-        ? `Corridor volume: ${formatCount(flowBounds.minFlow)} to ${formatCount(flowBounds.maxFlow)} daily rides`
-        : 'Corridor volume (low to high)'
+    const volumeLabel = 'Corridor volume (low to high)'
     return {
         entries: [
             {
-                swatch: 'linear-gradient(90deg, rgb(184, 201, 236), rgb(25, 83, 216), rgb(10, 42, 122))',
+                swatch: 'linear-gradient(90deg, rgb(184, 201, 236), rgb(25, 83, 216))',
                 label: volumeLabel,
             },
-            { swatch: 'rgba(110, 106, 98, 0.6)', label: 'Station' },
         ],
     }
 }

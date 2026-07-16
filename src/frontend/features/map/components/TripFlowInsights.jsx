@@ -34,18 +34,17 @@ export default function TripFlowInsights({ insights, tripFlowHover, tripFlowPin 
         return (
             <InsightFrame
                 title={`Corridors of ${focusedStationName ?? 'the focused station'}`}
-                note="Bars rank this station's corridors by average daily rides. Hover a row to trace its arc, click a row to pin it on the map."
-                status={status}
+                note="Bars show daily rides relative to the busiest corridor, split by direction, with actual average daily counts on the right. Hover or click to map its flow."                status={status}
                 emptyMessage={rows.length === 0
                     ? 'No trips recorded for the focused station with the current filters.'
                     : null}
                 autoHeight
             >
                 <div className="map-insights__stat-row">
-                    <InsightStatTile value={formatCount(stats.totalDailyRides)} label="Daily rides" hint="avg per day" />
-                    <InsightStatTile value={formatCount(stats.partnerCount)} label="Partners" hint="stations linked" />
-                    <InsightStatTile value={`${formatCount(stats.outboundShare * 100)}%`} label="Outbound" hint="of rides leave here" />
-                    <InsightStatTile value={`${formatNumber(stats.medianDistanceKm, 1)} km`} label="Median trip" hint="flow-weighted" />
+                    <InsightStatTile value={formatCount(stats.totalDailyRides)} label="Daily rides" hint="" />
+                    <InsightStatTile value={formatCount(stats.partnerCount)} label="Linked stations" hint="" />
+                    <InsightStatTile value={`${formatCount(stats.outboundShare * 100)}%`} label="Outbound Share" hint="" />
+                    <InsightStatTile value={`${formatNumber(stats.medianDistanceKm, 1)} km`} label="Median trip" hint="" />
                 </div>
                 <TripFlowCorridorList
                     rows={rows}
@@ -61,23 +60,21 @@ export default function TripFlowInsights({ insights, tripFlowHover, tripFlowPin 
 
     return (
         <InsightFrame
-            title="Strongest corridors citywide"
-            note="Bars rank the busiest station pairs by average daily rides. Hover a row to trace its arc, click a row to pin it, click a station dot for that station's full picture."
-            status={status}
+            title="Strongest corridors citywide"    
+            note="Bars show total volume relative to the busiest corridor, with actual ride counts on the right. Hover or click to trace its flow."            status={status}
             emptyMessage={rows.length === 0
                 ? 'No trips recorded for the current filters.'
                 : null}
             autoHeight
         >
             <div className="map-insights__stat-row">
-                <InsightStatTile value={formatCount(stats.totalDailyRides)} label="Daily rides" hint="across drawn corridors" />
-                <InsightStatTile value={formatCount(stats.corridorCount)} label="Corridors" hint="drawn on the map" />
-                <InsightStatTile value={`${formatNumber(stats.medianDistanceKm, 1)} km`} label="Median corridor" hint="flow-weighted" />
+                <InsightStatTile value={formatCount(stats.totalDailyRides)} label="Daily rides" hint="" />
+                <InsightStatTile value={formatCount(stats.corridorCount)} label="Corridors" hint="" />
+                <InsightStatTile value={`${formatNumber(stats.medianDistanceKm, 1)} km`} label="Median corridor" hint="" />
                 <InsightStatTile
                     value={strongestCorridor ? formatCount(strongestCorridor.value) : '0'}
                     label="Strongest corridor"
-                    hint={strongestCorridor ? `${strongestCorridor.startName} ↔ ${strongestCorridor.endName}` : 'daily rides'}
-                />
+                                />
             </div>
             <TripFlowCorridorList
                 rows={rows}

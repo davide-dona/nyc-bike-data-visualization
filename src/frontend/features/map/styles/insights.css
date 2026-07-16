@@ -28,7 +28,7 @@
   }
 
   .trip-corridors__legend {
-    @apply flex items-center gap-4 mb-2;
+    @apply flex items-center gap-4 mb-4 mt-7;
   }
 
   .trip-corridors__legend-item {

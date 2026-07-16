@@ -198,11 +198,14 @@ export function createTripsArcLayer({
 * @returns {string} The tooltip content.
 */
 export function tripArcsTooltip(object) {
-    const rides = Number(object.total_daily_flow) || 0
-    const from = object.start_station_name
-    const to = object.end_station_name
-    const totalRides = Number(object.total_rides) || 0
-    const a_to_b = Number(object.a_to_b_flow) || 0
-    const b_to_a = Number(object.b_to_a_flow) || 0
-    return `Corridor: ${from} <> ${to}\n Daily Rides: ${formatCount(rides)}\n Total Rides: ${formatCount(totalRides)}\n Daily ${from} → ${to}: ${formatNumber(a_to_b, 2)}\n Daily ${to} → ${from}: ${formatNumber(b_to_a, 2)}`
+    const from = object.start_station_name;
+    const to = object.end_station_name;
+    
+    const dailyTotal = Number(object.total_daily_flow) || 0;
+    const netTotal = Number(object.total_rides) || 0;
+    
+    const outFlow = Number(object.a_to_b_flow) || 0;
+    const inFlow = Number(object.b_to_a_flow) || 0;
+
+    return `Corridor\n${from} ↔ ${to}\n\nTraffic Volume\n - Daily Rides: ${formatCount(dailyTotal)}\n - Total Rides: ${formatCount(netTotal)}\n\nDirection Flow(Daily)\n - To ${to}: ${formatNumber(outFlow, 2)}\n - To ${from}: ${formatNumber(inFlow, 2)}`;
 }
