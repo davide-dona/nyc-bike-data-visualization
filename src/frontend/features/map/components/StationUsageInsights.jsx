@@ -43,7 +43,7 @@ export default function StationUsageInsights({ insights, usageMode, currentTime 
         <div className="map-insights__row">
             <InsightFrame
                 title="Stations by peak hour"
-                note={`Counts stations by the hour of day when their traffic peaks, using ${modeNote}. Tall bars mark the hours when most of the network is at its busiest.`}
+                note={`Counts stations by the hour of day when their traffic peaks, using ${modeNote}. This reveals at a glance when the network is busiest.`}
                 status={status}
             >
                 <InsightBarChart
@@ -59,7 +59,7 @@ export default function StationUsageInsights({ insights, usageMode, currentTime 
             </InsightFrame>
             <InsightFrame
                 title="Busiest stations"
-                note={`Ranks the ten busiest stations by average daily rides, using ${modeNote}. Compare bar lengths to see how quickly traffic drops after the top few hubs.`}
+                note={`Ranks the ten busiest stations by average daily rides, using ${modeNote}. This highlights which individual hubs carry the heaviest daily passenger loads.`}
                 status={status}
             >
                 <InsightBarChart
