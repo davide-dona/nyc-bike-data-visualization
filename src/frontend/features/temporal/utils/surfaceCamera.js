@@ -2,7 +2,7 @@
 // fixed radius and height, constrained to a half turn, and the UI exposes
 // the azimuth as a -90..90 degree display angle centered on the default view.
 
-export const INITIAL_CAMERA = {
+const INITIAL_CAMERA = {
     eye: { x: 1.6, y: -1.6, z: 0.9 },
     center: { x: 0, y: 0, z: -0.3 },
     up: { x: 0, y: 0, z: 1 },

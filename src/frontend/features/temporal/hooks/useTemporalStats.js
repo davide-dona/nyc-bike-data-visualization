@@ -11,7 +11,6 @@ import { marginalizeDayHour } from "../utils/marginalizeStats.js";
  * loading/error/refetch, and a queries map with per-breakdown query states.
  */
 export default function useTemporalStats(filters) {
-    // Fetches the day-hour statistics based on the provided filters using a custom hook. The hook returns the data, loading state, and any error encountered during the fetch.
     const {
         dayHourStats,
         loading: loadingDayHourStats,

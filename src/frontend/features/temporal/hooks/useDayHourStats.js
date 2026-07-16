@@ -20,7 +20,6 @@ function useDayHourStats(filters={}) {
         loading: query.loading,
         error: query.error,
         refetch: query.refetch,
-        isFetching: query.isFetching,
     }
 }
 

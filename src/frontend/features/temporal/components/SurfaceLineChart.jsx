@@ -1,5 +1,5 @@
 import Plot from "react-plotly.js";
-import StatusMessage from "@/components/StatusMessage.jsx";
+import ChartFrame from "@/components/ChartFrame.jsx";
 import useSurfaceLineChart from "../hooks/useSurfaceLineChart.js";
 
 /**
@@ -30,33 +30,27 @@ function SurfaceLineChart({
         compareMode,
         layers,
     });
-    const showOverlay = loading || error;
 
     return (
-        <div className={`surface-card${showOverlay ? " surface-card--hidden" : ""}`}>
-            <p className="surface-card__eyebrow">
-                {metric.label} over selected time range
-            </p>
-
-            <div className="surface-chart">
-                {hasData ? (
-                    <Plot
-                        data={traces}
-                        layout={plotLayout}
-                        config={{
-                            displayModeBar: false,
-                            scrollZoom: false,
-                        }}
-                        className="w-full h-full"
-                    />
-                ) : (
-                    <div className="surface-empty">No daily stats available for this selection.</div>
-                )}
-                <p className="chart-frame__note">This line chart shows the daily breakdown of {metric.label} over the selected time range, helping you spot key trends and easily identify anomalies.</p>
-
-            </div>
-            {showOverlay && <StatusMessage loading={loading} error={error} onRefetch={onRefetch} />}
-        </div>
+        <ChartFrame
+            title={`${metric.label} over selected time range`}
+            note={`This line chart shows the daily breakdown of ${metric.label} over the selected time range, helping you spot key trends and easily identify anomalies.`}
+            status={{ loading, error, refetch: onRefetch }}
+            emptyMessage={!hasData ? "No daily stats available for this selection." : null}
+            frameClassName="surface-card"
+            titleClassName="surface-card__eyebrow"
+            plotClassName="surface-chart"
+        >
+            <Plot
+                data={traces}
+                layout={plotLayout}
+                config={{
+                    displayModeBar: false,
+                    scrollZoom: false,
+                }}
+                className="w-full h-full"
+            />
+        </ChartFrame>
     );
 }
 

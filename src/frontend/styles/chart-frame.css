@@ -13,8 +13,7 @@
   }
 
   /* Shared empty-state recipe; also reused by .weather-ridgeline-empty
-     (features/weather/styles/charts.css) and .surface-empty
-     (features/temporal/styles/surface-line-chart.css). */
+     (features/weather/styles/charts.css). */
   .chart-frame__empty {
     @apply w-full h-full border border-rule bg-paper text-ink-muted font-mono text-[11px] uppercase tracking-eyebrow;
     display: flex;

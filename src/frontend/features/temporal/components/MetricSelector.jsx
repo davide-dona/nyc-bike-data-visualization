@@ -16,11 +16,11 @@ const METRIC_ICONS = {
 const getMetricIcon = (key) => METRIC_ICONS[key] ?? 'fa-solid fa-circle'
 
 /**
- * Component for selecting which metric to display on the surface graph.
- * @param {Object} activeMetric - The currently selected metric key, used to determine which metric is active and should be highlighted in the UI.
- * @param {Function} setActiveMetric - Function to update the active metric in the parent component when a new metric is selected by the user.
+ * Selector for which metric to display on the surface graph.
+ * @param {string} activeMetric - The currently selected metric key.
+ * @param {Function} setActiveMetric - Updates the active metric.
  * @param {boolean} [disabled=false] - Whether selector interactions are disabled.
- * @returns
+ * @returns The rendered metric selector.
  */
 function MetricSelector({activeMetric, setActiveMetric, disabled = false}) {
     const options = Object.entries(METRICS).map(([key, config]) => ({

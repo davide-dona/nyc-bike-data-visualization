@@ -14,6 +14,7 @@ import CompareLayerList from "./components/CompareLayerList.jsx";
 import FloatingTooltip from "@/components/FloatingTooltip.jsx";
 import VisualizationGuide from "../../components/VisualizationGuide";
 import { stripClassFilters } from "./utils/compareLayers.js";
+import { TEMPORAL_GUIDE } from "./utils/temporalGuide.js";
 
 /**
  * Page for the temporal stats: composes the metric selector, the 3D surface
@@ -144,7 +145,6 @@ function TemporalPage({ filters, onCompareModeChange }) {
                         sliceValues={sliceOverlay?.data ?? null}
                     />
 
-
                     <div ref={overlayRef} className={"surface-plot-overlay"}>
                         <CompareControlPanel
                             isOpen={isComparePanelOpen}
@@ -215,25 +215,7 @@ function TemporalPage({ filters, onCompareModeChange }) {
                     layers={activeLayers}
                 />
 
-                <VisualizationGuide
-                    mapName="Habits"
-                    title="How To Read It"
-                    summary="The 3D surface maps your metric across every day-hour cell, allowing you to intuitively trace how complex temporal patterns and trends shift throughout the week. Meanwhile, the companion histograms provide a clean, aggregate look at overall day and hour effects to help you quickly verify your insights."
-                    hints={[
-                        {
-                            title: "Compare different layers",
-                            text: "Though the compare button is possible to compare different user/bike combinations, to highlight differences in behavior across the week and day. ",
-                        },
-                        {
-                            title: "Select a bar",
-                            text: "When selecting a bar in the histograms, ...",
-                        },
-                        {
-                            title: "Cross-check with histograms",
-                            text: "Secondary histograms permits you to highlight the day and hour effects of the selected metric, providing a clean, aggregate view to verify your insights.",
-                        },
-                    ]}
-                />
+                <VisualizationGuide {...TEMPORAL_GUIDE} />
             </div>
         </section>
     );

@@ -1,13 +1,8 @@
 /* SurfaceHistograms.jsx: the paired hour/day distribution charts below the
-   surface plot. */
+   surface plot, each built on the shared ChartFrame (see chart-frame.css). */
 @layer components {
     .surface-histograms-grid {
         @apply relative grid grid-cols-1 md:grid-cols-2 gap-6;
-    }
-
-    .surface-histograms-grid--hidden .surface-histogram-card__eyebrow,
-    .surface-histograms-grid--hidden .surface-histogram-chart {
-        visibility: hidden;
     }
 
     .surface-histogram-card {

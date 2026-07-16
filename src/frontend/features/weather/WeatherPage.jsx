@@ -7,6 +7,7 @@ import WeatherRidgeline from "./components/WeatherRidgeline"
 import TemperatureResponse from "./components/TemperatureResponse"
 import RainImpact from "./components/RainImpact"
 import VisualizationGuide from "../../components/VisualizationGuide"
+import { WEATHER_GUIDE } from "./utils/weatherGuide.js"
 
 /**
  *  Component for the weather impact on ride behaviour page
@@ -77,25 +78,7 @@ function WeatherPage({ filters = {} }) {
                     />
                 </div>
 
-                <VisualizationGuide
-                    mapName="Weather Impact"
-                    title="How To Read It"
-                    summary="Each point links weather conditions to mobility behavior. Use the chart to identify thresholds where weather starts changing trip speed or volume in a meaningful way."
-                    hints={[
-                        {
-                            title: 'Look for clusters',
-                            text: 'Tight clouds suggest stable behavior under similar weather, while spread-out clouds indicate more uncertainty in rider response.',
-                        },
-                        {
-                            title: 'Watch for breakpoints',
-                            text: 'Find where trends bend: a small weather change can trigger a strong drop or rise after a critical point.',
-                        },
-                        {
-                            title: 'Read the curves',
-                            text: 'The temperature curve shows how demand climbs with warmth - casual riders react more strongly than members. The rain bars show how much ridership survives each precipitation intensity relative to dry hours.',
-                        },
-                    ]}
-                />
+                <VisualizationGuide {...WEATHER_GUIDE} />
             </div>
         </section>
     )

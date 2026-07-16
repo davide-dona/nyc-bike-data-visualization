@@ -8,9 +8,9 @@ import { DISPLAY_MAX_DEG, DISPLAY_MIN_DEG } from "../utils/surfaceCamera.js"
  * metric across days of the week and hours of the day. All interaction and
  * trace-building logic lives in the useSurfaceGraph handler hook; this
  * component only renders.
- * @param {Object} data - The day-hour statistics data used to build the surface graph, containing the metric values for each day-hour combination.
- * @param {string} activeMetric - The currently selected metric key, used to determine which metric's data to display on the surface graph.
- * @param {Function} setCoordinates - Function to update the coordinates state in the parent component when the user hovers over a point on the surface graph, allowing the corresponding histograms to highlight the relevant bars based on the hovered day and hour.
+ * @param {Object} data - Day-hour statistics used to build the surface graph.
+ * @param {string} activeMetric - The currently selected metric key.
+ * @param {Function} setCoordinates - Reports the hovered day/hour so the histograms can highlight the matching bars.
  * @param {boolean} loading - Whether the temporal data is currently loading.
  * @param {Error|null} error - Error state for temporal data fetch.
  * @param {Function} onRefetch - Callback to trigger a retry after error.

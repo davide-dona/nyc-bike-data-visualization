@@ -29,6 +29,7 @@ function getRidesPerDay(row) {
 
     return daysCount > 0 ? totalRides / daysCount : 0
 }
+
 // Configuration object that defines the available metrics.
 // `noun` is the short tooltip name for the value; the unit follows it there,
 // so it stays unit-free.
@@ -69,39 +70,3 @@ export const METRICS = {
  * @returns {Object} The metric config, falling back to total_rides.
  */
 export const getMetricConfig = metric => METRICS[metric] ?? METRICS.total_rides
-
-/**
- * Reads a metric's value from a stats row via its configured getter.
- * @param {string} metric - Metric key.
- * @param {Object} row - Stats row.
- * @returns {number} The metric value.
- */
-export const getMetricValue = (metric, row) => getMetricConfig(metric).get(row)
-
-// Precompute mappings for metric getters, labels, formats, and units
-export const METRIC_GETTERS = Object.fromEntries(
-    Object.entries(METRICS).map(([key, config]) => [key, config.get])
-)
-// These mappings allow for easy access to metric labels
-export const METRIC_LABELS = Object.fromEntries(
-    Object.entries(METRICS).map(([key, config]) => [key, config.label])
-)
-// These mappings allow for easy access to metric formats
-export const METRIC_FORMATS = Object.fromEntries(
-    Object.entries(METRICS).map(([key, config]) => [key, config.format])
-)
-// These mappings allow for easy access to metric units
-export const METRIC_UNITS = Object.fromEntries(
-    Object.entries(METRICS).map(([key, config]) => [key, config.unit])
-)
-/**
- * Formats a metric value with the metric's own formatter, providing a
- * consistent display across the application.
- * @param {string} metric - Metric key.
- * @param {number} value - Raw value.
- * @returns {string} The formatted value.
- */
-export const formatMetricValue = (metric, value) => {
-    const formatter = METRIC_FORMATTERS[metric]
-    return formatter ? formatter(value) : String(value)
-}

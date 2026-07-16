@@ -9,13 +9,9 @@ export const MAP_LAYER_GUIDES = {
                 mapType: 'Station Usage',
                 title: 'Follow hour pulses',
                 text: 'Drag the time wheel from morning to evening and watch which areas light up.',
-                title: 'Follow hour pulses',
-                text: 'Drag the time wheel from morning to evening and watch which areas light up.',
             },
             {
                 mapType: 'Station Usage',
-                title: 'Incoming vs outgoing',
-                text: 'Use the mode selector to see whether a station is mostly a source or destination of trips, and how that changes over the day.',
                 title: 'Incoming vs outgoing',
                 text: 'Use the mode selector to see whether a station is mostly a source or destination of trips, and how that changes over the day.',
             },

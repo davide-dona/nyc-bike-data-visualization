@@ -3,7 +3,7 @@
  * @param {Array} rows - Per-date stats rows.
  * @returns {Array} A new sorted array.
  */
-export function sortRowsByDate(rows = []) {
+function sortRowsByDate(rows = []) {
     return [...rows].sort((a, b) => String(a?.date ?? '').localeCompare(String(b?.date ?? '')))
 }
 

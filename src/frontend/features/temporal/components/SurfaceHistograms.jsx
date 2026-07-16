@@ -1,14 +1,15 @@
 import { getMetricConfig } from "../utils/metricFormatter.js"
 import { DAY_LABELS, HOUR_LABELS } from "@/utils/config.js"
 import BarChart from "./BarChart.jsx"
-import StatusMessage from "../../../components/StatusMessage"
+import ChartFrame from "@/components/ChartFrame.jsx"
 
 /**
- * Component for displaying the histograms that accompany the surface graph
- * @param {Object} hourData - The data for the hour of day histogram, used to display the distribution of the selected metric across different hours of the day.
- * @param {Object} dayData - The data for the day of week histogram, used to display the distribution of the selected metric across different days of the week.
- * @param {string} activeMetric - The currently selected metric key, used to determine which metric's data to display in the histograms.
- * @param {Object} coordinates - The coordinates of the currently hovered point on the surface graph, used to highlight the corresponding bars in the histograms.
+ * The two histograms that accompany the surface graph, one for day of week
+ * and one for hour of day.
+ * @param {Object} hourData - Hour of day stats rows.
+ * @param {Object} dayData - Day of week stats rows.
+ * @param {string} activeMetric - The currently selected metric key.
+ * @param {Object} coordinates - The hovered surface point, used to highlight the matching bars.
  * @param {boolean} loading - Whether temporal data is loading.
  * @param {Error|null} error - Error state for temporal data fetch.
  * @param {Function} onRefetch - Callback to trigger a retry after error.
@@ -16,7 +17,7 @@ import StatusMessage from "../../../components/StatusMessage"
  * @param {Object} overlay - The derived overlay series ({ target, label, data }) or null; drawn on the opposite card.
  * @param {Function} onBarClick - (type, index, label) callback when a histogram bar is clicked; absent while comparing.
  * @param {Function} onClearPin - Callback for the overlay chip's dismiss button.
- * @returns
+ * @returns The rendered histogram grid.
  */
 export default function SurfaceHistograms({
     dayData,
@@ -34,11 +35,8 @@ export default function SurfaceHistograms({
     onClearPin = null,
 }) {
     const metric = getMetricConfig(activeMetric)
-    const showOverlay = loading || error
-    // Extracts the metric values for the selected metric from the day and hour data using the corresponding metric getter function, preparing the data for the histograms. The highlight variable is used to determine which bar to highlight based on the hovered coordinates from the surface graph.
     const metricDayData = dayData?.map(metric.get)
     const metricHourData = hourData?.map(metric.get)
-    // Configuration for the two histogram cards, one for day of week and one for hour of day, including the data, labels, and which value to highlight based on the hovered coordinates from the surface graph
     const cards = [
         {
             type: "day",
@@ -76,47 +74,50 @@ export default function SurfaceHistograms({
         : null
 
     return (
-        <div className={`surface-histograms-grid${showOverlay ? ' surface-histograms-grid--hidden' : ''}`}>
-            {/*Iterate over the histogram cards and render each one */}
+        <div className="surface-histograms-grid">
             {cards.map(({ type, label, data, labels, highlight, xAxisTitle, xLabelStep }) => {
                 const isOverlayTarget = overlay?.target === type
                 const selectedLabel = pinnedSlice?.type === type ? pinnedSlice.label : null
+                const title = (
+                    <>
+                        {metric.label} {label}
+                        {isOverlayTarget && (
+                            <button
+                                type="button"
+                                className="surface-histogram-chip"
+                                onClick={onClearPin ?? undefined}
+                                aria-label={`Remove ${overlay.label} overlay`}
+                            >
+                                {overlay.label} <span aria-hidden="true">×</span>
+                            </button>
+                        )}
+                    </>
+                )
 
                 return (
-                    <div key={label} className="surface-histogram-card">
-                        <p className="surface-histogram-card__eyebrow">
-                            {metric.label} {label}
-                            {isOverlayTarget && (
-                                <button
-                                    type="button"
-                                    className="surface-histogram-chip"
-                                    onClick={onClearPin ?? undefined}
-                                    aria-label={`Remove ${overlay.label} overlay`}
-                                >
-                                    {overlay.label} <span aria-hidden="true">×</span>
-                                </button>
-                            )}
-                        </p>
-
-                        <div className="surface-histogram-chart">
-                            <BarChart
-                                data={data}
-                                labels={labels}
-                                format={metric.format}
-                                highlight={highlight}
-                                xAxisTitle={xAxisTitle}
-                                yAxisTitle={metric.label}
-                                unit={metric.unit}
-                                xLabelStep={xLabelStep}
-                                compareDatasets={compareDatasetsByCard?.[xAxisTitle]}
-                                onBarClick={onBarClick ? (index, barLabel) => onBarClick(type, index, barLabel) : null}
-                                overlayDataset={isOverlayTarget ? { label: overlay.label, data: overlay.data } : null}
-                                selectedLabel={selectedLabel}
-                            />
-                        </div>
-
-                        {showOverlay && <StatusMessage loading={loading} error={error} onRefetch={onRefetch} />}
-                    </div>
+                    <ChartFrame
+                        key={label}
+                        title={title}
+                        status={{ loading, error, refetch: onRefetch }}
+                        frameClassName="surface-histogram-card"
+                        titleClassName="surface-histogram-card__eyebrow"
+                        plotClassName="surface-histogram-chart"
+                    >
+                        <BarChart
+                            data={data}
+                            labels={labels}
+                            format={metric.format}
+                            highlight={highlight}
+                            xAxisTitle={xAxisTitle}
+                            yAxisTitle={metric.label}
+                            unit={metric.unit}
+                            xLabelStep={xLabelStep}
+                            compareDatasets={compareDatasetsByCard?.[xAxisTitle]}
+                            onBarClick={onBarClick ? (index, barLabel) => onBarClick(type, index, barLabel) : null}
+                            overlayDataset={isOverlayTarget ? { label: overlay.label, data: overlay.data } : null}
+                            selectedLabel={selectedLabel}
+                        />
+                    </ChartFrame>
                 )
             })}
         </div>

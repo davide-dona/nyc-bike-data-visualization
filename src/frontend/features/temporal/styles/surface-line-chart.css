@@ -1,14 +1,8 @@
-/* SurfaceLineChart.jsx: the compact line-chart card variant. Shares the
-   chart-frame__empty recipe via .surface-empty (see chart-frame.css). */
+/* SurfaceLineChart.jsx: the compact line-chart card variant, built on the
+   shared ChartFrame (see chart-frame.css). */
 @layer components {
     .surface-card {
         @apply h-[25vw] min-h-[250px] relative flex flex-col gap-4 bg-paper-raised border-t border-ink border-x border-b border-rule p-5;
-    }
-
-    .surface-card--hidden .surface-card__eyebrow,
-    .surface-card--hidden .surface-chart,
-    .surface-card--hidden .surface-empty {
-        visibility: hidden;
     }
 
     .surface-card__eyebrow {
@@ -17,9 +11,5 @@
 
     .surface-chart {
         @apply h-full w-full;
-    }
-
-    .surface-empty {
-        @apply chart-frame__empty;
     }
 }
