@@ -1,0 +1,35 @@
+/* infrastructure/components/BikeRoutesToggle.jsx */
+@layer components {
+  .map-toggle-button {
+    @apply inline-flex items-center gap-2 px-3 py-1.5 font-mono text-[11px]
+           uppercase tracking-eyebrow text-ink border border-rule border-ink/20 bg-paper-raised
+           transition-colors duration-150
+           hover:bg-paper
+           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent;
+  }
+
+  .map-toggle-button.is-active {
+    @apply border-ink bg-ink text-white;
+  }
+
+  .map-toggle-button:disabled {
+    @apply cursor-not-allowed opacity-55;
+  }
+
+  .map-toggle-button:disabled:hover {
+    @apply bg-paper-raised text-ink;
+  }
+
+  .map-toggle-button__label {
+    letter-spacing: 0.08em;
+  }
+
+  .map-toggle-button__icon {
+    @apply inline-flex items-center justify-center w-4 h-4 text-[13px] text-current;
+    opacity: 0.8;
+  }
+
+  .map-toggle-button.is-active .map-toggle-button__icon {
+    opacity: 1;
+  }
+}

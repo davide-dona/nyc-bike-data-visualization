@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { getRouteYearBounds } from '../utils/routeYearFilter.js'
+import { getRouteYearBounds } from '../infrastructure/utils/routeYearFilter.js'
 import { MAP_LAYER_GUIDES } from '../utils/mapGuides.js'
 
 /**

@@ -4,7 +4,7 @@
  * series, trip flow rows) so the panel never triggers extra fetches.
  */
 
-import { getRouteInstallYear, getRouteRetireYear } from './routeYearFilter.js'
+import { getRouteInstallYear, getRouteRetireYear } from '../infrastructure/utils/routeYearFilter.js'
 import { haversineKm } from '@/utils/math.js'
 
 const HOURS_IN_DAY = 24

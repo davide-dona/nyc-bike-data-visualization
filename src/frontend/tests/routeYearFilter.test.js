@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 
-import { filterRoutesByYear, getRouteYearBounds } from '../features/map/utils/routeYearFilter.js'
+import { filterRoutesByYear, getRouteYearBounds } from '../features/map/infrastructure/utils/routeYearFilter.js'
 
 const route = (instDate, retiredDate = null) => ({ instDate, retiredDate })
 

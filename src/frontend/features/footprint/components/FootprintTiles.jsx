@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
 import StatusMessage from '../../../components/StatusMessage.jsx'
+import StatCard from '@/components/StatCard.jsx'
 import { SUBSTITUTION_RATE } from '../utils/emissionFactors.js'
 import {
     avoidedCo2Range,
@@ -54,11 +55,7 @@ export default function FootprintTiles({ totals, substitutionRate, loading, erro
     return (
         <div className="footprint-tiles">
             {tiles.map((tile) => (
-                <article className="panel-frame" key={tile.key}>
-                    <p className="footprint-tile__value">{tile.value}</p>
-                    <p className="footprint-tile__label">{tile.label}</p>
-                    <p className="footprint-tile__hint">{tile.hint}</p>
-                </article>
+                <StatCard key={tile.key} size="lg" value={tile.value} label={tile.label} hint={tile.hint} />
             ))}
             {(loading || error) && (
                 <StatusMessage loading={loading} error={error} onRefetch={onRefetch} />

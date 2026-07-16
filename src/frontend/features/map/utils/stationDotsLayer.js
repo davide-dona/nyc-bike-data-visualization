@@ -4,8 +4,10 @@ import { WHITE_RGB, WARM_HIGHLIGHT_RGB } from '@/utils/editorialTokens.js'
 // Geographic sizing with a pixel cap: dots scale with the map when zoomed
 // out (shrinking with the city, so they never blanket dense areas) and stop
 // growing at the cap once zoomed in, reading as a constant comfortable size
-// from mid-zoom onward.
-const MIN_RADIUS_PIXELS = 1.5
+// from mid-zoom onward. The pixel floor is kept low so dots keep shrinking
+// with the map instead of snapping to a fixed minimum and overlapping
+// closely-spaced stations at the citywide zoom.
+const MIN_RADIUS_PIXELS = 0.75
 
 const HOVER_RADIUS_MULTIPLIER = 1.7
 
@@ -13,7 +15,7 @@ const HOVER_RADIUS_MULTIPLIER = 1.7
 // ring stays readable even at the citywide zoom.
 const HALO_RADIUS_MULTIPLIER = 2.2
 const HALO_FILL_ALPHA = 70
-const HALO_MIN_RADIUS_PIXELS = 4
+const HALO_MIN_RADIUS_PIXELS = 3
 
 // Invisible pick layer: a constant screen-size hit target around each dot,
 // so stations stay comfortable to click even when the visual dots are small.

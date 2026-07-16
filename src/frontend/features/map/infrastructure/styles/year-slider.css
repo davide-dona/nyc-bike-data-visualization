@@ -1,0 +1,12 @@
+/* infrastructure/components/YearSlider.jsx: historical year chip next to the
+   routes toggle, shown only while bike routes are visible. */
+@layer components {
+  .year-slider {
+    @apply flex items-center gap-3 w-96 max-w-full px-3 py-1.5
+           bg-paper-raised border border-rule border-ink/20 backdrop-blur-sm;
+  }
+
+  .year-slider__label {
+    @apply font-mono text-[11px] uppercase tracking-eyebrow text-ink-muted whitespace-nowrap;
+  }
+}

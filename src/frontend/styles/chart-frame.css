@@ -1,0 +1,30 @@
+/* components/ChartFrame.jsx internals, used across all pages. */
+@layer components {
+  .chart-frame__plot {
+    @apply relative w-full h-[30vh] min-h-[240px];
+  }
+
+  .chart-frame__plot--tall {
+    @apply h-[36vh] min-h-[300px];
+  }
+
+  .chart-frame__plot--auto {
+    @apply h-auto min-h-[180px];
+  }
+
+  /* Shared empty-state recipe; also reused by .weather-ridgeline-empty
+     (features/weather/styles/charts.css) and .surface-empty
+     (features/temporal/styles/surface-line-chart.css). */
+  .chart-frame__empty {
+    @apply w-full h-full border border-rule bg-paper text-ink-muted font-mono text-[11px] uppercase tracking-eyebrow;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 0.75rem;
+  }
+
+  .chart-frame__note {
+    @apply m-0 pt-2 mt-3 border-t-2 font-mono text-sm leading-relaxed text-ink-muted;
+  }
+}

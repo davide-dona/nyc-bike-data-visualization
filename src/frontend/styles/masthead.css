@@ -1,0 +1,106 @@
+/* AppHeader: masthead, brand title wave animation, and nav links. */
+@layer components {
+    .app-header {
+        @apply bg-ink text-white border-b border-rule-invert flex flex-col;
+    }
+
+    .app-header__topbar {
+        @apply mx-auto w-full max-w-[90%] px-6 pt-7 pb-5
+           flex items-end justify-between gap-6 flex-wrap;
+    }
+
+    .app-header__brand {
+        @apply flex flex-col gap-1;
+    }
+
+    .app-header__kicker {
+        @apply font-mono text-[11px] uppercase tracking-eyebrow text-white/55;
+    }
+
+    .app-title {
+        @apply font-sans text-white text-[28px] md:text-[32px]
+         font-semibold tracking-display leading-none m-0;
+    }
+
+    .app-title__in-motion span {
+    display: inline-block;
+    }
+
+    .app-title__in-motion:hover span {
+    animation: wave 0.45s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .app-title__in-motion span:nth-child(1)  { --amp: -2px;  animation-delay: 0s; }
+    .app-title__in-motion span:nth-child(2)  { --amp: -6px;  animation-delay: 0.03s; }
+    .app-title__in-motion span:nth-child(3)  { --amp: -9px;  animation-delay: 0.06s; }
+    .app-title__in-motion span:nth-child(4)  { --amp: -11px;  animation-delay: 0.09s; }
+    .app-title__in-motion span:nth-child(5)  { --amp: -14px;  animation-delay: 0.12s; }
+    .app-title__in-motion span:nth-child(6)  { --amp: -9px;  animation-delay: 0.15s; }
+    .app-title__in-motion span:nth-child(7)  { --amp: -6px;  animation-delay: 0.18s; }
+    .app-title__in-motion span:nth-child(8)  { --amp: -4px;  animation-delay: 0.21s; }
+    .app-title__in-motion span:nth-child(9)  { --amp: -4px;  animation-delay: 0.24s; }
+    .app-title__in-motion span:nth-child(10) { --amp: -3px;  animation-delay: 0.27s; }
+
+
+    @keyframes wave {
+        0% {
+            transform: translateY(0);
+        }
+        50% {
+            transform: translateY(var(--amp, -6px));
+        }
+        100% {
+            transform: translateY(0);
+        }
+    }
+
+    .app-header__nav {
+        @apply flex items-center gap-1 flex-wrap;
+    }
+
+    .nav-link {
+        @apply inline-flex items-center gap-2 px-3.5 py-2.5 font-mono text-[11px] uppercase tracking-eyebrow
+           text-white/55 border-b border-transparent
+           transition-colors duration-150
+           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70;
+    }
+
+    .nav-link__icon {
+        @apply inline-flex items-center justify-center w-4 h-4 text-[12px] text-current;
+        line-height: 1;
+        flex-shrink: 0;
+    }
+
+    .nav-link__icon::before {
+        display: block;
+        line-height: 1;
+    }
+
+    .nav-link:hover {
+        @apply text-white;
+    }
+
+    .nav-link.active {
+        @apply text-white border-b-white;
+    }
+
+    .app-header__filters {
+        @apply mx-auto w-full  px-6 py-6
+           flex flex-col md:flex-row md:justify-between
+           gap-4 border-t border-rule-invert md:max-w-[90%];
+    }
+
+    .app-header__filters-group {
+        @apply flex items-start justify-between gap-4 w-full; /* date window on left, filters on right */
+    }
+
+    .app-header__filter-lockzone {
+        @apply relative;
+    }
+
+    /* Content sizing for the lock hint; the surface look and positioning
+       come from the shared .floating-tooltip class. */
+    .app-header__filter-lock-hint {
+        @apply w-[340px] max-w-[calc(100vw-4rem)] text-[10px] tracking-[0.02em];
+    }
+}

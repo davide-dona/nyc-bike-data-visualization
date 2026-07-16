@@ -1,0 +1,67 @@
+/* SurfaceGraph.jsx: the 3D day/hour surface plot and its angle-drag control. */
+@layer components {
+    .surface-plot-3d {
+        @apply relative w-full h-[78vh] bg-paper-raised border border-rule;
+    }
+
+    .surface-angle-indicator {
+        @apply absolute top-3 left-3 z-10;
+        width: min(180px, calc(100% - 1.5rem));
+        pointer-events: auto;
+    }
+
+    .surface-angle-row {
+        @apply flex flex-col gap-0.5;
+    }
+
+    .surface-angle-track {
+        @apply relative h-4 cursor-ew-resize;
+        touch-action: none;
+    }
+
+    .surface-angle-track.is-disabled {
+        cursor: not-allowed;
+        opacity: 0.55;
+    }
+
+    .surface-angle-track:focus {
+        outline: none;
+    }
+
+    .surface-angle-track:focus-visible .surface-angle-track__line {
+        box-shadow: 0 0 0 2px rgba(25, 83, 216, 0.2);
+    }
+
+    .surface-angle-track__line {
+        @apply absolute left-0 right-0 top-1/2;
+        height: 1px;
+        background: rgba(22, 20, 18, 0.26);
+        transform: translateY(-50%);
+    }
+
+    .surface-angle-track__thumb {
+        position: absolute;
+        top: 50%;
+        width: 2px;
+        height: 14px;
+        background: rgba(22, 20, 18, 0.84);
+        transform: translate(-50%, -50%);
+    }
+
+    .surface-angle-track:active .surface-angle-track__thumb {
+        background: rgba(22, 20, 18, 1);
+    }
+
+    .surface-angle-ticks {
+        @apply flex items-center justify-between select-none;
+    }
+
+    .surface-angle-tick {
+        @apply font-mono text-[9px] text-ink-muted select-none;
+        line-height: 1;
+    }
+
+    .surface-plot-3d .js-plotly-plot {
+        @apply font-mono;
+    }
+}

@@ -1,8 +1,8 @@
-import SpeedController from "./SpeedController"
-import BikeRoutesToggle from "./BikeRoutesToggle"
+import SpeedController from "../station_usage/components/SpeedController"
+import BikeRoutesToggle from "../infrastructure/components/BikeRoutesToggle"
 import SegmentedControl from "@/components/SegmentedControl.jsx"
 import ResetButton from "./ResetButton.jsx"
-import YearSlider from "./YearSlider.jsx"
+import YearSlider from "../infrastructure/components/YearSlider.jsx"
 import { USAGE_MODE_OPTIONS } from "../utils/mapConfig.js"
 
 /**

@@ -1,8 +1,8 @@
-import { stationUsageTooltip } from './stationUsageLayer.js'
-import { tripArcsTooltip } from './tripArcsLayer.js'
-import { tripStationTooltip } from './tripStationsLayer.js'
-import { bikeRouteTooltip } from './bikeRoutesLayer.js'
-import { stationAvailabilityTooltip } from './stationAvailabilityLayer.js'
+import { stationUsageTooltip } from '../station_usage/utils/stationUsageLayer.js'
+import { tripArcsTooltip } from '../trip_flow/utils/tripArcsLayer.js'
+import { tripStationTooltip } from '../trip_flow/utils/tripStationsLayer.js'
+import { bikeRouteTooltip } from '../infrastructure/utils/bikeRoutesLayer.js'
+import { stationAvailabilityTooltip } from '../infrastructure/utils/stationAvailabilityLayer.js'
 
 /**
  * Builds the deck.gl tooltip content for the active layer and the provided object.

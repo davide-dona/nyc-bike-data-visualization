@@ -1,6 +1,7 @@
 import { LAYER_OPTIONS } from "../utils/mapConfig.js";
 import LegendRow from "./LegendRow.jsx";
-import { legendFor, bikeRoutesLegend } from "../utils/mapLegend.js";
+import { legendFor } from "../utils/mapLegend.js";
+import { bikeRoutesLegend } from "../infrastructure/utils/bikeRoutesLayer.js";
 
 /**
  * Map legend panel - renders the active layer's swatch rows on an ink card.
@@ -9,7 +10,6 @@ import { legendFor, bikeRoutesLegend } from "../utils/mapLegend.js";
  * @param {string} activeLayer - Key of the layer whose legend should be displayed.
  * @param {boolean} showBikeRoutes - When true, an extra bike-routes section is surfaced.
  * @param {boolean} hasTripFlowFocus - Whether the trip-flow layer has a focused station (switches its legend).
- * @param {Object|null} tripFlowBounds - Daily-flow bounds of the drawn corridors, for the volume-gradient label.
  * @param {Set} hiddenHealthCategories - Station health categories currently hidden on the map.
  * @param {Set} hiddenRouteClasses - Bike-route facility classes currently hidden on the map.
  * @param {Function} onToggleHealthCategory - Toggles one health category's visibility.
@@ -20,7 +20,6 @@ export default function MapLegend({
     activeLayer,
     showBikeRoutes,
     hasTripFlowFocus = false,
-    tripFlowBounds = null,
     hiddenHealthCategories,
     hiddenRouteClasses,
     onToggleHealthCategory,
@@ -28,7 +27,7 @@ export default function MapLegend({
     className = '',
 }) {
     const activeLayerLabel = LAYER_OPTIONS.find((layer) => layer.value === activeLayer)?.label || "Layer";
-    const legend = legendFor(activeLayer, { showBikeRoutes, hasTripFlowFocus, tripFlowBounds });
+    const legend = legendFor(activeLayer, { showBikeRoutes, hasTripFlowFocus });
     const isInfrastructure = activeLayer === "infrastructure";
 
     return (

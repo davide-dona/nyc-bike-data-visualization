@@ -3,8 +3,6 @@ import { MONTH_LABELS, MONTH_ORDER } from '@/utils/config.js'
 import CalendarIcon from './CalendarIcon.jsx'
 import MonthCell from './MonthCell.jsx'
 
-import '../styles/date-window-picker.css'
-
 /**
  * FROM/TO month-range picker in the header: two input buttons that open a
  * year-paged month grid modal. All behavior lives in useDateWindowPicker;

@@ -1,6 +1,6 @@
 @layer components {
   .scatter-plot-frame {
-    @apply relative border-t border-ink border-x border-b border-rule w-full bg-paper-raised;
+    @apply panel-frame-border;
   }
 
   .scatter-plot-frame__title {
@@ -16,7 +16,7 @@
   }
 
   .weather-ridgeline-frame {
-    @apply relative w-full border-t border-ink border-x border-b border-rule bg-paper-raised p-5;
+    @apply panel-frame;
   }
 
   .weather-ridgeline-frame--hidden .weather-ridgeline-toolbar,
@@ -59,12 +59,7 @@
   }
 
   .weather-ridgeline-empty {
-    @apply w-full h-full border border-rule bg-paper text-ink-muted font-mono text-[11px] uppercase tracking-eyebrow;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    padding: 0.75rem;
+    @apply chart-frame__empty;
   }
 
   .weather-deepdive-grid {
@@ -72,7 +67,7 @@
   }
 
   .weather-deepdive-frame {
-    @apply relative w-full border-t border-ink border-x border-b border-rule bg-paper-raised p-5;
+    @apply panel-frame;
   }
 
   .weather-deepdive-frame__title {

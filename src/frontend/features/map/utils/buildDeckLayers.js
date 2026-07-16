@@ -1,8 +1,8 @@
 import { createBaseTileLayer } from './baseTileLayer.js'
-import { createStationUsageLayer } from './stationUsageLayer.js'
-import { createTripFlowLayers } from './tripFlowLayer.js'
-import { createStationAvailabilityLayer } from './stationAvailabilityLayer.js'
-import { createBikeRoutesLayer } from './bikeRoutesLayer.js'
+import { createStationUsageLayer } from '../station_usage/utils/stationUsageLayer.js'
+import { createTripFlowLayers } from '../trip_flow/utils/tripFlowLayer.js'
+import { createStationAvailabilityLayer } from '../infrastructure/utils/stationAvailabilityLayer.js'
+import { createBikeRoutesLayer } from '../infrastructure/utils/bikeRoutesLayer.js'
 import { BASE_TILE_URL } from './mapConfig.js'
 
 /**

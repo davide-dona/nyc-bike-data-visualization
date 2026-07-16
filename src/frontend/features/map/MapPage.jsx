@@ -5,12 +5,12 @@ import useMapFullscreen from './hooks/useMapFullscreen.js'
 import useMapCursor from './hooks/useMapCursor.js'
 import useMapClickActions from './hooks/useMapClickActions.js'
 import useMapPageStatus from './hooks/useMapPageStatus.js'
-import { useTripFlowCamera } from './hooks/useTripFlowCamera.js'
-import { useInfrastructureCamera } from './hooks/useInfrastructureCamera.js'
+import { useTripFlowCamera } from './trip_flow/hooks/useTripFlowCamera.js'
+import { useInfrastructureCamera } from './infrastructure/hooks/useInfrastructureCamera.js'
 import MapController from './components/MapController.jsx'
 import MapLegend from './components/MapLegend.jsx'
 import LayerSelector from './components/LayerSelector.jsx'
-import InfrastructureStationSidebar from './components/InfrastructureStationSidebar.jsx'
+import InfrastructureStationSidebar from './infrastructure/components/InfrastructureStationSidebar.jsx'
 import StatusMessage from '../../components/StatusMessage.jsx'
 import mapTooltip from './utils/mapTooltip.js'
 import VisualizationGuide from '../../components/VisualizationGuide.jsx'
@@ -69,7 +69,6 @@ function MapPage({ filters }) {
         clearCorridorPin,
         tripDirection,
         setTripDirection,
-        tripFlowBounds,
         tripLoading,
         trips,
     } = useBuildLayers({ filters, currentTime, activeLayer, showBikeRoutes, usageMode, hiddenHealthCategories, hiddenRouteClasses, selectedYear })
@@ -166,7 +165,6 @@ function MapPage({ filters }) {
                             activeLayer={activeLayer}
                             showBikeRoutes={showBikeRoutes}
                             hasTripFlowFocus={hasTripFlowFocus}
-                            tripFlowBounds={tripFlowBounds}
                             hiddenHealthCategories={hiddenHealthCategories}
                             hiddenRouteClasses={hiddenRouteClasses}
                             onToggleHealthCategory={toggleHealthCategory}

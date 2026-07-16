@@ -2,11 +2,11 @@ import { describe, it, vi } from 'vitest'
 import { act, renderHook, waitFor } from '@testing-library/react'
 import { createQueryWrapper } from './testQueryClient.jsx'
 
-import { useInfrastructureStationSelection } from '@/features/map/hooks/useInfrastructureStationSelection.js'
+import { useInfrastructureStationSelection } from '@/features/map/infrastructure/hooks/useInfrastructureStationSelection.js'
 
 import { useDatasetDateRange } from '../features/header/hooks/useDatasetDateRange.js'
 import useDayHourStats from '../features/temporal/hooks/useDayHourStats.js'
-import useStationUsageCounts from '@/features/map/hooks/useStationUsageCounts.js'
+import useStationUsageCounts from '@/features/map/station_usage/hooks/useStationUsageCounts.js'
 import useStationAvailability from '@/features/map/hooks/useStationAvailability.js'
 import useWeatherStats from '../features/weather/hooks/useWeatherStats.js'
 import useTemperatureResponse from '../features/weather/hooks/useTemperatureResponse.js'

@@ -1,0 +1,242 @@
+/* infrastructure/components/InfrastructureStationSidebar.jsx */
+@layer components {
+  /* Top offset clears the map-controls row (routes toggle + year slider) so
+     those controls stay visible and clickable while the sidebar is open. */
+  .infra-sidebar {
+  @apply absolute top-20 right-4 bottom-4 z-40 flex w-[22rem] max-w-[calc(100%-2rem)] flex-col gap-4 overflow-y-auto
+         border border-rule-invert bg-ink/90 px-4 py-4 text-white/90 backdrop-blur-md
+         shadow-[0_20px_60px_rgba(2,6,23,0.35)]
+         opacity-0 translate-x-4 pointer-events-none
+         transition-[transform,opacity] duration-100 ease-out;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.28) transparent;
+}
+
+/* Slim themed scrollbar matching the ink surface */
+.infra-sidebar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.infra-sidebar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.infra-sidebar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.22);
+  border-radius: 999px;
+}
+
+.infra-sidebar::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.4);
+}
+
+.infra-sidebar.is-open {
+  @apply opacity-100 translate-x-0 pointer-events-auto;
+}
+
+  .infra-sidebar__header {
+    @apply flex items-start justify-between;
+  }
+
+  .infra-sidebar__eyebrow {
+    @apply m-0 font-mono text-[10px] uppercase tracking-eyebrow text-white/55;
+  }
+
+  .infra-sidebar__title {
+    @apply m-0 mt-1 font-mono text-[15px] uppercase tracking-[0.18em] text-white;
+  }
+
+  .infra-sidebar__subtitle {
+    @apply mt-2 m-0 text-[12px] leading-5 text-white/70;
+  }
+
+  .infra-sidebar__close {
+    @apply inline-flex h-8 w-8 items-center justify-end text-white/70 transition-colors duration-150;
+    flex-shrink: 0;
+  }
+
+  .infra-sidebar__metrics-grid {
+    @apply grid grid-cols-2 gap-2;
+  }
+
+  .infra-sidebar__section {
+    @apply flex flex-col gap-3;
+  }
+
+  .infra-sidebar__section-heading {
+    @apply font-mono text-[11px] uppercase tracking-eyebrow text-white/55;
+  }
+
+  .infra-sidebar__highlights {
+    @apply m-0 flex list-none flex-col gap-2 border border-rule-invert/20 bg-white/5 px-3 py-2.5;
+  }
+
+  .infra-sidebar__highlight-row {
+    @apply flex items-baseline justify-between gap-2;
+  }
+
+  .infra-sidebar__highlight-label {
+    @apply font-mono text-[10px] uppercase tracking-eyebrow text-white/55;
+  }
+
+  .infra-sidebar__highlight-value {
+    @apply text-right font-mono text-[11px] font-normal tracking-[0.08em] text-white tabular-nums;
+  }
+
+  .infra-sidebar__chart-grid {
+    @apply grid grid-cols-1 gap-3;
+  }
+
+  .infra-sidebar__chart-block {
+    @apply flex flex-col gap-2 border border-rule-invert/20 bg-white/5 px-3 py-3;
+  }
+
+  .infra-sidebar__chart-body {
+    @apply flex gap-2;
+  }
+
+  .infra-sidebar__y-axis {
+    @apply flex h-[110px] flex-col justify-between text-right;
+    flex-shrink: 0;
+  }
+
+  .infra-sidebar__y-tick {
+    @apply font-mono text-[9px] leading-none text-white/50 tabular-nums;
+  }
+
+  .infra-sidebar__chart-area {
+    @apply relative min-w-0 flex-1;
+  }
+
+  .infra-sidebar__gridlines {
+    @apply pointer-events-none absolute inset-x-0 top-0 flex h-[110px] flex-col justify-between;
+  }
+
+  .infra-sidebar__gridlines span {
+    @apply block h-px bg-white/15;
+  }
+
+  .infra-sidebar__vbars {
+    @apply grid gap-1 items-start;
+    grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
+  }
+
+  .infra-sidebar__vbar-wrap {
+    @apply flex flex-col items-center gap-1;
+  }
+
+  .infra-sidebar__vbar-track {
+    @apply flex h-[110px] w-[80%] items-end justify-center;
+  }
+
+  .infra-sidebar__vbar-fill {
+    @apply w-[90%] bg-white/35;
+    min-height: 1px;
+  }
+
+  .infra-sidebar__vbar-label {
+    @apply font-mono text-[9px] uppercase tracking-[0.12em] text-white/60;
+  }
+
+  .infra-sidebar__chart-caption {
+    @apply flex items-center gap-1.5 font-mono text-[9px] uppercase tracking-[0.12em] text-white/60;
+  }
+
+  .infra-sidebar__chart-caption-swatch {
+    @apply inline-block h-2 w-2 bg-white/35;
+  }
+
+  .infra-sidebar__chart-caption-swatch.tone-accent {
+    @apply bg-orange-400/80;
+  }
+
+  .infra-sidebar__dvbar-track {
+    @apply flex h-[110px] w-[80%] flex-col;
+  }
+
+  .infra-sidebar__dvbar-top {
+    @apply flex flex-1 items-end justify-center;
+  }
+
+  .infra-sidebar__dvbar-bottom {
+    @apply flex flex-1 items-start justify-center;
+  }
+
+  .infra-sidebar__dvbar-midline {
+    @apply h-px w-full bg-white/40;
+    flex-shrink: 0;
+  }
+
+  .infra-sidebar__dvbar-fill {
+    @apply w-[90%] bg-white/35;
+    min-height: 1px;
+  }
+
+  .infra-sidebar__dvbar-fill.tone-accent {
+    @apply bg-orange-400/80;
+  }
+
+  .infra-sidebar__flow-list {
+    @apply flex flex-col gap-2;
+  }
+
+  /* Fixed-width, right-aligned value column so the bars end on one shared
+     edge and the numbers line up across rows. */
+  .infra-sidebar__bar-row {
+    @apply grid grid-cols-[minmax(0,1.5fr)_minmax(0,1.2fr)_3.25rem] items-center gap-3;
+  }
+
+  .infra-sidebar__bar-label {
+    @apply min-w-0 truncate font-mono text-[10px] uppercase tracking-[0.12em] text-white/80;
+  }
+
+  .infra-sidebar__bar-track {
+    @apply h-2 overflow-hidden bg-white/10;
+  }
+
+  .infra-sidebar__bar-fill {
+    @apply h-full bg-white/30;
+  }
+
+  .infra-sidebar__bar-fill.tone-accent {
+    @apply bg-orange-400/80;
+  }
+
+  .infra-sidebar__bar-value {
+    @apply font-mono text-[10px] uppercase tracking-[0.12em] text-white/60 tabular-nums text-right;
+  }
+
+  .infra-sidebar__loading,
+  .infra-sidebar__error {
+    @apply m-0 border border-rule-invert/50 px-3 py-2 font-mono text-[10px] uppercase tracking-eyebrow;
+  }
+
+  .infra-sidebar__loading {
+    @apply text-white/60 bg-white/5;
+  }
+
+  .infra-sidebar__error {
+    @apply text-red-200 bg-red-950/30;
+  }
+
+  @media (max-width: 1024px) {
+    .infra-sidebar {
+      @apply w-[20rem];
+    }
+  }
+
+  @media (max-width: 768px) {
+    .infra-sidebar {
+      @apply left-4 right-4 top-auto bottom-4 w-auto max-w-none max-h-[42vh];
+      transform: translateY(12px);
+    }
+
+    .infra-sidebar.is-open {
+      transform: translateY(0);
+    }
+
+    .map-legend--shifted {
+      @apply left-4 right-auto bottom-[43vh];
+    }
+  }
+}

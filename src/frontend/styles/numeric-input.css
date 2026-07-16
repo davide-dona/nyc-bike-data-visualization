@@ -1,0 +1,15 @@
+/* components/NumericInput.jsx: shared compact numeric text input. */
+@layer components {
+  .numeric-input {
+    @apply w-[14ch] px-2 py-0.5 font-mono text-[11px] text-ink text-right tabular-nums
+           bg-transparent border-b border-ink/25
+           placeholder:text-ink-muted
+           transition-colors duration-150
+           hover:border-ink/50
+           focus:outline-none focus:border-accent;
+  }
+
+  .numeric-input:disabled {
+    @apply cursor-not-allowed opacity-55;
+  }
+}

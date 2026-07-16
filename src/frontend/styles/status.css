@@ -8,8 +8,7 @@
   }
 
   .status-wrap--loading {
-    @apply overflow-hidden;
-    color: #071737;
+    @apply overflow-hidden text-ink-deep;
   }
 
   .status-wrap--error {

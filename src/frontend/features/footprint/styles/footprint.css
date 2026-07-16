@@ -3,18 +3,6 @@
     @apply relative grid grid-cols-1 gap-4 sm:grid-cols-3;
   }
 
-  .footprint-tile__value {
-    @apply m-0 font-mono text-2xl text-ink;
-  }
-
-  .footprint-tile__label {
-    @apply m-0 mt-2 font-mono text-[11px] uppercase tracking-eyebrow text-ink-muted;
-  }
-
-  .footprint-tile__hint {
-    @apply m-0 mt-1 font-sans text-xs text-ink-soft;
-  }
-
   .footprint-grid {
     @apply grid grid-cols-1 gap-4 lg:grid-cols-2;
   }

@@ -1,6 +1,6 @@
-import InfrastructureInsights from './InfrastructureInsights.jsx'
-import StationUsageInsights from './StationUsageInsights.jsx'
-import TripFlowInsights from './TripFlowInsights.jsx'
+import InfrastructureInsights from '../infrastructure/components/InfrastructureInsights.jsx'
+import StationUsageInsights from '../station_usage/components/StationUsageInsights.jsx'
+import TripFlowInsights from '../trip_flow/components/TripFlowInsights.jsx'
 
 /**
  * Layer-aware insights block under the map: renders 1-3 chart frames whose

@@ -1,0 +1,82 @@
+/* components/SegmentedControl.jsx: shared button-group control (light and
+   dark host variants). */
+@layer components {
+  .segmented-control {
+    @apply flex flex-wrap gap-px border border-rule p-px bg-rule;
+  }
+
+  .segmented-control--dark {
+    @apply border-rule-invert bg-rule-invert;
+  }
+
+  .segmented-control__btn {
+    @apply inline-flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-eyebrow px-3 py-1.5
+           text-ink-muted transition-colors duration-150
+           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent
+           cursor-pointer;
+    line-height: 1;
+  }
+
+  .segmented-control__btn:hover {
+    @apply text-ink;
+  }
+
+  .segmented-control__btn.active {
+    @apply bg-ink text-white;
+  }
+
+  .segmented-control__btn:disabled {
+    @apply opacity-55 cursor-not-allowed;
+  }
+
+  .segmented-control__btn:disabled:hover {
+    @apply text-ink-muted;
+  }
+
+  .segmented-control__btn--sm {
+    @apply text-[10px] px-2.5 py-1;
+  }
+
+  .segmented-control__btn--dark {
+    @apply text-white/60 bg-transparent focus-visible:ring-white/60;
+  }
+
+  .segmented-control__btn--dark:hover {
+    @apply text-white;
+  }
+
+  .segmented-control__btn--dark.active {
+    @apply bg-white/15 text-white;
+  }
+
+  /* Dark hosts dim the whole group instead of per-button opacity */
+  .segmented-control__btn--dark:disabled,
+  .segmented-control__btn--dark:disabled:hover {
+    @apply text-white/40;
+    opacity: 1;
+  }
+
+  .segmented-control__icon {
+    @apply inline-flex items-center justify-center w-4 h-4 text-[12px] text-current;
+    line-height: 1;
+    flex-shrink: 0;
+  }
+
+  .segmented-control__icon::before {
+    display: block;
+    line-height: 1;
+  }
+
+  .segmented-control__btn--dark .segmented-control__icon {
+    @apply text-white/45;
+    transition: color 150ms ease, opacity 150ms ease;
+    opacity: 0.75;
+  }
+
+  .segmented-control__btn--dark:hover .segmented-control__icon,
+  .segmented-control__btn--dark:focus-visible .segmented-control__icon,
+  .segmented-control__btn--dark.active .segmented-control__icon {
+    @apply text-white;
+    opacity: 1;
+  }
+}

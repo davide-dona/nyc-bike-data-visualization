@@ -41,6 +41,7 @@ export const UI_COLORS = {
         raised: '#16294a',
         soft: '#2e4267',
         muted: '#6b7f9f',
+        deep: '#071737',
     },
     paper: {
         DEFAULT: PAPER,
@@ -64,8 +65,15 @@ export const UI_COLORS = {
     },
     error: {
         DEFAULT: DANGER,
+        dark: '#861f1f',
         bg: '#fff5f5',
         border: 'rgba(163,45,45,0.2)',
+    },
+    warm: {
+        DEFAULT: WARM_HIGHLIGHT,
+    },
+    heart: {
+        DEFAULT: '#991919',
     },
 }
 

@@ -1,0 +1,29 @@
+/* MapPage.jsx: deck.gl canvas shell, load overlay, and the fullscreen toggle. */
+@layer components {
+  .map-shell {
+    @apply relative w-full h-[78vh] overflow-hidden border border-rule bg-ink;
+  }
+
+  .map-overlay {
+    @apply absolute top-4 left-4 px-3 py-2 font-mono text-[11px] uppercase
+           tracking-eyebrow text-ink bg-paper-raised/90 backdrop-blur-sm
+           border border-rule;
+  }
+
+  .map-fullscreen-button {
+    @apply absolute left-4 bottom-4 z-30 inline-flex items-center gap-2 px-3 py-1.5
+           font-mono text-[11px] uppercase tracking-eyebrow text-ink bg-paper-raised/90 border border-rule border-ink/20
+           backdrop-blur-sm transition-colors duration-150
+           hover:bg-paper;
+    pointer-events: auto;
+  }
+
+  .map-fullscreen-button__icon {
+    @apply inline-flex items-center justify-center w-4 h-4 text-[12px] text-current;
+    line-height: 1;
+  }
+
+  .map-fullscreen-button__text {
+    letter-spacing: 0.08em;
+  }
+}

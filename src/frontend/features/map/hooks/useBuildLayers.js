@@ -1,20 +1,19 @@
 import { useCallback, useMemo } from 'react'
 // Station Usage Layer
-import { useStationUsageLayer } from './useStationUsageLayer.js'
+import { useStationUsageLayer } from '../station_usage/hooks/useStationUsageLayer.js'
 // Trip Flow Layer
-import { useTripFlowLayer } from './useTripFlowLayer.js'
-import { useTripStationFocus } from './useTripStationFocus.js'
-import { useTripCorridorPin } from './useTripCorridorPin.js'
-import { useTripFlowDirection } from './useTripFlowDirection.js'
+import { useTripFlowLayer } from '../trip_flow/hooks/useTripFlowLayer.js'
+import { useTripStationFocus } from '../trip_flow/hooks/useTripStationFocus.js'
+import { useTripCorridorPin } from '../trip_flow/hooks/useTripCorridorPin.js'
+import { useTripFlowDirection } from '../trip_flow/hooks/useTripFlowDirection.js'
 // Infrastructure Layer
-import { useInfrastructureLayer } from './useInfrastructureLayer.js'
-import { useInfrastructureStationSelection } from './useInfrastructureStationSelection.js'
+import { useInfrastructureLayer } from '../infrastructure/hooks/useInfrastructureLayer.js'
+import { useInfrastructureStationSelection } from '../infrastructure/hooks/useInfrastructureStationSelection.js'
 import useLayerHoverState from './useLayerHoverState.js'
-import { filterRoutesByYear } from '../utils/routeYearFilter.js'
+import { filterRoutesByYear } from '../infrastructure/utils/routeYearFilter.js'
 import { buildDeckLayers } from '../utils/buildDeckLayers.js'
 import { selectMapInsights } from '../utils/selectMapInsights.js'
 import { rankCorridors } from '../utils/insightSelectors.js'
-import { selectFlowBounds } from '../utils/tripArcsSelector.js'
 import { TRIP_FLOW_LIST_SIZE } from '@/utils/config.js'
 
 /**
@@ -166,13 +165,6 @@ export function useBuildLayers({ filters, currentTime, activeLayer, showBikeRout
         onCorridorToggle: toggleCorridorPin,
     }), [pinnedCorridorKey, toggleCorridorPin])
 
-    // Daily-flow bounds of the drawn overview corridors, for the legend's
-    // volume-gradient labeling. Focus view uses the diverging legend instead.
-    const tripFlowBounds = useMemo(
-        () => (isFocusView ? null : selectFlowBounds(trips)),
-        [trips, isFocusView],
-    )
-
     // Consider the loading, error, and data states of only the active layer for the overall status
     const activeLayerState = stateLayers.find(layer => layer.layer === activeLayer)
     const loading = activeLayerState?.loading || false
@@ -211,8 +203,6 @@ export function useBuildLayers({ filters, currentTime, activeLayer, showBikeRout
         // Direction filter of the trip-flow focus view
         tripDirection,
         setTripDirection,
-        // Volume bounds of the drawn overview corridors, for the legend
-        tripFlowBounds,
         // Trip flow query state and rows, for the focus camera
         tripLoading,
         trips,

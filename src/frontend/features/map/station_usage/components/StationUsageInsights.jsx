@@ -1,0 +1,75 @@
+import { useMemo } from 'react'
+import InsightFrame from '../../components/InsightFrame.jsx'
+import InsightBarChart from '../../components/InsightBarChart.jsx'
+import {
+    aggregatePeakHourDistribution,
+    topStationsByUsage,
+} from '../../utils/insightSelectors.js'
+import { formatCount, formatCompact } from '@/utils/numberFormat.js'
+
+const HOURS_IN_DAY = 24
+
+const USAGE_MODE_NOTES = {
+    all: 'all rides',
+    incoming: 'incoming rides only',
+    outgoing: 'outgoing rides only',
+}
+
+/**
+ * Insight frames for the station usage layer: peak-hour distribution synced
+ * to the time wheel, plus the busiest stations for the current filters.
+ * @param {Object} insights - Station usage data slice (stations, query status).
+ * @param {string} usageMode - Station usage mode ('all' | 'incoming' | 'outgoing').
+ * @param {number} currentTime - Current time-wheel hour (fractional during animation).
+ * @returns The rendered station usage insight frames.
+ */
+export default function StationUsageInsights({ insights, usageMode, currentTime }) {
+    const { stations } = insights
+    const status = insights
+
+    const peakHours = useMemo(
+        () => aggregatePeakHourDistribution(stations, usageMode),
+        [stations, usageMode],
+    )
+    const busiestStations = useMemo(
+        () => topStationsByUsage(stations, usageMode, 10),
+        [stations, usageMode],
+    )
+
+    const wheelHour = ((Math.floor(currentTime) % HOURS_IN_DAY) + HOURS_IN_DAY) % HOURS_IN_DAY
+    const modeNote = USAGE_MODE_NOTES[usageMode] ?? USAGE_MODE_NOTES.all
+
+    return (
+        <div className="map-insights__row">
+            <InsightFrame
+                title="Stations by peak hour"
+                note={`Counts stations by the hour of day when their traffic peaks, using ${modeNote}. This reveals at a glance when the network is busiest.`}
+                status={status}
+            >
+                <InsightBarChart
+                    labels={peakHours.labels}
+                    values={peakHours.values}
+                    highlightLabel={String(wheelHour)}
+                    xAxisTitle="Hour of Day"
+                    yAxisTitle="Stations peaking"
+                    xLabelStep={3}
+                    formatTooltipTitle={(label) => `Peak at ${String(label).padStart(2, '0')}:00`}
+                    formatTooltipLabel={({ value }) => `${formatCount(value)} stations peak at this hour`}
+                />
+            </InsightFrame>
+            <InsightFrame
+                title="Busiest stations"
+                note={`Ranks the ten busiest stations by average daily rides, using ${modeNote}. This highlights which individual hubs carry the heaviest daily passenger loads.`}
+                status={status}
+            >
+                <InsightBarChart
+                    horizontal
+                    labels={busiestStations.labels}
+                    values={busiestStations.values}
+                    xAxisTitle="Avg rides / day"
+                    formatTooltipLabel={({ value }) => `${formatCompact(value)} avg rides per day`}
+                />
+            </InsightFrame>
+        </div>
+    )
+}

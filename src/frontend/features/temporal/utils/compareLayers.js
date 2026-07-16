@@ -1,5 +1,7 @@
+import { ACCENT } from '@/utils/editorialTokens.js'
+
 export const COMPARE_LAYER_COLORS = [
-    "#1953d8",
+    ACCENT,
     "#c24747",
     "#2f7d4f",
     "#a7701e",

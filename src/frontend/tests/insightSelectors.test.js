@@ -11,9 +11,9 @@ import {
     tripFlowFocusStats,
     tripFlowOverviewStats,
 } from '@/features/map/utils/insightSelectors.js'
-import { selectStations } from '@/features/map/utils/stationUsageSelector.js'
-import { classifyBalance, filterTripsByDirection, orientTripsToFocus, selectFlowBounds, selectTrips } from '@/features/map/utils/tripArcsSelector.js'
-import { computeFocusBounds } from '@/features/map/utils/tripFlowBounds.js'
+import { selectStations } from '@/features/map/station_usage/utils/stationUsageSelector.js'
+import { classifyBalance, filterTripsByDirection, orientTripsToFocus, selectTrips } from '@/features/map/trip_flow/utils/tripArcsSelector.js'
+import { computeFocusBounds } from '@/features/map/trip_flow/utils/tripFlowBounds.js'
 
 const route = (overrides) => ({
     instDate: '2020-06-01',
@@ -311,22 +311,6 @@ describe('filterTripsByDirection', () => {
         const oriented = [trip()]
         expect(filterTripsByDirection(oriented, 'all')).toBe(oriented)
         expect(filterTripsByDirection(oriented, undefined)).toBe(oriented)
-    })
-})
-
-describe('selectFlowBounds', () => {
-    it('returns the min and max daily flow across trips', () => {
-        const bounds = selectFlowBounds([
-            trip({ total_daily_flow: 3 }),
-            trip({ total_daily_flow: 12 }),
-            trip({ total_daily_flow: 7 }),
-        ])
-        expect(bounds).toEqual({ minFlow: 3, maxFlow: 12 })
-    })
-
-    it('returns null for empty input', () => {
-        expect(selectFlowBounds([])).toBeNull()
-        expect(selectFlowBounds(null)).toBeNull()
     })
 })
 
