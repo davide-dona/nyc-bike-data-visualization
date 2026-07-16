@@ -99,8 +99,8 @@ function MapPage({ filters }) {
         <section className="page-card">
             <header className="page-card__header">
                 <div className="page-card__heading">
-                    <span className="page-card__eyebrow">01 - Atlas</span>
-                    <h2 className="page-card__title">The city, one ride at a time.</h2>
+                    <span className="page-card__eyebrow">Atlas</span>
+                    <h2 className="page-card__title">Map the city's flow</h2>
                     <p className="page-card__subtitle">
                         An interactive read of station usage, trip flows, and cycling
                         infrastructure across the five boroughs.

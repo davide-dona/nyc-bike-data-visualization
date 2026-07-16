@@ -3,22 +3,22 @@ export const MAP_LAYER_GUIDES = {
     station_usage: {
         mapName: 'Station Usage',
         title: 'How To Read It',
-        summary: 'This layer shows how busy each station is during the day. Use it to detect local demand peaks and identify where bike pressure concentrates over time.',
+        summary: 'This 3D heatmap shows how busy each station is, with height reflecting traffic volume. Use it to spot local demand peaks and where bike pressure concentrates over time.',   
         hints: [
             {
                 mapType: 'Station Usage',
-                title: 'Follow rush-hour pulses',
-                text: 'Drag the time wheel from morning to evening and watch which neighborhoods light up first. This helps separate commute hubs from leisure hotspots.',
+                title: 'Follow hour pulses',
+                text: 'Drag the time wheel from morning to evening and watch which areas light up.',
             },
             {
                 mapType: 'Station Usage',
-                title: 'Compare center vs edges',
-                text: 'Check if demand stays centralized or spreads outward at different hours. Sudden shifts often reveal directional commuting patterns.',
+                title: 'Incoming vs outgoing',
+                text: 'Use the mode selector to see whether a station is mostly a source or destination of trips, and how that changes over the day.',
             },
             {
                 mapType: 'Station Usage',
                 title: 'Use pause for anomalies',
-                text: 'Pause on unusual spikes and inspect nearby stations one by one to see if the pattern is isolated or part of a broader corridor trend.',
+                text: 'Pause on unusual spikes and inspect nearby stations to see if the pattern is isolated or part of a broader trend.',
             },
         ],
     },

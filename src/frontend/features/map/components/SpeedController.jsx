@@ -45,7 +45,7 @@ export default function SpeedController({ setCurrentTime, currentTime, disabled 
                     <span className="map-speed-clock">{currentTimeLabel}</span>
                     <span className="map-speed-controls__eyebrow">Time wheel</span>
                 </div>
-                <p className="map-speed-controls__hint">Drag the wheel to scrub the day in minute increments. It wraps past midnight.</p>
+                <p className="map-speed-controls__hint">Drag the wheel to adjust the time minute-by-minute, looping past midnight.</p>
             </div>
             <div className="map-time-wheel-layout">
                 <button
