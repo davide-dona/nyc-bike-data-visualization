@@ -42,14 +42,20 @@ export function createTripFlowLayers({
         onStationPick,
         onStationHover,
     })
-    // The station stack ends with the invisible hit layer; it must stay on
-    // top of the arcs or arcs would steal station clicks (deck.gl picks the
-    // topmost rendered pixel and every trip-flow layer disables depth test).
-    const stationHitLayers = stationLayers.filter((layer) => layer.id.endsWith('-hit'))
-    const stationVisualLayers = stationLayers.filter((layer) => !layer.id.endsWith('-hit'))
+    // The hovered-dot overlay and the invisible hit layer must stay on top of
+    // the arcs: the hit layer so arcs never steal station clicks (deck.gl
+    // picks the topmost rendered pixel and every trip-flow layer disables
+    // depth test), the hover overlay so the hover feedback is not buried
+    // under a dense corridor web.
+    const stationTopLayers = stationLayers.filter(
+        (layer) => layer.id.endsWith('-hit') || layer.id.endsWith('-hover'),
+    )
+    const stationBaseLayers = stationLayers.filter(
+        (layer) => !stationTopLayers.includes(layer),
+    )
 
     return [
-        ...stationVisualLayers,
+        ...stationBaseLayers,
         createTripsArcLayer({
             trips,
             maxTripCount,
@@ -59,7 +65,7 @@ export function createTripFlowLayers({
             emphasizedCorridorKeys: isFocusView ? null : emphasizedCorridorKeys,
             onArcHover,
         }),
-        ...stationHitLayers,
+        ...stationTopLayers,
     ]
 }
 

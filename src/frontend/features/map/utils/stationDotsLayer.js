@@ -1,48 +1,48 @@
 import { ScatterplotLayer } from '@deck.gl/layers'
 import { WHITE_RGB, WARM_HIGHLIGHT_RGB } from '@/utils/editorialTokens.js'
 
+// Geographic sizing with a pixel cap: dots scale with the map when zoomed
+// out (shrinking with the city, so they never blanket dense areas) and stop
+// growing at the cap once zoomed in, reading as a constant comfortable size
+// from mid-zoom onward.
+const MIN_RADIUS_PIXELS = 1.5
+
 const HOVER_RADIUS_MULTIPLIER = 1.7
 
-// Selection halo: a warm ring under the dot, large enough to read at any zoom
-// while the dot itself keeps its caller palette (health color, flow color).
+// Selection halo: a warm ring under the dot, with its own pixel floor so the
+// ring stays readable even at the citywide zoom.
 const HALO_RADIUS_MULTIPLIER = 2.2
 const HALO_FILL_ALPHA = 70
+const HALO_MIN_RADIUS_PIXELS = 4
 
-// Invisible enlarged pick layer: a comfortable hit target around each dot.
-const PICK_RADIUS_MULTIPLIER = 3.5
-const PICK_MIN_RADIUS_PIXELS = 14
-
-/**
- * Computes a station dot's visual radius in pixels, enlarging the hovered one.
- * @param {Object} d - Station datum.
- * @param {string|null} hoveredStationId - Currently hovered station id.
- * @param {number} baseRadius - Base radius in pixels.
- * @returns {number} Radius in pixels.
- */
-function getVisualRadius(d, hoveredStationId, baseRadius) {
-    if (d.id !== hoveredStationId) return baseRadius
-    return baseRadius * HOVER_RADIUS_MULTIPLIER
-}
+// Invisible pick layer: a constant screen-size hit target around each dot,
+// so stations stay comfortable to click even when the visual dots are small.
+const PICK_RADIUS_PIXELS = 14
 
 /**
  * Builds the shared station-dot layer stack used by both the trip flow and
  * infrastructure layers: an optional selection halo underneath, the visible
- * outlined dots, and an optional invisible enlarged hit layer carrying the
- * pick handlers. Radii are in pixels, so dots keep the same size at every
- * zoom level and never overlap when the camera zooms in. Layer ids derive
- * from `id` (`${id}-selection-halo`, `${id}-hit`) so `POINT_LAYER_ID_PREFIXES`
- * and the `startsWith` checks in `useMapClickActions` keep matching by prefix.
+ * outlined dots, an enlarged overlay for the hovered dot, and an optional
+ * invisible hit layer carrying the pick handlers. Dot radii are geographic
+ * (meters) with a pixel cap, so dots shrink with the map when zooming out
+ * instead of overlapping, and keep a constant capped size when zoomed in.
+ * The hovered dot renders in its own overlay layer because the pixel cap is
+ * per layer: enlarging it in the main layer would be clipped by the cap.
+ * Layer ids derive from `id` (`${id}-selection-halo`, `${id}-hover`,
+ * `${id}-hit`) so `POINT_LAYER_ID_PREFIXES` and the `startsWith` checks in
+ * `useMapClickActions` keep matching by prefix.
  * @param {string} id - Base layer id (also the visible dots layer id).
  * @param {Array} stations - Station data with id, latitude, and longitude.
  * @param {Function} getColor - Fill color accessor, caller palette (RGB or RGBA).
  * @param {Array} selectedStationIds - Station ids that receive the halo ring.
- * @param {string|null} hoveredStationId - Hovered station id, enlarged.
- * @param {number} baseRadius - Dot radius in pixels, constant across zoom.
- * @param {boolean} withHitLayer - Add the invisible enlarged pick layer.
+ * @param {string|null} hoveredStationId - Hovered station id, enlarged via the overlay.
+ * @param {number} baseRadius - Dot radius in meters.
+ * @param {number} maxRadiusPixels - Pixel cap the dots stop growing at when zoomed in.
+ * @param {boolean} withHitLayer - Add the invisible pick layer.
  * @param {Function} onPick - Click handler, attached to the hit layer.
  * @param {Function} onHover - Hover handler, attached to the hit layer.
  * @param {Array} colorUpdateTriggers - Extra caller triggers for the fill color.
- * @returns {Array} Deck.gl layers in render order: [halo?, dots, hit?].
+ * @returns {Array} Deck.gl layers in render order: [halo?, dots, hover?, hit?].
  */
 export function createStationDotsLayers({
     id,
@@ -50,7 +50,8 @@ export function createStationDotsLayers({
     getColor,
     selectedStationIds = [],
     hoveredStationId = null,
-    baseRadius = 6,
+    baseRadius = 90,
+    maxRadiusPixels = 6,
     withHitLayer = false,
     onPick,
     onHover,
@@ -73,7 +74,9 @@ export function createStationDotsLayers({
             lineWidthMinPixels: 2.5,
             stroked: true,
             filled: true,
-            radiusUnits: 'pixels',
+            radiusUnits: 'meters',
+            radiusMinPixels: HALO_MIN_RADIUS_PIXELS,
+            radiusMaxPixels: maxRadiusPixels * HALO_RADIUS_MULTIPLIER,
             pickable: false,
             parameters: { depthTest: false },
         }))
@@ -83,38 +86,54 @@ export function createStationDotsLayers({
         id,
         data: stations,
         getPosition: (d) => [d.longitude, d.latitude],
-        getRadius: (d) => getVisualRadius(d, hoveredStationId, baseRadius),
+        getRadius: baseRadius,
         getFillColor: getColor,
         getLineColor: WHITE_RGB,
-        lineWidthMinPixels: 1.5,
+        lineWidthMinPixels: 1,
         stroked: true,
         filled: true,
-        radiusUnits: 'pixels',
+        radiusUnits: 'meters',
+        radiusMinPixels: MIN_RADIUS_PIXELS,
+        radiusMaxPixels: maxRadiusPixels,
         pickable: false,
         transitions: {
-            getRadius: {
-                duration: 220,
-                easing: (t) => t * t * (3 - 2 * t),
-            },
             getFillColor: {
                 duration: 180,
             },
         },
         updateTriggers: {
             getFillColor: [hoveredStationId, selectionKey, ...colorUpdateTriggers],
-            getRadius: [hoveredStationId],
         },
     }))
+
+    const hoveredStation = hoveredStationId
+        ? stations.find((d) => d.id === hoveredStationId)
+        : null
+    if (hoveredStation) {
+        layers.push(new ScatterplotLayer({
+            id: `${id}-hover`,
+            data: [hoveredStation],
+            getPosition: (d) => [d.longitude, d.latitude],
+            getRadius: baseRadius * HOVER_RADIUS_MULTIPLIER,
+            getFillColor: getColor,
+            getLineColor: WHITE_RGB,
+            lineWidthMinPixels: 1.5,
+            stroked: true,
+            filled: true,
+            radiusUnits: 'meters',
+            radiusMinPixels: MIN_RADIUS_PIXELS * HOVER_RADIUS_MULTIPLIER,
+            radiusMaxPixels: maxRadiusPixels * HOVER_RADIUS_MULTIPLIER,
+            pickable: false,
+            parameters: { depthTest: false },
+        }))
+    }
 
     if (withHitLayer) {
         layers.push(new ScatterplotLayer({
             id: `${id}-hit`,
             data: stations,
             getPosition: (d) => [d.longitude, d.latitude],
-            getRadius: (d) => {
-                const visualRadius = getVisualRadius(d, hoveredStationId, baseRadius)
-                return Math.max(visualRadius * PICK_RADIUS_MULTIPLIER, PICK_MIN_RADIUS_PIXELS)
-            },
+            getRadius: PICK_RADIUS_PIXELS,
             getFillColor: [0, 0, 0, 0],
             stroked: false,
             filled: true,
@@ -122,9 +141,6 @@ export function createStationDotsLayers({
             pickable: true,
             onClick: onPick,
             onHover,
-            updateTriggers: {
-                getRadius: [hoveredStationId],
-            },
             parameters: { depthTest: false },
         }))
     }

@@ -4,9 +4,13 @@ import { createStationDotsLayers } from "./stationDotsLayer.js";
 // Overview dots recede behind the corridor web: smaller, semi-transparent.
 const STATION_COLOR_OVERVIEW = [...INK_MUTED_RGB, 170];
 
-// Radii in pixels: constant across zoom so dots never overlap when zooming in.
-const STATION_RADIUS_FOCUS = 6;
-const STATION_RADIUS_OVERVIEW = 4;
+// Geographic radii (meters) with pixel caps: dots shrink with the map when
+// zoomed out so they never blanket the overview, and hold the capped size
+// once zoomed in. Overview dots stay small so the corridor web reads first.
+const STATION_RADIUS_FOCUS_M = 90;
+const STATION_RADIUS_OVERVIEW_M = 60;
+const STATION_MAX_PIXELS_FOCUS = 6;
+const STATION_MAX_PIXELS_OVERVIEW = 4;
 
 /**
  * Builds the trip-flow station dot layers via the shared station-dot factory:
@@ -39,7 +43,8 @@ export function createTripStationsLayers({
         },
         selectedStationIds: focusedStationId ? [focusedStationId] : [],
         hoveredStationId,
-        baseRadius: isFocusView ? STATION_RADIUS_FOCUS : STATION_RADIUS_OVERVIEW,
+        baseRadius: isFocusView ? STATION_RADIUS_FOCUS_M : STATION_RADIUS_OVERVIEW_M,
+        maxRadiusPixels: isFocusView ? STATION_MAX_PIXELS_FOCUS : STATION_MAX_PIXELS_OVERVIEW,
         withHitLayer: true,
         onPick: onStationPick,
         onHover: onStationHover,

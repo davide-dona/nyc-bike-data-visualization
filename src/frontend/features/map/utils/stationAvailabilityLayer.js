@@ -7,8 +7,11 @@ import {
 import { HEALTH_CATEGORY } from './stationAvailabilitySelector.js'
 import { createStationDotsLayers } from './stationDotsLayer.js'
 
-// Radius in pixels: constant across zoom so dots never overlap when zooming in.
-const STATION_RADIUS = 6
+// Geographic radius (meters) with a pixel cap: dots shrink with the map when
+// zoomed out so they never blanket the city, and hold the capped size once
+// zoomed in.
+const STATION_RADIUS_M = 110
+const STATION_MAX_PIXELS = 6
 
 /**
  * Builds the infrastructure station dot layers via the shared station-dot
@@ -34,7 +37,8 @@ export function createStationAvailabilityLayer({
         getColor: (d) => getStationColor(d.health_category),
         selectedStationIds,
         hoveredStationId,
-        baseRadius: STATION_RADIUS,
+        baseRadius: STATION_RADIUS_M,
+        maxRadiusPixels: STATION_MAX_PIXELS,
         withHitLayer: true,
         onPick: onStationPick,
         onHover: onStationHover,
