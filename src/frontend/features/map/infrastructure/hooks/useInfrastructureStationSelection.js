@@ -1,13 +1,13 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
 /**
- * Handler hook for the infrastructure station multi-select: toggles stations
- * on click (shift-click extends the selection), keeps selections valid as
- * station data refreshes, clears when leaving the infrastructure layer, and
- * exposes the selected station objects.
+ * Handler hook for the infrastructure station selection: toggles a single
+ * station on click (clicking the selected station again clears it), keeps
+ * the selection valid as station data refreshes, clears when leaving the
+ * infrastructure layer, and exposes the selected station object.
  * @param {Array} stations - Current stations with live availability data.
  * @param {string} activeLayer - The active map layer key.
- * @returns {Object} Selection ids/objects, the pick handler, and the clear action.
+ * @returns {Object} Selection ids/objects, the pick/select handlers, and the clear action.
  */
 export function useInfrastructureStationSelection(stations = [], activeLayer) {
     const [selectedStationIdSet, setSelectedStationIdSet] = useState(() => new Set())
@@ -23,30 +23,22 @@ export function useInfrastructureStationSelection(stations = [], activeLayer) {
         setSelectedStationIdSet(new Set())
     }, [])
 
-    const onStationPick = useCallback((info, event) => {
+    const onStationPick = useCallback((info) => {
         const stationId = info?.object?.id
         if (!stationId) return
 
-        const srcEvent = event?.srcEvent ?? event
-        const isMultiSelect = Boolean(srcEvent?.ctrlKey || srcEvent?.metaKey || srcEvent?.shiftKey)
-
-        setSelectedStationIdSet((previousSet) => {
-            const previousIds = Array.from(previousSet)
-
-            if (!isMultiSelect) {
-                if (previousIds.length === 1 && previousSet.has(stationId)) {
-                    return new Set()
-                }
-                return new Set([stationId])
-            }
-
-            if (previousSet.has(stationId)) {
-                return new Set(previousIds.filter((selectedId) => selectedId !== stationId))
-            }
-
-            return new Set(previousSet).add(stationId)
-        })
+        setSelectedStationIdSet((previousSet) => (
+            previousSet.has(stationId) ? new Set() : new Set([stationId])
+        ))
     }, [])
+
+    // Selects a station directly, bypassing deck.gl's pick-info shape - used
+    // by DOM-driven selection (e.g. clicking a leaderboard row) rather than a
+    // map click. No-ops for a station not present in the current data.
+    const selectStation = useCallback((stationId) => {
+        if (!stations.some((station) => station.id === stationId)) return
+        setSelectedStationIdSet(new Set([stationId]))
+    }, [stations])
 
     useEffect(() => {
         setSelectedStationIdSet((previousSet) => {
@@ -68,6 +60,7 @@ export function useInfrastructureStationSelection(stations = [], activeLayer) {
     return {
         clearSelectedStations,
         onStationPick,
+        selectStation,
         selectedStationIds,
         selectedStations,
     }

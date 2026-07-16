@@ -36,8 +36,12 @@ export const FACILITY_CSS_COLORS = {
     _default: 'rgb(110, 106, 98)',
 }
 
-/** Line widths (pixels) per class, for deck.gl getLineWidth. */
-const LINE_WIDTH = 5
+// Geographic width (meters) with a pixel cap: routes shrink with the map
+// when zoomed out so they never blanket the city, and hold a comfortable
+// capped width once zoomed in - mirroring the station-dot sizing approach.
+const LINE_WIDTH_M = 18
+const LINE_WIDTH_MIN_PIXELS = 0.75
+const LINE_WIDTH_MAX_PIXELS = 5
 
 /**
  * Builds the GeoJSON line layer for bike routes.
@@ -52,12 +56,15 @@ export function createBikeRoutesLayer({ routes, hoveredrouteID, onRoutePick }) {
     return new GeoJsonLayer({
         id: 'bike-routes-line-layer',
         data: routes,
-        stroked: true,  
+        stroked: true,
         filled: false,  // No fill, just stroke
-        // Line width definition
-        lineWidthUnits: 'pixels',
-        lineWidthMinPixels: LINE_WIDTH,
-        lineWidthMaxPixels: LINE_WIDTH,
+        // Line width definition: geographic with a pixel cap, so routes
+        // scale down with the map instead of staying a fixed pixel width
+        // that reads as oversized once zoomed out.
+        getLineWidth: LINE_WIDTH_M,
+        lineWidthUnits: 'meters',
+        lineWidthMinPixels: LINE_WIDTH_MIN_PIXELS,
+        lineWidthMaxPixels: LINE_WIDTH_MAX_PIXELS,
         // Line color: highlight every segment sharing the hovered routeID,
         getLineColor: (f) => {
             const base = FACILITY_COLORS[f.facilityClass] ?? FACILITY_COLORS._default
@@ -72,17 +79,18 @@ export function createBikeRoutesLayer({ routes, hoveredrouteID, onRoutePick }) {
         autoHighlight: false,   // Manual highlighting via getLineColor above
         onHover: onRoutePick,
         onClick: onRoutePick,
-        // Rebuild colour accessor whenever routes data or the hovered id changes
+        // Rebuild colour accessor whenever the hovered id changes
         updateTriggers: {
             getLineColor: [hoveredrouteID],
-            getLineWidth: [routes],
         },
     })
 }
 
 /**
- * Returns a plain-text tooltip string for a hovered bike route feature.
- * Safe-guards against missing properties.
+ * Returns a plain-text tooltip string for a hovered bike route feature,
+ * following the same title + detail-list convention as the trip-flow
+ * corridor tooltip (see tripArcsTooltip). Safe-guards against missing
+ * properties.
  *
  * @param {Object} object - The hovered GeoJSON feature (from deck.gl onHover).
  * @returns {string}
@@ -95,13 +103,7 @@ export function bikeRouteTooltip(object) {
     // Map facility class to human-readable label, with a fallback for unknown classes
     const classLabel = FACILITY_LABELS[facilityClass] ?? 'Unknown'
 
-    return [
-        `Streets: ${streetName}`,
-        `${fromStreet} ---> ${toStreet}`,
-        `Facility Class:  ${classLabel}`,
-    ]
-        .filter(Boolean)
-        .join('\n')
+    return `Bike Route\n${streetName}\n\n - Segment: ${fromStreet} → ${toStreet}\n - Facility Class: ${classLabel}`
 }
 
 /**

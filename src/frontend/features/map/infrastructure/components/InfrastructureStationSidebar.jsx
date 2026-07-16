@@ -16,34 +16,28 @@ import {
 /**
  * Slide-in sidebar for the infrastructure layer: live availability metrics,
  * historical highlights, day/hour ride profiles, and top connected stations
- * for the selected station(s).
- * @param {Array<Object>} selectedStations - Stations picked on the map (empty hides the sidebar).
+ * for the selected station.
+ * @param {Array<Object>} selectedStations - The selected station, as a 0-or-1-length array (empty hides the sidebar).
  * @param {Object} filters - Active header filters forwarded to the stats fetch.
  * @param {Function} onClose - Clears the station selection.
+ * @param {Function} selectStation - Selects a station by id (used by the leaderboard rows).
  * @returns The rendered sidebar, or null when nothing is selected.
  */
-export default function InfrastructureStationSidebar({ selectedStations = [], filters = {}, onClose }) {
+export default function InfrastructureStationSidebar({ selectedStations = [], filters = {}, onClose, selectStation }) {
     const stationIds = useMemo(() => selectedStations.map((station) => station.id), [selectedStations])
     const stationData = useInfrastructureStationSidebarData({ stationIds, filters })
 
     if (!selectedStations.length) return null
 
-    const isGrouped = selectedStations.length > 1
     const primaryStation = selectedStations[0]
-    const liveTotals = selectedStations.reduce((acc, station) => {
-        acc.actualCapacity += Number(station.actual_capacity ?? station.capacity ?? 0)
-        acc.classicBikes += Number(station.classicalBikes ?? 0)
-        acc.electricBikes += Number(station.electricBikes ?? 0)
-        acc.availableDocks += Number(station.available_docks ?? 0)
-        acc.disabledBikes += Number(station.num_bikes_disabled ?? 0)
-        return acc
-    }, {
-        actualCapacity: 0,
-        classicBikes: 0,
-        electricBikes: 0,
-        availableDocks: 0,
-        disabledBikes: 0,
-    })
+    const liveTotals = {
+        actualCapacity: Number(primaryStation.actual_capacity ?? primaryStation.capacity ?? 0),
+        classicBikes: Number(primaryStation.classicalBikes ?? 0),
+        electricBikes: Number(primaryStation.electricBikes ?? 0),
+        availableDocks: Number(primaryStation.available_docks ?? 0),
+        disabledBikes: Number(primaryStation.num_bikes_disabled ?? 0),
+    }
+    const bikesAvailable = liveTotals.classicBikes + liveTotals.electricBikes
 
     const todayDow = todayWeekdayIndex()
     const todayRow = stationData.daySeries[todayDow]
@@ -62,12 +56,10 @@ export default function InfrastructureStationSidebar({ selectedStations = [], fi
                         </button>
                     </div>
                     <h3 className="infra-sidebar__title mt-5">
-                        {isGrouped ? `${selectedStations.length} stations selected` : primaryStation.name}
+                        {primaryStation.name}
                     </h3>
                     <p className="infra-sidebar__subtitle">
-                        {isGrouped
-                            ? 'Grouped station selection with aggregated live capacity and ride statistics.'
-                            : `Station ID ${primaryStation.id}: live availability plus historical ride and flow statistics per station.`}
+                        {`Station ID ${primaryStation.id}: live availability plus historical ride and flow statistics per station.`}
                     </p>
                 </div>
 
@@ -78,6 +70,7 @@ export default function InfrastructureStationSidebar({ selectedStations = [], fi
                 <StatCard theme="dark" size="sm" label="Docks" value={formatCount(liveTotals.availableDocks)} hint="available now" />
                 <StatCard theme="dark" size="sm" label="Classic bikes" value={formatCount(liveTotals.classicBikes)} hint="available now" />
                 <StatCard theme="dark" size="sm" label="E-bikes" value={formatCount(liveTotals.electricBikes)} hint="available now" />
+                <StatCard theme="dark" size="sm" label="Bikes available" value={formatCount(bikesAvailable)} hint="available now" />
                 <StatCard theme="dark" size="sm" label="Disabled" value={formatCount(liveTotals.disabledBikes)} hint="out of service" />
             </section>
 
@@ -120,13 +113,16 @@ export default function InfrastructureStationSidebar({ selectedStations = [], fi
                 <div className="infra-sidebar__section-heading">Top connected stations</div>
                 <div className="infra-sidebar__flow-list">
                     {topFlows.map((flow) => {
-                        const partnerName = stationIds.includes(flow.station_a_id) ? flow.station_b_name : flow.station_a_name
+                        const isPrimaryA = stationIds.includes(flow.station_a_id)
+                        const partnerName = isPrimaryA ? flow.station_b_name : flow.station_a_name
+                        const partnerId = isPrimaryA ? flow.station_b_id : flow.station_a_id
                         return (
                             <HorizontalBarRow
                                 key={`${flow.station_a_id}__${flow.station_b_id}`}
                                 label={partnerName}
                                 value={flow.total_rides}
                                 maxValue={maxFlowRides}
+                                onSelect={() => selectStation(partnerId)}
                             />
                         )
                     })}

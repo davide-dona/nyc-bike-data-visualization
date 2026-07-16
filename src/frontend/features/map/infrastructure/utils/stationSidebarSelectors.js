@@ -1,16 +1,22 @@
+import { formatNumber } from '@/utils/numberFormat.js'
+
 // Weekday labels indexed Monday-first, matching the backend's day_of_week
 export const DAY_ORDER = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 export const DAY_FULL = ['Mondays', 'Tuesdays', 'Wednesdays', 'Thursdays', 'Fridays', 'Saturdays', 'Sundays']
 
 /**
- * Renders the sidebar's flow-balance highlight as human-readable text.
- * @param {{pctDiff: number}} netFlow - Relative departures/arrivals difference.
- * @returns {string} Balanced, or the surplus direction with its percentage.
+ * Renders the sidebar's flow-balance highlight as human-readable text. The
+ * balanced/imbalanced call is scale-invariant (based on the percentage
+ * difference), but the surplus itself is shown as the actual net rides/day
+ * count rather than a percentage.
+ * @param {{pctDiff: number, netPerDay: number}} netFlow - Relative and absolute departures/arrivals difference.
+ * @returns {string} Balanced, or the surplus direction with its daily count.
  */
-export function flowBalanceText({ pctDiff }) {
+export function flowBalanceText({ pctDiff, netPerDay }) {
     const pct = Math.round(Math.abs(pctDiff) * 100)
     if (pct < 1) return 'Balanced in/out'
-    return pctDiff > 0 ? `+${pct}% more departures` : `+${pct}% more arrivals`
+    const count = formatNumber(Math.abs(netPerDay), 1)
+    return pctDiff > 0 ? `+${count} departures/day` : `+${count} arrivals/day`
 }
 
 /**
@@ -166,6 +172,7 @@ export function buildSummary({ daySeries, hourSeries, totals }) {
             totalIncoming: totals.totalIncoming,
             totalOutgoing: totals.totalOutgoing,
             pctDiff: (totals.totalOutgoing - totals.totalIncoming) / Math.max(1, flowVolume),
+            netPerDay: (totals.totalOutgoing - totals.totalIncoming) / Math.max(1, totals.totalHours / 24),
         },
         character: stationCharacter(hourSeries),
     }

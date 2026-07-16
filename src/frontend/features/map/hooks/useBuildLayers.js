@@ -42,6 +42,7 @@ export function useBuildLayers({ filters, currentTime, activeLayer, showBikeRout
     const {
         clearSelectedStations: clearInfrastructureSelection,
         onStationPick: onInfrastructureStationPick,
+        selectStation: selectInfrastructureStation,
         selectedStationIds: selectedInfrastructureStationIds,
         selectedStations: selectedInfrastructureStations,
     } = useInfrastructureStationSelection(stations, activeLayer)
@@ -191,6 +192,7 @@ export function useBuildLayers({ filters, currentTime, activeLayer, showBikeRout
         focusedStationId,
         selectedInfrastructureStations,
         clearInfrastructureSelection,
+        selectInfrastructureStation,
         // Unfiltered routes, for deriving the year slider bounds
         bikeRoutes,
         // Per-layer data slices for the insights panel

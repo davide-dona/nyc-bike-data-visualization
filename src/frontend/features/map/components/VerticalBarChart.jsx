@@ -1,5 +1,7 @@
 import { formatCompact, formatNumber } from '@/utils/numberFormat.js'
 import { niceCeil } from '@/utils/math.js'
+import useBarChartTooltip from '../hooks/useBarChartTooltip.js'
+import FloatingTooltip from '@/components/FloatingTooltip.jsx'
 
 /**
  * CSS-only vertical bar chart with a nice-rounded y axis, used for the
@@ -13,6 +15,8 @@ import { niceCeil } from '@/utils/math.js'
  */
 export default function VerticalBarChart({ title, rows, labelKey, valueKey, unit }) {
     const axisMax = niceCeil(Math.max(...rows.map((row) => Number(row?.[valueKey] ?? 0)), 0))
+    const { isVisible, position, nodeRef, content, showTooltip, hideTooltip } = useBarChartTooltip()
+
     return (
         <section className="infra-sidebar__chart-block">
             <div className="infra-sidebar__section-heading">{title}</div>
@@ -30,8 +34,15 @@ export default function VerticalBarChart({ title, rows, labelKey, valueKey, unit
                         {rows.map((row) => {
                             const value = Number(row?.[valueKey] ?? 0)
                             const height = (value / axisMax) * 100
+                            const tooltipText = `${row.tooltip_label ?? row.label} - ${formatNumber(value, 2)} ${unit}`
                             return (
-                                <div key={row[labelKey]} className="infra-sidebar__vbar-wrap" title={`${row.tooltip_label ?? row.label} - ${formatNumber(value, 2)} ${unit}`}>
+                                <div
+                                    key={row[labelKey]}
+                                    className="infra-sidebar__vbar-wrap"
+                                    onMouseEnter={(event) => showTooltip(tooltipText, event)}
+                                    onMouseMove={(event) => showTooltip(tooltipText, event)}
+                                    onMouseLeave={hideTooltip}
+                                >
                                     <div className="infra-sidebar__vbar-track">
                                         <div className="infra-sidebar__vbar-fill" style={{ height: `${height}%` }} />
                                     </div>
@@ -42,6 +53,9 @@ export default function VerticalBarChart({ title, rows, labelKey, valueKey, unit
                     </div>
                 </div>
             </div>
+            <FloatingTooltip visible={isVisible} position={position} nodeRef={nodeRef}>
+                {content}
+            </FloatingTooltip>
         </section>
     )
 }

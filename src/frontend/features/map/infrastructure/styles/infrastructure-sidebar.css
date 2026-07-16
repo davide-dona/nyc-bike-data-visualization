@@ -4,10 +4,11 @@
      those controls stay visible and clickable while the sidebar is open. */
   .infra-sidebar {
   @apply absolute top-20 right-4 bottom-4 z-40 flex w-[30rem] max-w-[calc(100%-2rem)] flex-col gap-4 overflow-y-auto
-         border border-rule-invert bg-ink/90 px-4 py-4 text-white/90 backdrop-blur-md
+         border border-rule-invert bg-ink/90 px-4 pt-4 pb-6 text-white/90 backdrop-blur-md
          shadow-[0_20px_60px_rgba(2,6,23,0.35)]
          opacity-0 translate-x-4 pointer-events-none
          transition-[transform,opacity] duration-100 ease-out;
+  scrollbar-gutter: stable;
   scrollbar-width: thin;
   scrollbar-color: rgba(255, 255, 255, 0.28) transparent;
 }
@@ -130,7 +131,7 @@
   }
 
   .infra-sidebar__vbar-fill {
-    @apply w-[90%] bg-white/35;
+    @apply w-[90%] bg-sky-300/50;
     min-height: 1px;
   }
 
@@ -143,7 +144,7 @@
   }
 
   .infra-sidebar__chart-caption-swatch {
-    @apply inline-block h-2 w-2 bg-white/35;
+    @apply inline-block h-2 w-2 bg-sky-300/50;
   }
 
   .infra-sidebar__chart-caption-swatch.tone-accent {
@@ -168,7 +169,7 @@
   }
 
   .infra-sidebar__dvbar-fill {
-    @apply w-[90%] bg-white/35;
+    @apply w-[90%] bg-sky-300/50;
     min-height: 1px;
   }
 
@@ -184,6 +185,18 @@
      edge and the numbers line up across rows. */
   .infra-sidebar__bar-row {
     @apply grid grid-cols-[minmax(0,1.5fr)_minmax(0,1.2fr)_3.25rem] items-center gap-3;
+  }
+
+  /* Clickable leaderboard row: reset the native button chrome back to the
+     plain row look, then add a hover affordance. */
+  .infra-sidebar__bar-row--interactive {
+    @apply w-full border-0 bg-transparent p-0 text-left font-[inherit] cursor-pointer
+           transition-colors duration-150 hover:bg-white/5
+           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent;
+  }
+
+  .infra-sidebar__bar-row--interactive:hover .infra-sidebar__bar-label {
+    @apply text-white;
   }
 
   .infra-sidebar__bar-label {

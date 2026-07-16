@@ -62,6 +62,7 @@ function MapPage({ filters }) {
         hasTripFlowFocus,
         focusedStationId,
         selectedInfrastructureStations,
+        selectInfrastructureStation,
         bikeRoutes,
         insights,
         tripFlowHover,
@@ -75,8 +76,8 @@ function MapPage({ filters }) {
 
     // Frame the focused station's corridors; return to the citywide view on reset.
     useTripFlowCamera({ activeLayer, focusedStationId, trips, tripLoading, flyTo, mapShellRef })
-    // Fly to the selected infrastructure station(s); fly back out when cleared.
-    useInfrastructureCamera({ activeLayer, selectedStations: selectedInfrastructureStations, flyTo, mapShellRef })
+    // Fly to the selected infrastructure station; fly back out when cleared.
+    useInfrastructureCamera({ activeLayer, selectedStations: selectedInfrastructureStations, flyTo })
     const {
         yearBounds,
         shouldShowMapUi,
@@ -175,6 +176,7 @@ function MapPage({ filters }) {
                         selectedStations={selectedInfrastructureStations}
                         filters={filters}
                         onClose={clearInfrastructureSelection}
+                        selectStation={selectInfrastructureStation}
                     />
                     {shouldShowStatusOverlay && (
                         <StatusMessage
