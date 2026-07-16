@@ -113,8 +113,8 @@ export function buildTemporalBarChartConfig({
     const tooltipLabelCallback = (tooltipCtx) => {
         const valueLabel = formatTooltipLabel(live.current.format, tooltipCtx)
         const datasetLabel = tooltipCtx.dataset.label
-        if (!datasetLabel) return `Rhythm: ${valueLabel.trim()}`
-        return `${datasetLabel} · Rhythm: ${valueLabel.trim()}`
+        if (!datasetLabel) return `Rides: ${valueLabel.trim()}`
+        return `${datasetLabel} · Rides: ${valueLabel.trim()}`
     }
     const tooltipTitleCallback = (items) => {
         if (!items?.length) return ''

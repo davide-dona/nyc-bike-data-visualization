@@ -110,13 +110,12 @@ function TemporalPage({ filters, onCompareModeChange }) {
         <section className="page-card">
             <header className="page-card__header">
                 <div className="page-card__heading">
-                    <span className="page-card__eyebrow">02 - Rhythms</span>
+                    <span className="page-card__eyebrow">Habits</span>
                     <h2 className="page-card__title">
                         The week, hour by hour.
                     </h2>
                     <p className="page-card__subtitle">
-                        How ridership swells and recedes across days of the week
-                        and hours of the day.
+                        See how rider habits and daily behaviors shape the rise and fall of ridership across hours and days.
                     </p>
                 </div>
                 <div
@@ -217,21 +216,21 @@ function TemporalPage({ filters, onCompareModeChange }) {
                 />
 
                 <VisualizationGuide
-                    mapName="Weekly Rhythm"
+                    mapName="Habits"
                     title="How To Read It"
-                    summary="The 3D surface maps your metric across every day-hour cell. In Compare mode, you can overlay multiple surfaces to inspect how rhythms shift between user and bike groups, while histograms help verify aggregate day/hour effects."
+                    summary="The 3D surface maps your metric across every day-hour cell, allowing you to intuitively trace how complex temporal patterns and trends shift throughout the week. Meanwhile, the companion histograms provide a clean, aggregate look at overall day and hour effects to help you quickly verify your insights."
                     hints={[
                         {
-                            title: "Start from the baseline",
-                            text: "Read the Current surface first, then add comparison surfaces one at a time so differences in ridges and peaks remain interpretable.",
+                            title: "Compare different layers",
+                            text: "Though the compare button is possible to compare different user/bike combinations, to highlight differences in behavior across the week and day. ",
                         },
                         {
-                            title: "Use Compare as context",
-                            text: "Add multiple user/bike combinations from Compare, then use Hide/Show to isolate one layer at a time and confirm whether a pattern is global or segment-specific.",
+                            title: "Select a bar",
+                            text: "When selecting a bar in the histograms, ...",
                         },
                         {
                             title: "Cross-check with histograms",
-                            text: "When a surface appears higher in one region, confirm if the gap is driven by specific days or hours using the aligned histogram panels.",
+                            text: "Secondary histograms permits you to highlight the day and hour effects of the selected metric, providing a clean, aggregate view to verify your insights.",
                         },
                     ]}
                 />

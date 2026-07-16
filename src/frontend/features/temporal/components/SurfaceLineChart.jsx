@@ -52,8 +52,9 @@ function SurfaceLineChart({
                 ) : (
                     <div className="surface-empty">No daily stats available for this selection.</div>
                 )}
-            </div>
+                <p className="chart-frame__note">This line chart shows the daily breakdown of {metric.label} over the selected time range, helping you spot key trends and easily identify anomalies.</p>
 
+            </div>
             {showOverlay && <StatusMessage loading={loading} error={error} onRefetch={onRefetch} />}
         </div>
     );
