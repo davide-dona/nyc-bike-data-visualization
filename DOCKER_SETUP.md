@@ -15,7 +15,7 @@ No need to clone the repository or build anything, Docker will automatically pul
 
 > **Default data range:** The images are built filled with default data starting from January 2020 to the last month updated. If you want to customise the date range, please refer to the [Quick start from source](#quick-start-from-source) section below.
 
-**1. Download `docker-compose.release.yml` from the [latest release](https://github.com/446f6e6e79/nyc-bike-data-visualization/releases/latest)**
+**1. Download `docker-compose.release.yml` from the [latest release](https://github.com/davide-dona/nyc-bike-data-visualization/releases/latest)**
 
 **2. Run it:**
 
@@ -45,7 +45,7 @@ If you want to run the latest code or customise the date range, you can build th
 Clone the repository and start all services with a single command:
 
 ```bash
-git clone https://github.com/446f6e6e79/nyc-bike-data-visualization.git
+git clone https://github.com/davide-dona/nyc-bike-data-visualization.git
 cd nyc-bike-data-visualization
 docker compose up --build
 ```
@@ -107,7 +107,7 @@ DATA_END_DATE=202412
 
 ## Development with a pre-seeded database
 
-Seeding the database locally takes a long time and ~17 GB of disk. For development, CI publishes **pre-seeded database images** to GHCR (`ghcr.io/446f6e6e79/nyc-bike-db`) so you can skip seeding entirely:
+Seeding the database locally takes a long time and ~17 GB of disk. For development, CI publishes **pre-seeded database images** to GHCR (`ghcr.io/davide-dona/nyc-bike-db`) so you can skip seeding entirely:
 
 | Tag | Contents | Size |
 |---|---|---|
