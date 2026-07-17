@@ -1,10 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 
 /**
- * Component for the reset button that allows users to reset the map view to its default state.
- * The button is styled with an icon and text, and it triggers the provided onClick function when clicked. The onClick function is expected to handle the logic for resetting the map view, such as clearing selected stations or resetting the active layer.
- * @param {Function} onClick - The function to call when the reset button is clicked, which should handle the logic for resetting the map view. This can include actions like clearing selected stations or resetting the active layer to its default state.
- * @returns
+ * Button that resets the map view to its default state.
+ * @param {Function} onClick - Called on click to reset the map view.
  */
 export default function ResetButton({ onClick, disabled = false }) {
     const tooltipRef = useRef(null)

@@ -28,7 +28,6 @@ function MapPage({ filters }) {
     const { isFullscreen, mapShellRef, toggleFullscreen } = useMapFullscreen()
     const { handleHover, getCursor } = useMapCursor()
 
-    // Map handler manages view state, active layer, animation time, and related logic
     const {
         activeLayer,
         controller,
@@ -50,7 +49,6 @@ function MapPage({ filters }) {
         usageMode,
         viewState,
     } = useMapHandler()
-    // Build the layers to be rendered based on the active layer and fetched data
     const {
         layers,
         loading,

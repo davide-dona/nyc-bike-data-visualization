@@ -6,11 +6,7 @@ import TemporalPage from './features/temporal/TemporalPage.jsx'
 import WeatherPage from './features/weather/WeatherPage.jsx'
 import FootprintPage from './features/footprint/FootprintPage.jsx'
 
-/**
- * App component that sets up the main structure of the application, including routing and layout. 
- * Defines routes for the map and stats pages, and includes a header that is displayed on all pages.
- * @returns 
- */
+/** Root component: sets up routing and the shared header/footer layout. */
 function App() {
     const [filters, setFilters] = useState({})
     const [isTemporalCompareActive, setIsTemporalCompareActive] = useState(false)

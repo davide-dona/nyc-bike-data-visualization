@@ -6,26 +6,19 @@ import YearSlider from "../infrastructure/components/YearSlider.jsx"
 import { USAGE_MODE_OPTIONS } from "../utils/mapConfig.js"
 
 /**
- * Component for controlling the active map layer and animation settings. 
- * Provides a dropdown to select the active layer and, if the layer supports animation, includes the SpeedController for time-based animations.
+ * Controls for the active map layer's animation and layer-specific settings
+ * (e.g. speed controller, bike-route toggle/year, usage/direction filters).
  * @param {string} activeLayer - The currently active map layer.
- * @param {Function} setActiveLayer - Function to update the active layer in the parent component.
- * @param {number} currentTime - The current time in hours (can be a fractional value representing minutes) for animation purposes.
- * @param {Function} setCurrentTime - Function to update the current time in the parent component.
- * @param {boolean} hasAnimation - Indicates whether the currently active layer supports animation, which determines if the SpeedController should be displayed.
- * @param {boolean} showBikeRoutes - Whether bike routes are currently shown on the map, which is relevant for the infrastructure layer.
- * @param {Function} setShowBikeRoutes - Function to update the showBikeRoutes state in the parent component, allowing the user to toggle bike routes on the infrastructure layer.
- * @param {string} usageMode - Which metric the station usage layer encodes ('all' | 'incoming' | 'outgoing').
- * @param {Function} setUsageMode - Function to update the usageMode state in the parent component.
+ * @param {number} currentTime - Current animation time in hours (fractional).
+ * @param {boolean} hasAnimation - Whether the active layer supports animation (shows SpeedController).
+ * @param {boolean} showBikeRoutes - Whether bike routes are shown (infrastructure layer).
+ * @param {string} usageMode - Station usage metric ('all' | 'incoming' | 'outgoing').
  * @param {string} tripDirection - Direction filter of the trip-flow focus view ('all' | 'incoming' | 'outgoing').
- * @param {Function} setTripDirection - Setter for the trip-flow direction filter.
  * @param {Function} clearTripFlowFocus - Returns the trip flow layer to the citywide overview.
  * @param {boolean} hasTripFlowFocus - Whether a station is currently focused on the trip flow layer.
  * @param {boolean} hasCorridorPin - Whether a leaderboard corridor pin is active on the trip flow layer.
  * @param {number|null} selectedYear - Historical year for the bike-route network, null for present.
- * @param {Function} setSelectedYear - Setter for the selected network year.
  * @param {Object} yearBounds - {minYear, maxYear} derived from the route data.
- * @returns
  */
 export default function MapController({
     activeLayer,

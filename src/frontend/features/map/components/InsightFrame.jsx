@@ -1,3 +1,2 @@
-// The map insight frame is the shared chart frame; this re-export keeps the
-// map components' existing imports working.
+// Re-export of the shared chart frame, for the map components' existing imports.
 export { default } from '@/components/ChartFrame.jsx'

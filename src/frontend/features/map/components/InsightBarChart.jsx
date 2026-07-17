@@ -10,26 +10,19 @@ import {
 } from '../utils/insightBarChart.js'
 
 /**
- * Bar chart for the map insights panel, following the editorial Chart.js
- * conventions of the temporal and footprint charts. The chart is recreated
- * only when its label structure changes; value, color, and highlight changes
- * are applied in place with chart.update('none') so scrubbing the year slider
- * or the time wheel never stutters.
+ * Bar chart for the map insights panel. Recreated only when label structure
+ * changes; value/color/highlight changes are applied in place via chart.update('none').
  * @param {Array} labels - Category labels; an array entry renders as a multi-line tick.
  * @param {Array} values - Single-series values (ignored when groups is set).
- * @param {Array} groups - Optional [{ label, values, color }] for grouped bars; renders a legend.
+ * @param {Array} groups - Optional [{ label, values, color }] for grouped bars.
  * @param {boolean} horizontal - Draw bars horizontally (category axis on y).
- * @param {boolean} diverging - Butterfly layout: two groups share each row and grow in
- *   opposite directions from zero (one group carries negative values); ticks and
- *   tooltips show absolute values.
- * @param {Array} colors - Optional per-bar colors for the single-series mode.
- * @param {string} highlightLabel - Label of the bar painted in the amber selection color.
- * @param {Function} onBarClick - Optional (index, label) callback; enables the pointer cursor.
- * @param {string} xAxisTitle - Title of the x axis.
- * @param {string} yAxisTitle - Title of the y axis.
+ * @param {boolean} diverging - Two groups grow from zero in opposite directions.
+ * @param {Array} colors - Optional per-bar colors (single-series mode).
+ * @param {string} highlightLabel - Label of the bar painted in the selection color.
+ * @param {Function} onBarClick - Optional (index, label) callback; enables pointer cursor.
  * @param {Function} formatValue - Formats value-axis ticks and tooltip values.
- * @param {Function} formatTooltipTitle - Optional (label) => string tooltip title override.
- * @param {Function} formatTooltipLabel - Optional ({ value, datasetLabel, label }) => string tooltip body override.
+ * @param {Function} formatTooltipTitle - Optional tooltip title override.
+ * @param {Function} formatTooltipLabel - Optional tooltip label override.
  * @param {number} xLabelStep - Show every Nth category tick on vertical charts.
  */
 export default function InsightBarChart({
@@ -48,8 +41,7 @@ export default function InsightBarChart({
     formatTooltipLabel = null,
     xLabelStep = 1,
 }) {
-    // Paint-only props are read through this ref at call time so the chart is
-    // not recreated when they change.
+    // Paint-only props are read through this ref so the chart isn't recreated when they change.
     const live = useRef({})
     live.current = {
         values,
