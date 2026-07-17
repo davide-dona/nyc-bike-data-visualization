@@ -60,7 +60,7 @@ function WeatherRidgeline({ data, loading, error, onRefetch }) {
                         (dimension === "hour"
                             ? "Moment: <b>%{x:02d}:00</b><br>"
                             : "Moment: <b>%{x}</b><br>") +
-                        "Density: <b>%{customdata:,.2f}</b><extra></extra>",
+                        "Rides/hr: <b>%{customdata:,.2f}</b><extra></extra>",
                     customdata: ridge.rawSeries,
                     showlegend: false,
                 };
@@ -163,8 +163,7 @@ function WeatherRidgeline({ data, loading, error, onRefetch }) {
             </div>
 
             <p className="chart-frame__note weather-ridgeline-note">
-                Each ridge shows when one weather condition occurs across the day or the week.
-                Peaks mark the hours or days that condition concentrates in.
+                Each ridge traces average rides per hour under that weather condition, normalized to its own peak so rare and common conditions are equally comparable. Hover for the actual rides/hr value.
             </p>
 
             {showOverlay && <StatusMessage loading={loading} error={error} onRefetch={onRefetch} />}
