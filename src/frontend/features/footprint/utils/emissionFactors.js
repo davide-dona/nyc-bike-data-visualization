@@ -11,42 +11,42 @@ export const COMPARISON_MODES = [
         label: 'Car (solo driver)',
         gPerKm: CAR_G_PER_KM,
         isBike: false,
-        source: 'US EPA, average gasoline passenger vehicle: 404 g CO2/mile ≈ 251 g/km, single occupant',
+        source: 'Based on the typical gasoline-powered passenger vehicle carrying only the driver (US EPA).',
     },
     {
         key: 'taxi',
-        label: 'Taxi / ride-hail',
+        label: 'Taxi or Ride-hail',
         gPerKm: Math.round(CAR_G_PER_KM * 1.3),
         isBike: false,
-        source: 'Car factor + ~30% empty repositioning between fares (Henao & Marshall, 2019)',
+        source: 'Calculated as a standard car trip plus an extra 30% to account for driving empty between picking up passengers (Henao & Marshall, 2019).',
     },
     {
         key: 'bus',
-        label: 'Bus',
+        label: 'City Bus',
         gPerKm: 180,
         isBike: false,
-        source: 'FTA (2010), US urban bus at average occupancy: 0.64 lb CO2/passenger-mile ≈ 180 g/km',
+        source: 'Based on the average emissions per passenger for a typical urban transit bus (Federal Transit Administration).',
     },
     {
         key: 'subway',
-        label: 'Subway',
+        label: 'Subway or Rail',
         gPerKm: 62,
         isBike: false,
-        source: 'FTA (2010), US heavy rail average: 0.22 lb CO2/passenger-mile ≈ 62 g/km',
+        source: 'Based on the average energy used per passenger on heavy rail transit systems (Federal Transit Administration).',
     },
     {
         key: 'ebike',
         label: 'E-bike',
         gPerKm: 5,
         isBike: true,
-        source: '~11 Wh/km of charging at the ~390 g CO2/kWh US grid average (EPA eGRID)',
+        source: 'The tiny amount of electricity needed to charge the battery, calculated using the average cleanliness of the US power grid (EPA eGRID).',
     },
     {
         key: 'bike',
-        label: 'Classic bike',
+        label: 'Classic Bike',
         gPerKm: 0,
         isBike: true,
-        source: 'No operational emissions; manufacturing and maintenance are excluded (see below)',
+        source: 'Pure pedal power has zero operational emissions.',
     },
 ]
 
@@ -62,8 +62,8 @@ export const SUBSTITUTION_RATE = {
 }
 
 export const EXCLUDED_EFFECTS = [
-    'Bike manufacturing, maintenance, and dock infrastructure',
-    'Rebalancing vans moving bikes between stations',
-    'Differences in length between the ride and the car trip it replaces (1 ridden km is assumed to replace 1 driven km)',
-    'E-bike charging emissions (~5 g/km) are not deducted from the avoided figure; they would lower it by at most ~2%',
+    'Manufacturing, maintaining, and installing bikes and docking stations.',
+    'Emissions from the vans used to move bikes between stations to rebalance the fleet.',
+    'Route differences (the math assumes 1 kilometer on a bike perfectly replaces 1 kilometer in a car).',
+    'E-bike charging emissions (around 5g of CO2 per km), which would lower the total savings by less than 2%.',
 ]

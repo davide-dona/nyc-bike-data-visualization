@@ -18,8 +18,8 @@ export default function CumulativeAvoidedBand({
 
     return (
         <ChartFrame
-            title="Cumulative CO2 avoided, low/high band"
-            note="The shaded band accumulates avoided car CO2 across the plausible substitution rates. The dotted line follows your selected rate inside that envelope."
+            title="Cumulative CO2 avoided"
+            note="Shows the range of potential CO2 savings based on different car-substitution estimates, with the dotted line highlighting your selected rate."
             status={{ loading, error, refetch: onRefetch }}
             emptyMessage={!hasData ? 'No daily stats available for this selection.' : null}
             plotClassName="footprint-plot"

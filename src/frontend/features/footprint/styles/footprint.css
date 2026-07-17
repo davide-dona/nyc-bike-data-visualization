@@ -47,7 +47,7 @@
   }
 
   .footprint-assumptions__list {
-    @apply m-0 list-disc pl-4 font-sans text-xs leading-relaxed text-ink-soft;
+    @apply m-0 mt-2 list-disc pl-4 font-sans text-xs leading-relaxed text-ink-soft;
   }
 
   .footprint-assumptions__list li + li {

@@ -17,8 +17,8 @@ export default function ModeComparisonBar({ totals, loading, error, onRefetch })
 
     return (
         <ChartFrame
-            title="Same kilometres, different footprint"
-            note="Restates the period's ridden kilometres as the CO2 each transport mode would emit for that distance. Longer bars mean dirtier modes, not avoided emissions."
+            title="Comparative Emissions by Transport Mode"
+            note="Displays the estimated CO2 emissions generated if the same distance were traveled using alternative modes of transport."
             status={{ loading, error, refetch: onRefetch }}
             emptyMessage={bars.length === 0 ? 'No ride data available for this filter range.' : null}
             plotClassName="footprint-plot"

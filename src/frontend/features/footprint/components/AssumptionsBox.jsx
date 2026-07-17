@@ -19,6 +19,9 @@ export default function AssumptionsBox() {
             <div className="footprint-assumptions__grid">
                 <section>
                     <p className="footprint-assumptions__heading">Emission factors (g CO2e per km)</p>
+                    <p className="footprint-assumptions__text">
+                        To calculate emissions, we use standard, real-world averages for each type of transport:
+                    </p>
                     <ul className="footprint-assumptions__list">
                         {COMPARISON_MODES.map((mode) => (
                             <li key={mode.key}>
@@ -30,11 +33,15 @@ export default function AssumptionsBox() {
                 <section>
                     <p className="footprint-assumptions__heading">Substitution rate ({lowPct}–{highPct}%)</p>
                     <p className="footprint-assumptions__text">
-                        Only a share of rides replaces a car trip; the rest replaces transit,
-                        walking, or would not have happened. {SUBSTITUTION_RATE.source}.
-                        The avoided-CO2 figure is therefore always a range, never a single number.
+                        When people ride bikes, they aren't always replacing a car trip.
+                        They might have otherwise walked, caught the bus, or stayed home.
+                        That is why we show avoided $CO_2$ as a range of possibilities, not a single, perfect number.
+                        {SUBSTITUTION_RATE.source}
                     </p>
                     <p className="footprint-assumptions__heading">What this estimate leaves out</p>
+                    <p className="footprint-assumptions__text">
+                        While we calculate direct travel savings, our current estimates do not account for the following factors:
+                    </p>
                     <ul className="footprint-assumptions__list">
                         {EXCLUDED_EFFECTS.map((item) => (
                             <li key={item}>{item}</li>

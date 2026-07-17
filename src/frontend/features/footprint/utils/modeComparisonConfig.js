@@ -53,7 +53,7 @@ export function buildModeComparisonConfig(bars) {
                         label: (item) => {
                             const bar = bars[item.dataIndex]
                             const amount = bar.tonnes < 0.5 ? '≈ 0 t CO2e' : `${formatNumber(bar.tonnes, 2)} t CO2e`
-                            return `${amount} if the same km were by ${bar.label.toLowerCase()} (${bar.gPerKm} g/km)`
+                            return `${amount} by ${bar.label.toLowerCase()} (${bar.gPerKm} g/km)`
                         },
                     },
                 },

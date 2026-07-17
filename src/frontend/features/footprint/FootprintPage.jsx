@@ -26,12 +26,10 @@ function FootprintPage({ filters = {} }) {
         <section className="page-card">
             <header className="page-card__header">
                 <div className="page-card__heading">
-                    <span className="page-card__eyebrow">04 - Footprint</span>
-                    <h2 className="page-card__title">The exhaust that never was.</h2>
+                    <span className="page-card__eyebrow">Environmental Impact</span>
+                    <h2 className="page-card__title">Turning pedal power into a healthier planet.</h2>
                     <p className="page-card__subtitle">
-                        Ridden kilometres translated into environmental terms - as a
-                        range, never a single number, with every assumption stated.
-                    </p>
+                        See how kilometers translate to the environment using realistic ranges and transparent math.                    </p>
                 </div>
                 <div className="page-card__actions">
                     <SubstitutionRateControl

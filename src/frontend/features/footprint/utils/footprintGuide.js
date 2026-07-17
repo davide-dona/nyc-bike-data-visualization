@@ -2,19 +2,19 @@
 export const FOOTPRINT_GUIDE = {
     mapName: 'Footprint',
     title: 'How To Read It',
-    summary: 'This view answers two different questions and keeps them apart: what would the same kilometres emit by other modes, and how much car CO2 did riding plausibly avoid. The first is a comparison, the second is an estimate - so it always comes as a range.',
+    summary: 'This view separates two key insights: what other modes would have emitted for the same distance, and how much substituting a bike for a car could have avoided. ',
     hints: [
         {
-            title: 'Comparison is not avoidance',
-            text: 'The bar chart re-expresses the same travelled distance per mode. It does not claim riders would otherwise have driven - that claim lives in the band, discounted by the substitution rate.',
+            title: 'Comparison between modes',
+            text: 'The bar chart re-expresses the same travelled distance per mode, showing how much CO2 each would have emitted. ',
         },
         {
-            title: 'Trust the band, not the line',
-            text: 'The shaded envelope spans the plausible substitution rates from the literature. The dotted line is only your chosen point inside it - move the slider and watch how much the outcome depends on that assumption.',
+            title: 'Test your assumptions',
+            text: 'Move the slider to adjust the percentage of bike trips that replace car travel. Watch how the dotted line shifts within the shaded range to see how much your choice impacts the final savings.',
         },
         {
             title: 'Check the assumptions',
-            text: 'Every emission factor, the substitution range, and what the estimate leaves out are listed below the charts. If you disagree with an input, the box tells you exactly which number to challenge.',
+            text: 'Every number in this view is based on a set of assumptions. Those are explicitly listed in order to have a transparent discussion.',
         },
     ],
 }
