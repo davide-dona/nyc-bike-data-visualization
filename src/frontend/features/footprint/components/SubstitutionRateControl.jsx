@@ -8,7 +8,6 @@ const MAX_PCT = Math.round(SUBSTITUTION_RATE.high * 100)
  * the literature low/high rates so the selection always stays inside the band.
  * @param {number} value - Current substitution rate (fraction)
  * @param {Function} onChange - Called with the new rate (fraction)
- * @param {boolean} disabled - Whether the control is disabled
  */
 export default function SubstitutionRateControl({ value, onChange, disabled = false }) {
     const pct = Math.round(value * 100)

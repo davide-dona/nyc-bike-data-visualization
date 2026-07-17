@@ -4,17 +4,7 @@ const VALUE_SIZE_CLASS = {
     lg: 'stat-card__value--lg',
 }
 
-/**
- * Shared headline stat tile: a big value with a small uppercase label and an
- * optional hint line, used across the map insights panel, the infrastructure
- * sidebar, and the footprint page.
- * @param {string} value - Pre-formatted headline value.
- * @param {string} label - Short uppercase label under the value.
- * @param {string} [hint] - Optional secondary hint line.
- * @param {'light'|'dark'} [theme='light'] - Light (paper) or dark (inverted) surface.
- * @param {'sm'|'md'|'lg'} [size='md'] - Value text size.
- * @returns The rendered stat card.
- */
+/** Shared headline stat tile: big value, small uppercase label, optional hint line — used in the map insights panel, infrastructure sidebar, and footprint page. */
 export default function StatCard({ value, label, hint, theme = 'light', size = 'md' }) {
     const isDark = theme === 'dark'
     return (

@@ -1,12 +1,8 @@
-// Operational emission factors, in grams of CO2e per passenger-kilometre.
-// These are frontend constants by design: the backend reports distances only,
-// and the environmental translation (with its assumptions) lives entirely in
-// this view. Every figure is approximate and is surfaced verbatim in the
-// assumptions box, so keep label / source strings user-readable.
+// Operational emission factors in g CO2e per passenger-km. Kept as frontend
+// constants (backend only reports distances) and surfaced verbatim in the
+// assumptions box, so keep label/source strings user-readable.
 
-// US EPA, "Greenhouse Gas Emissions from a Typical Passenger Vehicle":
-// 404 g CO2 per mile ~= 251 g per km, assuming the replaced car trip
-// would have been driven alone.
+// US EPA: 404 g CO2/mile ≈ 251 g/km for a solo-driven car trip.
 const CAR_G_PER_KM = 251
 
 export const COMPARISON_MODES = [
@@ -56,11 +52,8 @@ export const COMPARISON_MODES = [
 
 export { CAR_G_PER_KM }
 
-// Share of ridden kilometres assumed to replace a car trip. Car-substitution
-// shares observed across bike-share systems cluster roughly between 2% and
-// 25% (Fishman et al., 2014; Campbell & Brakewood, 2017 for NYC), so the
-// avoided-CO2 figures are always presented as a low–high range, never as a
-// single number.
+// Bike-share car-substitution shares cluster widely (~2-25%; see source
+// below), so avoided-CO2 is always shown as a range, never a single number.
 export const SUBSTITUTION_RATE = {
     low: 0.05,
     mid: 0.15,
@@ -68,7 +61,6 @@ export const SUBSTITUTION_RATE = {
     source: 'Car-substitution shares across bike-share systems, ~2–25% (Fishman et al., 2014; Campbell & Brakewood, 2017)',
 }
 
-// What the estimate deliberately leaves out, stated next to the numbers.
 export const EXCLUDED_EFFECTS = [
     'Bike manufacturing, maintenance, and dock infrastructure',
     'Rebalancing vans moving bikes between stations',

@@ -18,9 +18,7 @@ export function getWeatherColorByCode(code) {
 }
 
 /**
- * Builds normalized ridgeline series (one per weather code) grouped by hour or
- * day-of-week. Each series carries baseline + y values and a raw rides-per-hour
- * array for tooltip display.
+ * Builds normalized ridgeline series (one per weather code) by hour or day-of-week, each with baseline + y values and a raw rides-per-hour array for tooltips.
  * @param {Array<object>} rows - Stats rows from the weather endpoint.
  * @param {"hour"|"day_of_week"} dimension - Bucket dimension.
  * @returns {Array<object>} Ordered ridgeline descriptors ready for Plotly.
@@ -90,8 +88,7 @@ export function buildTickText(dimension) {
 }
 
 /**
- * Wraps a label to avoid overflowing the ridgeline y-axis, splitting on word
- * boundaries with a `\n` separator (Plotly renders these as multi-line ticks).
+ * Wraps a label on word boundaries with `\n` (Plotly renders these as multi-line ticks) to avoid overflowing the ridgeline y-axis.
  * @param {string} text - Original label text.
  * @param {number} [maxLen=18] - Soft line-length budget.
  * @returns {string} Wrapped label.

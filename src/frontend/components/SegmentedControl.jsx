@@ -1,14 +1,6 @@
 /**
- * Shared segmented button-group control used by the map layer selector, the
- * temporal metric selector, and the header rider/bike filters.
- * @param {Array<{value: string, label: string, icon?: string}>} options - Buttons to render; icon is a Font Awesome class.
- * @param {string} value - Currently selected option value.
- * @param {Function} onChange - Called with the clicked option value.
- * @param {'light'|'dark'} [variant='light'] - Dark variant for controls sitting on an ink background.
- * @param {'md'|'sm'} [size='md'] - sm matches the header density.
+ * Shared segmented button-group control used by the map layer selector, temporal metric selector, and header rider/bike filters.
  * @param {boolean} [framed=true] - When false, renders only the buttons so the host supplies the track (e.g. ScrollableButtonRow).
- * @param {boolean} [disabled=false] - Whether the buttons are disabled.
- * @param {string} [ariaLabel] - Accessible name for the group (framed mode only).
  */
 export default function SegmentedControl({
     options,

@@ -1,11 +1,4 @@
-/**
- * Loading/error overlay shared by every data view: loading rings while a
- * query is in flight, or the error with a retry button.
- * @param {boolean} loading - Whether a query is in flight.
- * @param {any} error - Error to display, if any.
- * @param {Function} onRefetch - Retry callback for the error state.
- * @returns The rendered status overlay, or null when idle.
- */
+/** Loading/error overlay shared by every data view: loading rings in flight, or the error with a retry button. */
 function StatusMessage({ loading, error, onRefetch }) {
     if (loading) {
         return (

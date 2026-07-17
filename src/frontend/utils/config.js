@@ -1,4 +1,3 @@
-// Maximum number of months to display the desired date range
 export const MAX_COVERED_MONTHS = 12
 // Labels for visualization
 export const HOUR_LABELS = Array.from({ length: 24 }, (_, i) => String(i))

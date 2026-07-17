@@ -150,12 +150,9 @@ const defaultTooltipTitle = (label) =>
  * Builds the full Chart.js config for the insights bar chart. Values, colors,
  * highlight, and the tooltip/click callbacks are read through the `live` ref
  * at call time, so paint-only changes never force a chart recreation.
- * @param {Array} categoryLabels - Decoded category labels.
  * @param {boolean} horizontal - Draw bars horizontally (category axis on y).
  * @param {boolean} diverging - Butterfly layout; ticks and tooltips show absolute values.
  * @param {boolean} hasBarClick - Whether bars are clickable (enables pointer cursor).
- * @param {string} xAxisTitle - Title of the x axis.
- * @param {string} yAxisTitle - Title of the y axis.
  * @param {number} xLabelStep - Show every Nth category tick on vertical charts.
  * @param {Object} live - Ref holding { values, groups, colors, highlightLabel, onBarClick, formatValue, formatTooltipTitle, formatTooltipLabel }.
  * @returns {Object} The Chart.js config.
@@ -200,8 +197,7 @@ export function buildInsightBarChartConfig({
         },
         ticks: {
             maxTicksLimit: 5,
-            // Diverging rows encode direction by side, so both sides of the
-            // zero line read as magnitudes.
+            // Diverging rows encode direction by side, so both sides read as magnitudes.
             callback: (value) => live.current.formatValue(diverging ? Math.abs(value) : value),
             font: { family: FONT_MONO, size: 10 },
             color: INK_MUTED,

@@ -4,13 +4,11 @@ import CalendarIcon from './CalendarIcon.jsx'
 import MonthCell from './MonthCell.jsx'
 
 /**
- * FROM/TO month-range picker in the header: two input buttons that open a
- * year-paged month grid modal. All behavior lives in useDateWindowPicker;
- * this component only renders its state.
- * @param {Object|null} value - The committed {start_date, end_date} range.
- * @param {Function} onCommit - Commits a {start_date, end_date} range.
- * @param {boolean} disabled - Parent-level disable (global fetches in flight).
- * @returns The rendered date window picker.
+ * FROM/TO month-range picker; all state and behavior live in useDateWindowPicker, this only renders.
+ * @param {Object|null} value - Committed {start_date, end_date} range.
+ * @param {Function} onCommit - Commits a new range.
+ * @param {boolean} disabled - Parent-level disable (fetches in flight).
+ * @returns The rendered picker.
  */
 export default function DateWindowPicker({ value, onCommit, disabled = false }) {
     const {

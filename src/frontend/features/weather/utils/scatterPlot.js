@@ -1,9 +1,7 @@
 import { WMO_WEATHER_CODES, getWeatherGroup } from "./wmoCodeHandler.js"
 
 /**
- * Formats the weather data for use in the scatter plot
- * @param {Array} data - The raw weather data
- * @returns {Array} The formatted data with additional metrics and weather group information for each data point
+ * Formats raw weather data for the scatter plot, adding derived metrics (rides/hour, SE) and weather group/label.
  */
 export function formatData(data) {
     return data.map(d => {
@@ -14,8 +12,7 @@ export function formatData(data) {
         const hoursWithRides = Number(d.hours_with_rides || 0)
         const totalRides = Number(d.total_rides || 0)
         const ridesPerHour = hoursCount > 0 ? totalRides / hoursCount : 0
-        // Standard error of the mean (std/√n); the speed std is sampled only over
-        // hours with rides, so its n differs from hoursCount
+        // SEM (std/√n); speed std samples only hours-with-rides, so n differs from hoursCount
         const ridesPerHourSE = d.rides_per_hour_std != null && hoursCount > 0
             ? Number(d.rides_per_hour_std) / Math.sqrt(hoursCount) : null
         const avgSpeedSE = d.average_speed_kmh_std != null && hoursWithRides > 0

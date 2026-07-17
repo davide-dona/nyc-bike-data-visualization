@@ -1,7 +1,6 @@
 import { ACCENT, ACCENT_INK, DANGER } from '@/utils/editorialTokens.js'
 
-// World Meteorological Organization (WMO) weather codes and their descriptions,
-// matching the code set documented by the Open-Meteo API
+// WMO weather codes/descriptions, matching the set documented by the Open-Meteo API
 export const WMO_WEATHER_CODES = {
     0: "Clear sky",
     1: "Mainly clear",

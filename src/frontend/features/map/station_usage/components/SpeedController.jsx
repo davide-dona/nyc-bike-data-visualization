@@ -8,15 +8,12 @@ import {
 } from "../utils/speedController.js";
 
 /**
- * Circular draggable time wheel used to scrub the map time frame. The wheel
- * wraps seamlessly past midnight in both directions: the tick strip is
- * periodic, so 23:59 -> 00:00 is just another step. Playback speed is chosen
- * from the discrete SPEED_OPTIONS steps. All interaction logic lives in the
- * useTimeWheel handler hook; this component only renders.
- * @param {Function} setCurrentTime - Function to update the current time in the parent component.
- * @param {number} currentTime - The current time in hours (can be a fractional value representing minutes).
- * @param {boolean} [disabled=false] - When true, all pointer/keyboard interaction is suppressed.
- * @returns {JSX.Element} The scrubbable time wheel + speed step controls.
+ * Circular draggable time wheel for scrubbing the map time frame; wraps
+ * seamlessly past midnight. Interaction logic lives in useTimeWheel.
+ * @param {Function} setCurrentTime - Updates the current time.
+ * @param {number} currentTime - Current time in hours (fractional for minutes).
+ * @param {boolean} [disabled=false] - Suppresses all interaction when true.
+ * @returns {JSX.Element} The time wheel and speed controls.
  */
 export default function SpeedController({ setCurrentTime, currentTime, disabled = false }) {
     const {

@@ -1,6 +1,5 @@
 import { formatNumber } from '../../../utils/numberFormat.js'
 
-// Utility functions and configurations for formatting and retrieving metrics
 export const METRIC_FORMATTERS = {
     total_rides: value => formatNumber(value, 2),
     average_duration_minutes: value => formatNumber(value, 2) + " min",
@@ -21,8 +20,7 @@ function getRidesPerDay(row) {
         return 0
     }
 
-    // Buckets without an hour dimension (date, day_of_week, ungrouped) span
-    // all 24 hours of each day they cover; hour buckets hold one slot per day.
+    // Buckets without an hour dimension span all 24 hours of each day; hour buckets hold one slot per day.
     const daysCount = row?.hour == null
         ? hoursCount / 24
         : hoursCount
@@ -30,9 +28,7 @@ function getRidesPerDay(row) {
     return daysCount > 0 ? totalRides / daysCount : 0
 }
 
-// Configuration object that defines the available metrics.
-// `noun` is the short tooltip name for the value; the unit follows it there,
-// so it stays unit-free.
+// `noun` is the tooltip name for the value; the unit follows separately, so noun stays unit-free.
 export const METRICS = {
     total_rides: {
         label: "Rides per Day",

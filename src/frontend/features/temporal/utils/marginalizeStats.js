@@ -1,12 +1,8 @@
 /**
- * Client-side marginalization of day-by-hour ride stats. The backend's
- * day-of-week and hour groupings are exact marginals of the day,hour grid:
- * every grid row carries the additive totals (total_rides, hours_count,
- * hours_with_rides, total_duration_seconds, total_distance_km) and the
- * backend derives averages from those totals (duration / rides,
- * distance / rides, distance / hours ridden). Summing the grid per dimension
- * and re-deriving therefore reproduces the backend's own numbers, so one
- * day,hour fetch serves the surface and both histograms.
+ * Client-side marginalization of day-by-hour ride stats: summing the grid's
+ * additive totals per dimension and re-deriving averages reproduces the
+ * backend's own day-of-week/hour groupings, so one day,hour fetch serves
+ * the surface and both histograms.
  */
 
 const SUMMED_FIELDS = [
@@ -18,12 +14,10 @@ const SUMMED_FIELDS = [
 ]
 
 /**
- * Aggregates day-by-hour stat rows into the marginal of one dimension.
- * Emits exactly the dimension values present in the input, sorted ascending,
- * with the other dimension set to null (metric getters branch on
- * `row.hour == null` to interpret hours_count). Std fields are not
- * reconstructable from group stds and are set to null; no marginal consumer
- * reads them.
+ * Aggregates day-by-hour stat rows into the marginal of one dimension, with
+ * the other dimension set to null (metric getters branch on `row.hour ==
+ * null` to interpret hours_count). Std fields aren't reconstructable from
+ * group stds, so they're set to null; no marginal consumer reads them.
  * @param {Array} dayHourRows - GroupedStats rows from group_by=day_of_week,hour.
  * @param {'day_of_week'|'hour'} dim - Dimension to keep.
  * @returns {Array} GroupedStats-shaped rows, one per dimension value.

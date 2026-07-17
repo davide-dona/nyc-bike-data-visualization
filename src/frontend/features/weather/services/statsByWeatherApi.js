@@ -3,11 +3,8 @@ import { ENDPOINTS } from '../../../clients/apiConstants.js'
 
 /**
  * Fetches stats grouped by weather conditions, used for surface graph rendering.
- * @param {Object} filters
- * @returns 
  */
 export async function fetchStatsByWeather(filters = {}) {
-    // Fetch all rides, with requested breakdowns
     const { data } = await apiClient.get(ENDPOINTS.statsByWeather(), {
         params: filters,
     })

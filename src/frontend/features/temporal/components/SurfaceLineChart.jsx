@@ -5,13 +5,7 @@ import useSurfaceLineChart from "../hooks/useSurfaceLineChart.js";
 /**
  * Per-date line chart of the selected metric, drawing one line per layer in
  * compare mode. All trace/layout building lives in the useSurfaceLineChart
- * handler hook; this component only renders.
- * @param {Array} dateData - Per-date stats rows of the base layer.
- * @param {string} activeMetric - Selected metric key.
- * @param {boolean} loading - Whether the chart's queries are in flight.
- * @param {any} error - Error state of the chart's queries.
- * @param {Function} onRefetch - Retry callback.
- * @param {boolean} compareMode - Whether compare layers are pinned.
+ * hook; this component only renders.
  * @param {Array} layers - Visible layers (base plus compare layers).
  * @returns The rendered line chart panel.
  */

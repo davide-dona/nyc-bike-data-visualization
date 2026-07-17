@@ -1,10 +1,5 @@
-// Single source of truth for the project's colors, fonts, and letter spacing.
-// Tailwind (tailwind.config.js) and the chart/map theming (utils/styling/*)
-// both derive from this file, so look-and-feel changes happen here only.
-//
-// Two ink families coexist on purpose:
-// - Chart ink (INK, near-black #0b0c0e) renders text/lines on canvas plots.
-// - UI ink (UI_COLORS.ink, navy #0f1f3a) drives Tailwind `text-ink` classes.
+// Single source of truth for colors/fonts/spacing; Tailwind and chart/map theming both derive from this file.
+// Two ink families coexist on purpose: chart ink (INK, near-black) for canvas plots, UI ink (UI_COLORS.ink, navy) for Tailwind `text-ink` classes.
 
 // Hex tokens - for Plotly, Chart.js, SVG
 export const INK          = '#0b0c0e'
@@ -83,11 +78,7 @@ export const LETTER_SPACING = {
     display: '-0.02em',
 }
 
-/**
- * Wraps multi-word font names in quotes so the stack is valid CSS.
- * @param {string} name - A single font family name.
- * @returns {string} The name, quoted when it contains spaces.
- */
+/** Wraps multi-word font names in quotes so the stack is valid CSS. */
 const quoteFontName = (name) => (name.includes(' ') ? `'${name}'` : name)
 
 // Font stacks - arrays for Tailwind, joined strings for chart libraries

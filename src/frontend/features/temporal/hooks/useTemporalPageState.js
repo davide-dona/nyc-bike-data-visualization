@@ -13,8 +13,7 @@ export default function useTemporalPageState(filters) {
     const [coordinates, setCoordinates] = useState(null)
     const overlayRef = useRef(null)
 
-    // One stable key drives the reset-on-filter-change behavior of both the
-    // compare state machine and the pinned slice, on the same render.
+    // Drives reset-on-filter-change for both the compare state machine and the pinned slice.
     const filtersKey = useMemo(() => JSON.stringify(filters ?? {}), [filters])
     const baseClassFilters = useMemo(
         () => ({

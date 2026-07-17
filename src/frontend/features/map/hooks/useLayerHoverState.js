@@ -9,7 +9,6 @@ import { useCallback, useState } from 'react'
  * @returns {Object} Hover ids/keys and their deck.gl pick handlers.
  */
 export default function useLayerHoverState() {
-    // State for hovered bike route segment
     const [hoveredRouteId, setHoveredRouteId] = useState(null)
     const [hoveredTripStationId, setHoveredTripStationId] = useState(null)
     const [hoveredInfrastructureStationId, setHoveredInfrastructureStationId] = useState(null)
@@ -28,7 +27,6 @@ export default function useLayerHoverState() {
         setHoveredInfrastructureStationId(info?.object?.id ?? null)
     }, [])
 
-    // deck.gl pick handler for corridor arcs on the map.
     const handleArcHover = useCallback((info) => {
         setHoveredCorridorKey(info?.object?.corridor_key ?? null)
     }, [])

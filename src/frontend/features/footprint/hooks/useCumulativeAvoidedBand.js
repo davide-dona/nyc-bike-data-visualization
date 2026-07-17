@@ -14,9 +14,7 @@ import {
 const BAND_FILL = 'rgba(25, 83, 216, 0.14)'
 const BAND_EDGE = 'rgba(25, 83, 216, 0.35)'
 
-// Light hoverlabel local to this chart: the unified tooltip shows one colored
-// line swatch per trace, and the faint band-edge blue is invisible on the
-// shared near-black tooltip surface. A paper background keeps them readable.
+// Local light hoverlabel: the shared dark tooltip hides this band's faint blue edge, so use a paper background here instead.
 const LIGHT_HOVERLABEL = {
     bgcolor: '#ffffff',
     bordercolor: RULE_STRONG,
@@ -26,9 +24,7 @@ const LIGHT_HOVERLABEL = {
 }
 
 /**
- * Handler hook building the Plotly traces and layout of the cumulative
- * avoided-CO2 band: the low/high envelope from the literature substitution
- * rates plus the line at the user-selected rate.
+ * Builds the Plotly traces and layout for the cumulative avoided-CO2 band: low/high substitution envelope plus the selected-rate line.
  * @param {Array} dailyStats - GroupedStats rows from /stats/?group_by=date.
  * @param {number} substitutionRate - Selected car-substitution rate (fraction).
  * @returns {Object} traces, plotLayout, and the hasData flag.

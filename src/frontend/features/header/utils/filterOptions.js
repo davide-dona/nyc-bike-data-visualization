@@ -1,5 +1,4 @@
-// Rider/bike filter catalog shared by the header filter control and the
-// temporal compare panel.
+// Rider/bike filter catalog shared by the header filter control and the temporal compare panel.
 export const FILTERS = {
     user_type: { label: 'User Type', options: ['member', 'casual'] },
     bike_type: { label: 'Bike Type', options: ['classic_bike', 'electric_bike'] },

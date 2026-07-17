@@ -41,8 +41,7 @@ export default function ScatterPlot({ data, loading, error, onRefetch }) {
                 )}
             </div>
             <p className="scatter-plot-frame__note">
-                Each point is one weather condition, placed by its average riding speed and rides per hour.
-                Points far from the main cloud mark conditions that clearly change how people ride.
+                The placement and coloring of the points reveal how different weather conditions affect rider behavior. Hover over any point to see its exact weather conditions and metrics.
             </p>
             {tooltip.point && (
                 <FloatingTooltip

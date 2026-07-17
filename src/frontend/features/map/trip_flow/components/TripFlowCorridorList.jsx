@@ -2,11 +2,8 @@ import TripFlowCorridorRow from './TripFlowCorridorRow.jsx'
 import { BAR_SOLID, BAR_RUST } from '@/utils/styling'
 
 /**
- * Ranked corridor list for the trip-flow insights panel. Rows are ordered by
- * daily rides; in split mode a small legend names the two fill tones and each
- * row shows its outbound/inbound balance. Row hover is linked to the map's
- * arc highlight through the corridor key, and a row click pins its corridor
- * on the map.
+ * Ranked corridor list for the trip-flow insights panel, ordered by daily rides.
+ * Row hover links to the map's arc highlight via corridor key; a row click pins its corridor on the map.
  * @param {Array} rows - Ranked corridors from rankCorridors, sorted descending.
  * @param {string|null} hoveredCorridorKey - Corridor currently highlighted.
  * @param {Function} onCorridorHover - Receives a corridor key or null.

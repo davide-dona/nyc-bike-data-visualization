@@ -10,9 +10,8 @@ import {
 import { classifyBalance } from './tripArcsSelector.js'
 import { formatCount, formatNumber } from '@/utils/numberFormat.js'
 
-// Overview: a dense web of thin translucent arcs where volume drives
-// width, opacity, and a single-hue ramp. Focus: solid diverging colors by
-// net direction, with volume in width and opacity only.
+// Overview: thin translucent arcs driven by volume (width/opacity/hue ramp).
+// Focus: solid diverging colors by net direction; volume drives width/opacity only.
 const OVERVIEW_BASE_WIDTH = 1
 const OVERVIEW_WIDTH_RANGE = 5
 const OVERVIEW_BASE_ALPHA = 25
@@ -24,13 +23,11 @@ const FOCUS_ALPHA_RANGE = 195
 const HOVER_WIDTH_BONUS = 2
 // Ramp midpoint: below it colors run soft → accent, above accent → ink.
 const RAMP_SPLIT = 0.6
-// Overview emphasis: the ranked (listed) corridors get an opacity floor and a
-// width bonus while the long tail is dimmed, so the strongest corridors pop.
+// Overview emphasis: ranked corridors get an opacity floor and width bonus; the long tail is dimmed.
 const EMPHASIS_ALPHA_FLOOR = 210
 const EMPHASIS_WIDTH_BONUS = 1.5
 const TAIL_ALPHA_FACTOR = 0.4
-// Corridor pin (leaderboard click): the pinned corridor reads at full
-// opacity while every other arc drops to a faint but still visible trace.
+// Corridor pin (leaderboard click): the pinned corridor is full opacity, others fade to a faint trace.
 const PIN_DIM_FACTOR = 0.12
 const PIN_DIM_ALPHA_FLOOR = 14
 
@@ -75,9 +72,7 @@ function rampArcColor(t) {
 }
 
 /**
- * Applies the corridor-pin treatment to a computed alpha: the pinned corridor
- * reads at full opacity, every other arc is dimmed drastically but stays
- * visible for context.
+ * Applies the corridor-pin treatment: the pinned corridor is full opacity, others dim but stay visible.
  * @param {Object} trip - Processed trip row.
  * @param {string|null} pinnedCorridorKey - Pinned corridor key, null for none.
  * @param {number} alpha - The alpha computed for the current mode.
@@ -90,10 +85,8 @@ function applyPinAlpha(trip, pinnedCorridorKey, alpha) {
 }
 
 /**
- * Resolves an arc's RGBA color for the current mode, hover, and pin state.
- * Both endpoints share the color: overview pair order is canonical (not a
- * travel direction), and focus arcs encode direction via the diverging hue
- * instead.
+ * Resolves an arc's RGBA color for the current mode, hover, and pin state. Both
+ * endpoints share the color: overview pair order is canonical, focus encodes direction via hue.
  * @param {Object} trip - Processed (oriented, in focus view) trip row.
  * @param {number} maxTripCount - Maximum total_daily_flow across trips.
  * @param {boolean} isFocusView - Whether a station is focused.
@@ -120,8 +113,7 @@ function getArcColor(trip, maxTripCount, isFocusView, hoveredCorridorKey, pinned
 }
 
 /**
- * Resolves an arc's width in pixels for the current mode, hover, and pin
- * state.
+ * Resolves an arc's width in pixels for the current mode, hover, and pin state.
  * @param {Object} trip - Processed trip row.
  * @param {number} maxTripCount - Maximum total_daily_flow across trips.
  * @param {boolean} isFocusView - Whether a station is focused.
@@ -141,10 +133,9 @@ function getArcWidth(trip, maxTripCount, isFocusView, hoveredCorridorKey, pinned
 }
 
 /**
- * Creates the trip-flow arc layer. Overview mode draws the citywide corridor
- * web; focus mode draws every corridor of the focused station colored by net
- * direction. Hovering a corridor (on the map or in the insights panel)
- * highlights its arc in the warm selection color.
+ * Creates the trip-flow arc layer. Overview mode draws the citywide corridor web; focus mode
+ * draws every corridor of the focused station colored by net direction. Hovering a corridor
+ * (map or panel) highlights its arc in the warm selection color.
  * @param {Array} trips - Processed trip rows (oriented to the focused station in focus view).
  * @param {number} maxTripCount - Maximum total_daily_flow, for volume scaling.
  * @param {boolean} isFocusView - Whether a station is focused.

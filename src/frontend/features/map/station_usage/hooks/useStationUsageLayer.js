@@ -9,39 +9,34 @@ import {
 import { LIMIT_STATIONS } from '@/utils/config.js'
 
 /**
- * Custom hook to fetch and process station usage data for the station usage layer. 
- * It retrieves station ride counts, filters them based on the current time frame, and calculates the maximum usage for scaling purposes.
- * @param {Object} filters - Optional filters for fetching station ride counts, such as date range or user-selected filters.
- * @param {number} currentTime - Current hour frame (0-23) for filtering station usage data.
- * @param {string} usageMode - Which metric the layer encodes ('all' | 'incoming' | 'outgoing').
- * Elevation is normalized against the 'all' maximum for every mode so hexagon heights stay
- * linear in ride count (incoming + outgoing sum to the ALL height); color keeps a per-mode
- * delta domain because it encodes deviation from the station's own mean within that mode.
- * @returns {Object} An object containing the filtered station data for the current time frame, maximum usage value, loading state, and error state.
+ * Fetches and processes station usage data for the station usage layer.
+ * Elevation is normalized against the 'all' maximum for every mode so hexagon
+ * heights stay linear in ride count; color keeps a per-mode delta domain
+ * (deviation from the station's own mean).
+ * @param {Object} filters - Optional filters (date range, user-selected filters, etc).
+ * @param {number} currentTime - Current hour frame (0-23).
+ * @param {string} usageMode - Metric encoded by the layer ('all' | 'incoming' | 'outgoing').
+ * @returns {Object} Filtered station data, max usage/delta, loading state, and error state.
  */
 export function useStationUsageLayer({ filters, currentTime, usageMode = 'all' }) {
-    // Build filters for station usage data
     const stationUsageCountFilters = {
         limit: LIMIT_STATIONS,
         group_by: 'hour',
         ...(filters ?? {})
     }
 
-    // Fetch station usage counts with the specified filters using the custom hook
     const { stationUsageCounts,
         loading: loading,
         error: error,
         refetch,
     } = useStationUsageCounts(stationUsageCountFilters)
 
-    // Process station data to get the stations for the current time frame and calculate the maximum usage for scaling
     const stations = useMemo(() => selectStations(stationUsageCounts), [stationUsageCounts])
     const frameStations = useMemo(() => getStationForCurrentTime(stations, currentTime, usageMode), [stations, currentTime, usageMode])
     // Shared elevation domain: always the 'all' max, so mode heights are comparable
     const maxUsage = useMemo(() => getMaxUsage(stations, 'all'), [stations])
     const maxDelta = useMemo(() => getMaxDelta(stations, usageMode), [stations, usageMode])
 
-    // The full station list (hourly series per mode) is exposed alongside the
-    // per-frame slice so the insights panel can aggregate without refetching.
+    // Both stations (full series) and frameStations (current hour) are exposed so insights can aggregate without refetching.
     return { stations, frameStations, maxUsage, maxDelta, loading, error, refetch }
 }

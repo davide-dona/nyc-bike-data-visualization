@@ -3,10 +3,9 @@ import { createTripsArcLayer } from "./tripArcsLayer.js";
 import { formatCount } from "@/utils/numberFormat.js";
 
 /**
- * Creates the layers for visualizing trip flows between stations, including arcs for trips and points for stations.
- * Render order: station halo and dots first (under the arcs so the corridor
- * web stays readable), then the arcs, then the invisible station hit layer
- * last so station clicks and hovers keep winning the pick over the arcs.
+ * Creates the layers for visualizing trip flows between stations: arcs for trips, points for stations.
+ * Render order: station halo/dots first (under the arcs), then arcs, then the invisible station
+ * hit layer last so station clicks/hovers keep winning the pick over the arcs.
  * @param {Array} trips - Array of trip objects with source and target positions and daily flow
  * @param {number} maxTripCount - Maximum trip count for scaling arc widths and colors
  * @param {Array} stations - Array of station objects with latitude and longitude for displaying station points
@@ -42,11 +41,8 @@ export function createTripFlowLayers({
         onStationPick,
         onStationHover,
     })
-    // The hovered-dot overlay and the invisible hit layer must stay on top of
-    // the arcs: the hit layer so arcs never steal station clicks (deck.gl
-    // picks the topmost rendered pixel and every trip-flow layer disables
-    // depth test), the hover overlay so the hover feedback is not buried
-    // under a dense corridor web.
+    // Hit layer and hover overlay stay on top of the arcs: deck.gl picks the topmost pixel
+    // (arcs disable depth test), and the hover overlay must not be buried under the corridor web.
     const stationTopLayers = stationLayers.filter(
         (layer) => layer.id.endsWith('-hit') || layer.id.endsWith('-hover'),
     )
@@ -70,10 +66,8 @@ export function createTripFlowLayers({
 }
 
 /**
- * Returns the legend entries for the trip-flow layer as plain data.
- * `MapLegend` renders them uniformly alongside every other layer's entries.
- * The overview legend explains the volume ramp; the focus legend explains
- * the diverging net-direction colors.
+ * Returns the legend entries for the trip-flow layer as plain data (rendered by `MapLegend`).
+ * The overview legend explains the volume ramp; the focus legend explains the diverging colors.
  * @param {boolean} isFocusView - Whether a station is focused.
  * @returns {Object} Legend entries for the current mode.
  */

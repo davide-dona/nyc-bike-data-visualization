@@ -32,9 +32,8 @@ import { TRIP_FLOW_LIST_SIZE } from '@/utils/config.js'
  * controls, unfiltered routes, and the insights bundle.
  */
 export function useBuildLayers({ filters, currentTime, activeLayer, showBikeRoutes, usageMode, hiddenHealthCategories, hiddenRouteClasses, selectedYear }) {
-    // Fetch and process data
     const { stations: usageStations, frameStations, maxUsage, maxDelta, loading: stationLoading, error: stationError, refetch: stationRefetch } = useStationUsageLayer({ filters: filters, currentTime, usageMode })
-    const { focusedStationId, onStationPick, clearFocus } = useTripStationFocus() // Single focused station for the trip flow layer
+    const { focusedStationId, onStationPick, clearFocus } = useTripStationFocus()
     const { pinnedCorridorKey, toggleCorridorPin, clearCorridorPin } = useTripCorridorPin({ focusedStationId })
     const { tripDirection, setTripDirection } = useTripFlowDirection({ focusedStationId })
     const { trips, maxTripFlow, isFocusView, stations: tripStations, loading: tripLoading, error: tripError, refetch: tripRefetch } = useTripFlowLayer({ filters, focusedStationId, tripDirection })
@@ -58,33 +57,27 @@ export function useBuildLayers({ filters, currentTime, activeLayer, showBikeRout
         setHoveredCorridor,
     } = useLayerHoverState()
 
-    // Historical view: keep only the segments active in the selected year.
     // Memoized so scrubbing the year slider stays a cheap array pass.
     const yearFilteredRoutes = useMemo(
         () => filterRoutesByYear(bikeRoutes, selectedYear),
         [bikeRoutes, selectedYear],
     )
 
-    // The corridors listed in the insights panel are emphasized on the map so
-    // the strongest ones pop out of the overview web. Focus view keeps its
-    // diverging colors, so no emphasis set there.
+    // Emphasize the top-ranked corridors on the map; focus view already uses
+    // diverging colors, so it gets no emphasis set.
     const emphasizedCorridorKeys = useMemo(() => {
         if (isFocusView || trips.length === 0) return null
         return new Set(rankCorridors(trips, TRIP_FLOW_LIST_SIZE).map((row) => row.key))
     }, [trips, isFocusView])
 
-    // Combine loading, error, and data-arrival states for easier handling in the component.
-    // hasData is derived from the source arrays (not the deck.gl layer instances) so the
-    // page can tell "still waiting on data" apart from "loaded but layer not built yet".
-    // Trip flow counts as ready once its clickable stations exist; overview arcs and
-    // focus arcs arrive through their own query states.
+    // hasData is derived from the source arrays, not the deck.gl layer instances, so
+    // "still waiting on data" is distinct from "loaded but layer not built yet".
     const stateLayers = [
         { layer: 'station_usage', loading: stationLoading, error: stationError, refetch: stationRefetch, hasData: frameStations.length > 0 },
         { layer: 'trip_flow', loading: tripLoading, error: tripError, refetch: tripRefetch, hasData: tripStations.length > 0 },
         { layer: 'infrastructure', loading: availabilityLoading, error: availabilityError, refetch: availabilityRefetch, hasData: stations.length > 0 }
     ]
 
-    // Build layers based on active layer and data
     const layers = useMemo(() => buildDeckLayers({
         activeLayer,
         stationLoading,
@@ -120,16 +113,13 @@ export function useBuildLayers({ filters, currentTime, activeLayer, showBikeRout
         onInfrastructureStationHover: handleInfrastructureStationHover,
     }), [frameStations, maxUsage, maxDelta, trips, maxTripFlow, tripStations, focusedStationId, hoveredTripStationId, hoveredCorridorKey, pinnedCorridorKey, emphasizedCorridorKeys, onStationPick, handleTripStationHover, handleArcHover, stations, activeLayer, stationLoading, stationError, tripLoading, tripError, availabilityLoading, availabilityError, yearFilteredRoutes, showBikeRoutes, hoveredRouteId, handleRoutePick, selectedInfrastructureStationIds, hoveredInfrastructureStationId, onInfrastructureStationPick, handleInfrastructureStationHover, hiddenHealthCategories, hiddenRouteClasses])
 
-    // Station name for the focus-mode chart title; the trip station list
-    // carries id and name for every clickable dot.
+    // Station name for the focus-mode chart title.
     const focusedTripStation = useMemo(
         () => tripStations.find((station) => station.id === focusedStationId) ?? null,
         [tripStations, focusedStationId],
     )
 
-    // Per-layer data slices for the insights panel under the map. Memoized as
-    // one stable bundle so consumers can depend on it without new object
-    // identities leaking into other hooks' dependency arrays every render.
+    // Memoized as one stable bundle so its identity doesn't change every render.
     const insights = useMemo(() => selectMapInsights({
         usageStations,
         stationLoading,
@@ -152,21 +142,17 @@ export function useBuildLayers({ filters, currentTime, activeLayer, showBikeRout
         bikeRoutes, yearFilteredRoutes, routesLoading, routesError, refetchRoutes,
     ])
 
-    // Hover link between insight-panel corridor rows and map arcs. Bundled
-    // separately from `insights` so hover changes never recompute that memo.
+    // Bundled separately from `insights` so hover changes don't recompute that memo.
     const tripFlowHover = useMemo(() => ({
         hoveredCorridorKey,
         onCorridorHover: setHoveredCorridor,
     }), [hoveredCorridorKey, setHoveredCorridor])
 
-    // Pin link between leaderboard rows and map arcs: a row click pins its
-    // corridor while the camera stays put and other arcs dim.
     const tripFlowPin = useMemo(() => ({
         pinnedCorridorKey,
         onCorridorToggle: toggleCorridorPin,
     }), [pinnedCorridorKey, toggleCorridorPin])
 
-    // Consider the loading, error, and data states of only the active layer for the overall status
     const activeLayerState = stateLayers.find(layer => layer.layer === activeLayer)
     const loading = activeLayerState?.loading || false
     const error = activeLayerState?.error || null
@@ -174,8 +160,7 @@ export function useBuildLayers({ filters, currentTime, activeLayer, showBikeRout
     const hasData = activeLayerState?.hasData ?? false
     const hasTripFlowFocus = Boolean(focusedStationId)
 
-    // Reset View and empty-map clicks return the layer to its default state:
-    // focus and corridor pin are cleared together.
+    // Reset View and empty-map clicks clear focus and corridor pin together.
     const clearTripFlowFocus = useCallback(() => {
         clearFocus()
         clearCorridorPin()
@@ -193,19 +178,13 @@ export function useBuildLayers({ filters, currentTime, activeLayer, showBikeRout
         selectedInfrastructureStations,
         clearInfrastructureSelection,
         selectInfrastructureStation,
-        // Unfiltered routes, for deriving the year slider bounds
         bikeRoutes,
-        // Per-layer data slices for the insights panel
         insights,
-        // Corridor hover link shared by the insights panel and the arc layer
         tripFlowHover,
-        // Corridor pin link shared by the leaderboard and the arc layer
         tripFlowPin,
         clearCorridorPin,
-        // Direction filter of the trip-flow focus view
         tripDirection,
         setTripDirection,
-        // Trip flow query state and rows, for the focus camera
         tripLoading,
         trips,
     }

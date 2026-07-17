@@ -1,6 +1,5 @@
-// Share of total daily flow the framed corridors must cover. Excluding the
-// long tail keeps one or two far-away partners from zooming the camera out
-// to the whole city.
+// Share of total daily flow the framed corridors must cover; excluding the long tail
+// keeps one or two far-away partners from zooming the camera out to the whole city.
 const DEFAULT_COVERAGE = 0.9
 
 /**

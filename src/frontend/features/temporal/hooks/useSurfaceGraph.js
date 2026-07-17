@@ -149,8 +149,7 @@ export default function useSurfaceGraph({
         return zMax
     }, [traces])
 
-    // Amber slice line for the pinned day/hour, lifted slightly above the
-    // surface to avoid z-fighting. Never shown while comparing surfaces.
+    // Amber slice line for the pinned day/hour, lifted slightly to avoid z-fighting.
     const sliceTrace = useMemo(() => {
         if (compareMode || !pinnedSlice || !Array.isArray(sliceValues)) return null
 

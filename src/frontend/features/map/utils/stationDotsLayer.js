@@ -1,12 +1,8 @@
 import { ScatterplotLayer } from '@deck.gl/layers'
 import { WHITE_RGB, WARM_HIGHLIGHT_RGB } from '@/utils/editorialTokens.js'
 
-// Geographic sizing with a pixel cap: dots scale with the map when zoomed
-// out (shrinking with the city, so they never blanket dense areas) and stop
-// growing at the cap once zoomed in, reading as a constant comfortable size
-// from mid-zoom onward. The pixel floor is kept low so dots keep shrinking
-// with the map instead of snapping to a fixed minimum and overlapping
-// closely-spaced stations at the citywide zoom.
+// Kept low so dots keep shrinking with the map instead of snapping to a
+// fixed minimum and overlapping closely-spaced stations at citywide zoom.
 const MIN_RADIUS_PIXELS = 0.75
 
 const HOVER_RADIUS_MULTIPLIER = 1.7
@@ -23,16 +19,14 @@ const PICK_RADIUS_PIXELS = 14
 
 /**
  * Builds the shared station-dot layer stack used by both the trip flow and
- * infrastructure layers: an optional selection halo underneath, the visible
- * outlined dots, an enlarged overlay for the hovered dot, and an optional
- * invisible hit layer carrying the pick handlers. Dot radii are geographic
- * (meters) with a pixel cap, so dots shrink with the map when zooming out
- * instead of overlapping, and keep a constant capped size when zoomed in.
- * The hovered dot renders in its own overlay layer because the pixel cap is
- * per layer: enlarging it in the main layer would be clipped by the cap.
- * Layer ids derive from `id` (`${id}-selection-halo`, `${id}-hover`,
- * `${id}-hit`) so `POINT_LAYER_ID_PREFIXES` and the `startsWith` checks in
- * `useMapClickActions` keep matching by prefix.
+ * infrastructure layers: an optional selection halo, the visible dots, an
+ * enlarged hover overlay, and an optional invisible hit layer for picking.
+ * Radii are geographic (meters) with a pixel cap, so dots shrink with the
+ * map when zoomed out and cap out at a constant size when zoomed in; the
+ * hover overlay is a separate layer because the cap is per-layer and would
+ * clip an enlarged radius in the main layer. Layer ids derive from `id`
+ * (`${id}-selection-halo/-hover/-hit`) so `POINT_LAYER_ID_PREFIXES` and the
+ * `startsWith` checks in `useMapClickActions` keep matching by prefix.
  * @param {string} id - Base layer id (also the visible dots layer id).
  * @param {Array} stations - Station data with id, latitude, and longitude.
  * @param {Function} getColor - Fill color accessor, caller palette (RGB or RGBA).

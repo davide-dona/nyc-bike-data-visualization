@@ -1,13 +1,6 @@
 import { useState } from 'react'
 
-/**
- * Collapsible "How To Read It" guide rendered under each visualization.
- * @param {string} title - Guide heading.
- * @param {string} summary - One-paragraph reading summary.
- * @param {Array<{title: string, text: string}>} hints - Reading hints.
- * @param {string} mapName - Name of the visualization shown in the eyebrow.
- * @returns The rendered guide.
- */
+/** Collapsible "How To Read It" guide rendered under each visualization. */
 function VisualizationGuide({ title, summary, hints = [], mapName }) {
     const [collapsed, setCollapsed] = useState(false)
 

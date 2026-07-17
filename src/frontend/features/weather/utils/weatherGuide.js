@@ -1,20 +1,20 @@
 // Editorial copy for the weather page's "How To Read It" visualization guide
 export const WEATHER_GUIDE = {
     mapName: 'Weather Impact',
-    title: 'How To Read It',
-    summary: 'Each point links weather conditions to mobility behavior. Use the chart to identify thresholds where weather starts changing trip speed or volume in a meaningful way.',
+    title: 'How to Read the Charts',
+    summary: 'This collection of charts shows how rider behavior shifts under different weather conditions.',
     hints: [
         {
             title: 'Look for clusters',
-            text: 'Tight clouds suggest stable behavior under similar weather, while spread-out clouds indicate more uncertainty in rider response.',
+            text: 'Dense groups of points in the scatter plot show consistent behavior under similar weather. The distance between these clusters highlights how sharply habits shift when the conditions change.',
         },
         {
-            title: 'Watch for breakpoints',
-            text: 'Find where trends bend: a small weather change can trigger a strong drop or rise after a critical point.',
+            title: 'Temporal patterns',
+            text: 'Watch how peak demand times shift. The ridgeline chart maps these hourly and weekly trends across different weather scenarios.',
         },
         {
-            title: 'Read the curves',
-            text: 'The temperature curve shows how demand climbs with warmth - casual riders react more strongly than members. The rain bars show how much ridership survives each precipitation intensity relative to dry hours.',
+            title: 'Members vs. casuals',
+            text: 'Use the temperature response chart and global filters to compare how members and casual riders react differently to changing conditions.',
         },
     ],
 }

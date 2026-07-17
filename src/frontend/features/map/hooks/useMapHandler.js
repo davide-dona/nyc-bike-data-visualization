@@ -8,25 +8,19 @@ import { clamp } from '@/utils/math.js'
 const FLY_TO_DURATION = 900
 
 /**
- * Hook for handling map-related state and logic.
- * @param {Object} param0 - The parameters for the hook.
+ * Handler hook for map view state, camera moves, and per-layer UI toggles.
  * @returns {Object} The map handler functions and state.
  */
 export function useMapHandler() {
-    // State for map view (center, zoom, etc.)
     const [viewState, setViewState] = useState(INITIAL_VIEW_STATE)
     // Current hour frame (0-23) for animation. Default to 7 AM
     const [currentTime, setCurrentTime] = useState(7)
-    // Whether the current layer supports animation
     const [hasAnimation, setHasAnimation] = useState(true)
-    // Currently selected map layer
     const [activeLayer, setActiveLayer] = useState('station_usage')
-    // Whether to show bike routes on the infrastructure layer
     const [showBikeRoutes, setShowBikeRoutes] = useState(false)
     // Which metric the station usage layer encodes ('all' | 'incoming' | 'outgoing')
     const [usageMode, setUsageMode] = useState('all')
-    // Legend-driven visibility for the infrastructure layer. View preferences,
-    // so they persist across layer switches.
+    // View preferences that persist across layer switches.
     const [hiddenHealthCategories, setHiddenHealthCategories] = useState(() => new Set())
     const [hiddenRouteClasses, setHiddenRouteClasses] = useState(() => new Set())
     // Historical year for the bike-route network; null means "present"
@@ -48,9 +42,7 @@ export function useMapHandler() {
         })
     }, [])
 
-    // Animated camera move to a target position; zoom is clamped to the
-    // allowed range and the interpolated frames pass through the regular
-    // view-state clamps.
+    // Animated camera move; target values pass through the same clamps as manual view changes.
     const flyTo = useCallback(({ longitude, latitude, zoom }) => {
         setViewState((prev) => ({
             ...prev,
@@ -62,7 +54,6 @@ export function useMapHandler() {
         }))
     }, [])
 
-    // Handler for view map changes
     const handleViewStateChange = useCallback(({ viewState: nextViewState }) => {
         setViewState({
             ...nextViewState,
@@ -73,7 +64,6 @@ export function useMapHandler() {
         })
     }, [])
 
-    // Check current active layer for animation capability
     useEffect(() => {
         setHasAnimation(LAYER_OPTIONS.find((layer) => layer.value === activeLayer)?.hasAnimation ?? false)
     }, [activeLayer])

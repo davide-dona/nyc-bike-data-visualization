@@ -8,11 +8,10 @@ import { TileLayer } from '@deck.gl/geo-layers'
 export function createBaseTileLayer(tileUrl) {
   return new TileLayer({
     id: 'osm-base-map', 
-    data: tileUrl,          // URL for the tile server
+    data: tileUrl,
     minZoom: 0,
     maxZoom: 19,
     tileSize: 256,
-    // Render each tile as a BitmapLayer
     renderSubLayers: (props) => {
       const bbox = props.tile?.bbox
       if (!bbox) {

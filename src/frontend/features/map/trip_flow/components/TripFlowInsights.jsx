@@ -7,11 +7,9 @@ import { formatCount, formatNumber } from '@/utils/numberFormat.js'
 import { TRIP_FLOW_LIST_SIZE } from '@/utils/config.js'
 
 /**
- * Insight frame for the trip flow layer: headline stat tiles plus a ranked
- * corridor list. The overview summarizes the citywide corridor web; focusing
- * a station switches to its partners with an outbound/inbound split per row.
- * Hovering a row traces the matching arc on the map and vice versa; clicking
- * a row pins its corridor while the rest of the web dims.
+ * Insight frame for the trip flow layer: headline stat tiles plus a ranked corridor list.
+ * The overview summarizes the citywide corridor web; focusing a station switches to its
+ * partners with an outbound/inbound split per row. Hovering/clicking a row links to the map arc.
  * @param {Object} insights - Trip flow data slice (trips, focus state, query status).
  * @param {Object} tripFlowHover - Corridor hover link ({ hoveredCorridorKey, onCorridorHover }).
  * @param {Object} tripFlowPin - Corridor pin link ({ pinnedCorridorKey, onCorridorToggle }).

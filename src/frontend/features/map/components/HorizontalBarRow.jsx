@@ -1,9 +1,7 @@
 import { formatCount } from '@/utils/numberFormat.js'
 
 /**
- * One labeled horizontal bar scaled against the list maximum. Renders as a
- * button when `onSelect` is provided, so the row can drive station selection
- * (e.g. the infrastructure sidebar's leaderboard).
+ * One labeled horizontal bar scaled against the list maximum; renders as a button when `onSelect` is provided.
  * @param {string} label - Row label.
  * @param {number} value - Row value.
  * @param {number} maxValue - Maximum value across the list, for scaling.

@@ -11,8 +11,7 @@ import { useCallback, useEffect, useState } from 'react'
 export function useTripCorridorPin({ focusedStationId }) {
     const [pinnedCorridorKey, setPinnedCorridorKey] = useState(null)
 
-    // The pin refers to a corridor of the current view; focus changes swap
-    // the corridor set, so any active pin becomes stale and is dropped.
+    // Focus changes swap the corridor set, so any active pin becomes stale and is dropped.
     useEffect(() => {
         setPinnedCorridorKey(null)
     }, [focusedStationId])

@@ -8,7 +8,6 @@ import { normalizeBounds } from '../utils/dateFormatter.js'
  */
 export default function useDateBounds() {
     const { dateRange, loading } = useDatasetDateRange()
-    // Memoized bounds object that normalizes the API date range into usable minDate, maxDate, and totalMonths.
     const bounds = useMemo(
         () => normalizeBounds(dateRange),
         [dateRange?.max_date, dateRange?.min_date],

@@ -4,13 +4,8 @@ import ChartFrame from '@/components/ChartFrame.jsx'
 import { buildModeComparisonBars, buildModeComparisonConfig } from '../utils/modeComparisonConfig.js'
 
 /**
- * Horizontal bars re-expressing the period's total ridden distance as the CO2
- * the same travel would emit per mode. This is deliberately NOT an "avoided"
- * claim: it answers "what would the same kilometres emit by other modes".
+ * Horizontal bars re-expressing the period's ridden distance as CO2 per mode - a comparison, not an "avoided" claim.
  * @param {Object} totals - Summed daily stats (total_distance_km)
- * @param {boolean} loading - Whether data is loading
- * @param {Error|null} error - Fetch error
- * @param {Function} onRefetch - Callback to trigger a retry after error
  */
 export default function ModeComparisonBar({ totals, loading, error, onRefetch }) {
     const bars = useMemo(() => buildModeComparisonBars(totals), [totals])

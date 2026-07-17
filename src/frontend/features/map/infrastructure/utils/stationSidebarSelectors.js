@@ -38,8 +38,7 @@ export function todayWeekdayIndex() {
     return (new Date().getDay() + 6) % 7
 }
 
-// Commute windows and the share of window volume a net imbalance must exceed
-// to count as a real commute signal rather than noise.
+// Commute windows and the share of window volume an imbalance must exceed to count as signal, not noise.
 const MORNING_HOURS = [6, 7, 8, 9, 10]
 const EVENING_HOURS = [16, 17, 18, 19, 20]
 const CHARACTER_THRESHOLD = 0.15

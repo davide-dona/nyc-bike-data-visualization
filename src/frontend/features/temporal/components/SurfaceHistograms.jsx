@@ -4,19 +4,12 @@ import BarChart from "./BarChart.jsx"
 import ChartFrame from "@/components/ChartFrame.jsx"
 
 /**
- * The two histograms that accompany the surface graph, one for day of week
- * and one for hour of day.
- * @param {Object} hourData - Hour of day stats rows.
- * @param {Object} dayData - Day of week stats rows.
- * @param {string} activeMetric - The currently selected metric key.
- * @param {Object} coordinates - The hovered surface point, used to highlight the matching bars.
- * @param {boolean} loading - Whether temporal data is loading.
- * @param {Error|null} error - Error state for temporal data fetch.
- * @param {Function} onRefetch - Callback to trigger a retry after error.
+ * The two histograms accompanying the surface graph: one for day of week,
+ * one for hour of day.
+ * @param {Object} coordinates - The hovered surface point, used to highlight matching bars.
  * @param {Object} pinnedSlice - The pinned bar ({ type: 'day'|'hour', index, label }) or null.
  * @param {Object} overlay - The derived overlay series ({ target, label, data }) or null; drawn on the opposite card.
- * @param {Function} onBarClick - (type, index, label) callback when a histogram bar is clicked; absent while comparing.
- * @param {Function} onClearPin - Callback for the overlay chip's dismiss button.
+ * @param {Function} onBarClick - (type, index, label) callback when a bar is clicked; absent while comparing.
  * @returns The rendered histogram grid.
  */
 export default function SurfaceHistograms({

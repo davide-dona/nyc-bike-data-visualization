@@ -15,9 +15,6 @@ import {
  * trips replaced at the selected substitution rate.
  * @param {Object} totals - Summed daily stats (total_rides, total_distance_km)
  * @param {number} substitutionRate - Selected car-substitution rate (fraction)
- * @param {boolean} loading - Whether data is loading
- * @param {Error|null} error - Fetch error
- * @param {Function} onRefetch - Callback to trigger a retry after error
  */
 export default function FootprintTiles({ totals, substitutionRate, loading, error, onRefetch }) {
     const ratePct = Math.round(substitutionRate * 100)

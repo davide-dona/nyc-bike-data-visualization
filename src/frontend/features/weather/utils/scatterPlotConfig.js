@@ -53,13 +53,11 @@ export function buildScatterPlotConfig({ formattedData, externalTooltipHandler }
                         boxWidth: 12,
                         boxHeight: 12,
                         padding: 20,
-                        // Every point is its own dataset; keep one legend
-                        // entry per weather group (the group's first dataset).
+                        // Each point is its own dataset; show one legend entry per weather group (first dataset).
                         filter: (item, chartData) =>
                             chartData.datasets.findIndex(ds => ds.label === item.text) === item.datasetIndex,
                     },
-                    // Toggling a group shows or hides all datasets sharing
-                    // its label, keyed by label rather than dataset order.
+                    // Toggling a group shows/hides all datasets sharing its label (not dataset order).
                     onClick: (e, item, legend) => {
                         const chart = legend.chart
                         const targetLabel = item.text

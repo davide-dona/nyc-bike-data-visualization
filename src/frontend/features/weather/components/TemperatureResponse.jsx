@@ -26,7 +26,7 @@ export default function TemperatureResponse({ series, loading, error, onRefetch 
     return (
         <ChartFrame
             title="Temperature response - avg rides per hour"
-            note="Lines track how hourly demand climbs with temperature for each rider group. Where the curves separate, casual riders react to weather more strongly than members."
+            note="Lines track how hourly demand climbs with temperature for each rider group, showing different behaviour patterns between members and casual riders."
             status={{ loading, error, refetch: onRefetch }}
             emptyMessage={!hasData ? 'No temperature data available for this filter range.' : null}
             frameClassName="weather-deepdive-frame"

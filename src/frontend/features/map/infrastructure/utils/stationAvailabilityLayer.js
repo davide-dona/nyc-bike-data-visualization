@@ -7,16 +7,12 @@ import {
 import { HEALTH_CATEGORY } from './stationAvailabilitySelector.js'
 import { createStationDotsLayers } from '../../utils/stationDotsLayer.js'
 
-// Geographic radius (meters) with a pixel cap: dots shrink with the map when
-// zoomed out so they never blanket the city, and hold the capped size once
-// zoomed in.
+// Geographic radius with a pixel cap so dots shrink with the map but never blanket the city.
 const STATION_RADIUS_M = 75
 const STATION_MAX_PIXELS = 5
 
 /**
- * Builds the infrastructure station dot layers via the shared station-dot
- * factory: uniform outlined dots colored by health category, the shared warm
- * selection halo for picked stations, and an invisible enlarged hit layer.
+ * Builds the infrastructure station dot layers: outlined dots colored by health category, the shared selection halo, and an invisible hit layer.
  * @param {Array} stations - Station objects with latitude, longitude, and health_category.
  * @param {Array} selectedStationIds - Selected station ids, get the halo ring.
  * @param {string|null} hoveredStationId - Hovered station id, enlarged.
@@ -45,8 +41,7 @@ export function createStationAvailabilityLayer({
     })
 }
 
-// Empty risk is red (the rider-facing "nothing to rent" failure); full risk is
-// blue to stay distinct from the orange selection highlight.
+// Empty risk is red ("nothing to rent"); full risk is blue, distinct from the orange selection highlight.
 const HEALTH_CATEGORY_COLORS = {
     [HEALTH_CATEGORY.HEALTHY]: HEALTHY_RGB,
     [HEALTH_CATEGORY.EMPTY_RISK]: DANGER_RGB,

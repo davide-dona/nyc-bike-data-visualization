@@ -13,8 +13,7 @@ import {
 } from '@/features/map/infrastructure/utils/stationAvailabilitySelector.js'
 import { stationCharacter } from '@/features/map/infrastructure/utils/stationSidebarSelectors.js'
 
-// One observed day: each hour-of-day bucket occurred once (hours_count 1),
-// so the per-day averages equal the raw counts
+// One observed day: each hour-of-day bucket occurred once (hours_count 1), so per-day averages equal the raw counts
 const USAGE_FIXTURE = [{
     station_id: 'S1',
     lat: 40.75,
@@ -65,8 +64,7 @@ describe('stationUsageSelector usage modes', () => {
         const stations = selectStations(USAGE_FIXTURE)
         const maxAll = getMaxUsage(stations, 'all')
 
-        // incoming + outgoing = all per bucket, so normalizing every mode by
-        // the all max keeps incoming + outgoing heights summing to the all height
+        // incoming + outgoing = all per bucket, so normalizing every mode by the all max keeps heights additive
         expect(maxAll).toBeGreaterThanOrEqual(getMaxUsage(stations, 'outgoing'))
         expect(maxAll).toBeGreaterThanOrEqual(getMaxUsage(stations, 'incoming'))
         const [station] = stations

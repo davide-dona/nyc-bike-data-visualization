@@ -1,18 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { clampTooltipToViewport } from '@/utils/tooltipPosition.js'
 
-/**
- * Shared handler hook for cursor-anchored floating tooltips: visibility state,
- * viewport-clamped positioning, and RAF-throttled tracking of the cursor.
- * Pairs with the render-only FloatingTooltip component.
- * @param {boolean} [isActive=true] - Whether the tooltip may show at all.
- * @param {number} [offsetX=0] - Horizontal offset from the anchor point.
- * @param {number} [offsetY=14] - Gap between the cursor and the tooltip edge.
- * @param {'center'|'left'} [align='center'] - Whether the tooltip centers on the cursor or hangs to its right.
- * @param {'below'|'above'} [vAlign='below'] - Whether the tooltip sits below or above the cursor.
- * @param {{width: number, height: number}} [fallbackSize] - Size estimate used before the node can be measured.
- * @returns {Object} isVisible, position, the tooltip node ref, updateTooltip (mouseenter/mousemove), and hideTooltip.
- */
+/** Handler hook for cursor-anchored floating tooltips: visibility state, viewport-clamped positioning, and RAF-throttled cursor tracking. Pairs with the render-only FloatingTooltip component. */
 export default function useFloatingTooltip({
     isActive = true,
     offsetX = 0,
@@ -55,8 +44,7 @@ export default function useFloatingTooltip({
             }
 
             const { clientX, clientY } = event
-            // First show goes through state so the node renders at the right
-            // spot; subsequent moves write styles directly to skip re-renders.
+            // First show goes through state to render the node; later moves write styles directly to skip re-renders.
             if (!isVisibleRef.current || !nodeRef.current) {
                 setPosition(computePosition(clientX, clientY))
                 isVisibleRef.current = true
@@ -78,7 +66,6 @@ export default function useFloatingTooltip({
         [isActive, computePosition, hideTooltip],
     )
 
-    // Cancel any pending frame on unmount.
     useEffect(
         () => () => {
             if (frameRef.current) cancelAnimationFrame(frameRef.current)

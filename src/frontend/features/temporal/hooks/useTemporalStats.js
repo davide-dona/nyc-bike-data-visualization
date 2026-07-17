@@ -24,12 +24,10 @@ export default function useTemporalStats(filters) {
         refetch: refetchDateStats,
     } = useDateStats(filters)
 
-    // Day and hour histograms read marginals of the day-hour grid, so they
-    // share the surface's fetch instead of issuing their own.
+    // Day/hour histograms are marginals of the day-hour grid, so they share its fetch.
     const dayStats = useMemo(() => marginalizeDayHour(dayHourStats, 'day_of_week'), [dayHourStats])
     const hourStats = useMemo(() => marginalizeDayHour(dayHourStats, 'hour'), [dayHourStats])
 
-    // Aggregate states, for page-level concerns (controls gating, compare layers)
     const loading = loadingDayHourStats || loadingDateStats
     const error = errorDayHourStats || errorDateStats
     const refetch = () => Promise.all([
@@ -37,9 +35,7 @@ export default function useTemporalStats(filters) {
         refetchDateStats(),
     ])
 
-    // Per-breakdown states, so each chart reflects only its own queries.
-    // The day and hour marginals derive from the day-hour query, so they
-    // share its state.
+    // Day and hour marginals derive from the day-hour query, so they share its state.
     const dayHourQueryState = { loading: loadingDayHourStats, error: errorDayHourStats, refetch: refetchDayHourStats }
     const queries = {
         dayHour: dayHourQueryState,

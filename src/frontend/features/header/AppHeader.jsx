@@ -17,8 +17,7 @@ const PAGES = [
 ];
 
 /**
- * Header component for the application, containing the title, navigation links, and the date range filter.
- * @returns
+ * App header: title, nav links, and the date range filter.
  */
 function AppHeader({ onFiltersChange, forceDisableFilters = false }) {
     const location = useLocation();

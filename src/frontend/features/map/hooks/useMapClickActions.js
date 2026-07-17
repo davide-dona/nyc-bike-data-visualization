@@ -22,9 +22,8 @@ export default function useMapClickActions({
     return useCallback((info) => {
         const pickedObject = info?.object
 
-        // Clicking empty map peels back one level of trip-flow state: an
-        // active corridor pin clears first, another click exits the focus.
-        // Station and arc picks carry an object, so they never clear here.
+        // Empty-map clicks peel back trip-flow state one level: pin clears
+        // first, then focus. Picks carry an object, so they never clear here.
         if (activeLayer === 'trip_flow') {
             if (!pickedObject) {
                 if (hasCorridorPin) clearCorridorPin()

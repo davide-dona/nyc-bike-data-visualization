@@ -8,8 +8,7 @@ import {
 } from '@/utils/editorialTokens.js'
 import { formatNumber } from '@/utils/numberFormat.js'
 
-// Bins observed for fewer hours than this are dropped: a 1-hour extreme
-// temperature bin would otherwise produce a wild point at the curve's edge.
+// Bins with fewer hours are dropped to avoid a wild single-hour outlier point.
 const MIN_HOURS = 5
 const BIN_WIDTH = 2 // °C, must match _WEATHER_EXPRS in src/backend/services/ride_stats.py
 

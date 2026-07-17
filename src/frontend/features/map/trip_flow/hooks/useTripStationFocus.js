@@ -9,8 +9,6 @@ import { useCallback, useState } from 'react'
 export function useTripStationFocus() {
     const [focusedStationId, setFocusedStationId] = useState(null)
 
-    // Click handler for station picks: focuses the picked station, or clears
-    // the focus when the picked station is already focused.
     const onStationPick = useCallback((info) => {
         const stationId = info?.object?.id
         if (!stationId) return

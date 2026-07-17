@@ -1,4 +1,3 @@
-// Editorial copy for the temporal page's "How To Read It" visualization guide
 export const TEMPORAL_GUIDE = {
     mapName: 'Habits',
     title: 'How To Read It',

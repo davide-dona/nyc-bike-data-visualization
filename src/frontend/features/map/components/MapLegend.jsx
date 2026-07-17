@@ -4,9 +4,7 @@ import { legendFor } from "../utils/mapLegend.js";
 import { bikeRoutesLegend } from "../infrastructure/utils/bikeRoutesLayer.js";
 
 /**
- * Map legend panel - renders the active layer's swatch rows on an ink card.
- * On the infrastructure layer the rows double as per-category visibility
- * toggles; every other layer's legend stays static.
+ * Map legend panel: renders the active layer's swatch rows; on the infrastructure layer they double as per-category visibility toggles.
  * @param {string} activeLayer - Key of the layer whose legend should be displayed.
  * @param {boolean} showBikeRoutes - When true, an extra bike-routes section is surfaced.
  * @param {boolean} hasTripFlowFocus - Whether the trip-flow layer has a focused station (switches its legend).

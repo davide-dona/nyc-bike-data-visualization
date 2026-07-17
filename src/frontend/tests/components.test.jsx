@@ -22,7 +22,6 @@ vi.mock('../api-data/apiClient', () => ({
 // Wrapper to provide React Query context for components that use it
 const wrapper = createQueryWrapper()
 
-// These tests primarily check that components render without throwing
 describe('components smoke tests', () => {
     it('AppHeader renders without crashing', () => {
         render(<MemoryRouter><AppHeader /></MemoryRouter>)

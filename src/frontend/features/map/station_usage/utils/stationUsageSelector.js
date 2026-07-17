@@ -13,10 +13,8 @@ const MODE_FIELDS = { all: 'total_rides', incoming: 'incoming_rides', outgoing: 
  */
 export function selectStations(stationUsageCounts) {
     const stationRows = Array.isArray(stationUsageCounts) ? stationUsageCounts : []
-    // For each station, create an hourly usage array per mode based on the grouped data.
     return stationRows
         .map((station) => {
-            // Initialize an array per mode to hold average rides for each hour of the day.
             const hourlyByMode = Object.fromEntries(
                 USAGE_MODES.map((mode) => [mode, Array.from({ length: HOURS_IN_DAY }, () => 0)])
             )
@@ -29,11 +27,7 @@ export function selectStations(stationUsageCounts) {
                     if (!Number.isInteger(hour) || hour < 0 || hour >= HOURS_IN_DAY) return
                     if (!Number.isFinite(hoursCount) || hoursCount <= 0) return
 
-                    // For hour buckets, hours_count counts the occurrences of
-                    // that hour of day in the range - i.e. the days covered -
-                    // so dividing by it yields the average rides per day at
-                    // this hour (same convention as the infrastructure
-                    // sidebar's hourly averages).
+                    // hours_count = days covered for this hour; dividing gives avg rides/day (matches infrastructure sidebar convention).
                     USAGE_MODES.forEach((mode) => {
                         // Guard per mode: incoming can be 0 while outgoing is positive.
                         const rides = Number(group[MODE_FIELDS[mode]])
@@ -48,11 +42,11 @@ export function selectStations(stationUsageCounts) {
                 name: station.station_name,
                 lat: station.lat,
                 lon: station.lon,
-                hourlyByMode,       // Per mode, array of average rides for each hour
+                hourlyByMode,
                 meanByMode: Object.fromEntries(USAGE_MODES.map((mode) => [
                     mode,
                     hourlyByMode[mode].reduce((sum, usage) => sum + (Number.isFinite(usage) ? usage : 0), 0) / HOURS_IN_DAY,
-                ])), // Per mode, average usage across all hours
+                ])),
             }
         })
 }
@@ -65,13 +59,12 @@ export function selectStations(stationUsageCounts) {
  * @returns {Array} Station list with usage for the selected hour.
  */
 export function getStationForCurrentTime(stations, hour, mode = 'all') {
-    // For each station, extract the usage for the selected hour
     return stations.map((station) => ({
         stationId: station.stationId,
         lat: station.lat,
         lon: station.lon,
-        usage: interpolateStationUsage(station, hour, mode), // Use interpolation for smoother animation
-        meanUsage: station.meanByMode[mode], // Pass trough for per-station color scaling
+        usage: interpolateStationUsage(station, hour, mode),
+        meanUsage: station.meanByMode[mode], // Passed through for per-station color scaling
     }))
 }
 
@@ -85,16 +78,13 @@ export function getStationForCurrentTime(stations, hour, mode = 'all') {
  */
 function interpolateStationUsage(station, time, mode) {
     const hourlyUsage = station.hourlyByMode[mode]
-    // Normalize hour to [0,23]
     const normalizedHour = ((time % HOURS_IN_DAY) + HOURS_IN_DAY) % HOURS_IN_DAY
-    // Get the lower and upper hour indices for interpolation
     const lowerHour = Math.floor(normalizedHour)
     const higherHour = (lowerHour + 1) % HOURS_IN_DAY
-    const t = normalizedHour - lowerHour // Fractional part for interpolation
+    const t = normalizedHour - lowerHour
     const lowerUsageValue = Number.isFinite(hourlyUsage[lowerHour]) ? hourlyUsage[lowerHour] : 0
     const higherUsageValue = Number.isFinite(hourlyUsage[higherHour]) ? hourlyUsage[higherHour] : 0
 
-    // Linear interpolation between the two hours
     return lowerUsageValue + (higherUsageValue - lowerUsageValue) * t
 }
 
@@ -107,7 +97,6 @@ function interpolateStationUsage(station, time, mode) {
 export function getMaxUsage(stations, mode = 'all') {
     return stations.reduce((globalMax, station) => {
         const hourlyUsage = station.hourlyByMode?.[mode]
-        // Get the maximum usage for this station across all hours
         const stationMax = Array.isArray(hourlyUsage)
             ? Math.max(...hourlyUsage.map((usage) => Number(usage) || 0))
             : 0

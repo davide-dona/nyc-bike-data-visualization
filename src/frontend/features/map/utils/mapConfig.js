@@ -1,20 +1,16 @@
-// List of available map layers
 export const LAYER_OPTIONS = [
     { value: 'station_usage', hasAnimation: true, label: 'Station usage' },
     { value: 'trip_flow', hasAnimation: false, label: 'Trip flow' },
     { value: 'infrastructure', hasAnimation: false, label: 'Infrastructure' }
-    // Future layers can be added here
 ]
 
-// Options for the all/incoming/outgoing direction toggle shared by the
-// station-usage and trip-flow layers
+// Direction toggle options shared by the station-usage and trip-flow layers.
 export const USAGE_MODE_OPTIONS = [
     { value: 'all', label: 'All' },
     { value: 'incoming', label: 'Incoming' },
     { value: 'outgoing', label: 'Outgoing' },
 ]
 
-// Initial view state centered on NYC
 export const INITIAL_VIEW_STATE = {
     longitude: -73.97,
     latitude: 40.75,
@@ -23,10 +19,8 @@ export const INITIAL_VIEW_STATE = {
     bearing: 0,
 }
 
-// Allowed zoom range for map interactions
 export const MIN_ZOOM = 10
 export const MAX_ZOOM = 15
-// Allowed pitch range for map interactions
 export const MIN_PITCH = 0
 export const MAX_PITCH = 60
 

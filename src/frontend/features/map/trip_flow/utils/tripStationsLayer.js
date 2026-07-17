@@ -4,20 +4,17 @@ import { createStationDotsLayers } from "../../utils/stationDotsLayer.js";
 // Overview dots recede behind the corridor web: smaller, semi-transparent.
 const STATION_COLOR_OVERVIEW = [...INK_MUTED_RGB, 170];
 
-// Geographic radii (meters) with pixel caps: dots shrink with the map when
-// zoomed out so they never blanket the overview, and hold the capped size
-// once zoomed in. Overview dots stay small so the corridor web reads first.
+// Geographic radii (meters) with pixel caps: dots shrink with the map when zoomed out,
+// then hold the capped size once zoomed in. Overview dots stay small so the corridor web reads first.
 const STATION_RADIUS_FOCUS_M = 70;
 const STATION_RADIUS_OVERVIEW_M = 40;
 const STATION_MAX_PIXELS_FOCUS = 5;
 const STATION_MAX_PIXELS_OVERVIEW = 3.5;
 
 /**
- * Builds the trip-flow station dot layers via the shared station-dot factory:
- * outlined dots plus an invisible enlarged hit layer. In the citywide overview
- * the dots recede (smaller, semi-transparent) so the corridor web stays the
- * hero; in focus view they regain full weight and the focused station carries
- * the shared warm selection halo.
+ * Builds the trip-flow station dot layers via the shared station-dot factory. In the overview
+ * dots recede (smaller, semi-transparent); in focus view they regain full weight and the
+ * focused station carries the shared warm selection halo.
  * @param {Array} stations - Clickable stations with coordinates.
  * @param {string|null} focusedStationId - Focused station id, gets the halo.
  * @param {string|null} hoveredStationId - Hovered station id, enlarged.

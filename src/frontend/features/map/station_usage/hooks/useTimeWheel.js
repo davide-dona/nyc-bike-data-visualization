@@ -119,8 +119,7 @@ export default function useTimeWheel({ setCurrentTime, currentTime, disabled }) 
             return
         }
 
-        // The visible rail spans one full day, so a drag across the whole
-        // track is 24 hours. No clamping: the wheel is circular and wraps.
+        // The visible rail spans one full day (24h); no clamping since the wheel is circular and wraps.
         const deltaX = event.clientX - dragStartXRef.current
         const minuteDelta = (deltaX / trackWidth) * MINUTES_IN_DAY
         const nextMinuteIndex = dragStartMinuteIndexRef.current - minuteDelta

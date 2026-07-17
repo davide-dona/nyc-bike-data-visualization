@@ -12,7 +12,6 @@ import { stationAvailabilityTooltip } from '../infrastructure/utils/stationAvail
  * @returns {string} The tooltip content.
  */
 export default function mapTooltip({ object, activeLayer, usageMode }) {
-    // To avoid errors when hovering over empty areas of the map
     if (!object) return null
     switch (activeLayer) {
         case 'station_usage':

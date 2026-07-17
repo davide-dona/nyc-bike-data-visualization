@@ -35,7 +35,6 @@ export function createStationUsageLayer({ frameStations, maxUsage, maxDelta }) {
         ...LAYER_CONFIG,
         colorRange: STATION_USAGE_COLOR_RANGE,
         getPosition: (station) => [station.lon, station.lat],
-        // Color weight is the delta from this station's own mean
         getColorWeight: (station) => station.usage - station.meanUsage,
         colorAggregation: 'SUM',
         getElevationWeight: (station) => station.usage,

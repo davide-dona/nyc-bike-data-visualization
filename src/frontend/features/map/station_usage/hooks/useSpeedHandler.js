@@ -14,7 +14,6 @@ export function useSpeedHandler({ setCurrentTime, currentTime, hoursInDay, baseF
     const [speed, setSpeed] = useState(1)
     const currentTimeLabel = formatTimeLabel(currentTime)
 
-    // Updates the current time based on the selected speed
     useEffect(() => {
         if (!isPlaying) {
             return undefined
@@ -28,9 +27,7 @@ export function useSpeedHandler({ setCurrentTime, currentTime, hoursInDay, baseF
             }
             const elapsedMs = timestamp - previousTimestamp
             previousTimestamp = timestamp
-            // The progress is calculated as the elapsed time divided by the base frame time, multiplied by the speed factor
             const hoursProgressed = elapsedMs * speed / baseFrameMs
-            // Update the current time by adding the progressed hours, and wrap around using modulo to stay within a 24-hour cycle
             setCurrentTime((time) => (time + hoursProgressed) % hoursInDay)
             animationFrameId = window.requestAnimationFrame(advanceFrame)
         }

@@ -7,11 +7,9 @@ import { INITIAL_VIEW_STATE } from '../../utils/mapConfig.js'
 const FALLBACK_VIEWPORT = { width: 1200, height: 800 }
 
 /**
- * Handler hook driving the trip-flow camera: when a station gains focus the
- * map flies to frame that station's strongest corridors, and when focus
- * clears it flies back to the initial citywide view. Each focused station
- * triggers exactly one flight, and stale cached rows (from a previously
- * focused station) never move the camera.
+ * Handler hook driving the trip-flow camera: flies to frame a station's strongest
+ * corridors on focus, and back to the citywide view when focus clears. Each focused
+ * station triggers exactly one flight; stale cached rows never move the camera.
  * @param {Object} params - Hook parameters.
  * @param {string} params.activeLayer - The active map layer key.
  * @param {string|null} params.focusedStationId - Focused station id, null in overview.
@@ -43,8 +41,7 @@ export function useTripFlowCamera({
         }
 
         if (tripLoading || trips.length === 0) return
-        // Oriented rows always start at the focused station; anything else is
-        // a stale cache from the previous focus.
+        // Oriented rows always start at the focused station; otherwise it's a stale cache.
         if (trips[0].start_station_id !== focusedStationId) return
         if (lastFlownStationIdRef.current === focusedStationId) return
 

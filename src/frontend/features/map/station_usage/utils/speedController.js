@@ -43,12 +43,9 @@ export const formatSpeedLabel = (value) => {
 };
 
 /**
- * Produces the hour tick marks for the circular time wheel. The strip is
- * periodic: three day-widths of ticks (hours -24..48) so that the window
- * centered on any normalized time is always fully covered, and a wrap from
- * 23:59 to 00:00 translates the strip by exactly one period - visually
- * seamless. Ticks carry importance flags so responsive decimation can key on
- * the hour itself instead of DOM order.
+ * Produces hour tick marks for the circular time wheel: three day-widths of
+ * periodic ticks so any normalized time stays centered, with importance flags
+ * for responsive decimation.
  * @returns {Array<{hour:number,label:string,position:number,isMinor:boolean,isMajor:boolean}>}
  */
 export const createHourMarks = () =>

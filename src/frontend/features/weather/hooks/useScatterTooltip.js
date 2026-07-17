@@ -7,11 +7,8 @@ const VIEWPORT_MARGIN = 12
 const FALLBACK_SIZE = { width: 280, height: 240 }
 
 /**
- * Handler hook bridging the Chart.js external tooltip of the weather scatter
- * plot into the shared FloatingTooltip: lifts the hovered point into React
- * state and anchors the tooltip beside the point, flipping to the left side
- * when it would overflow the viewport.
- * @returns {Object} tooltip state ({ visible, point, position }), the tooltip node ref, and the external tooltip handler.
+ * Bridges the Chart.js external tooltip into the shared FloatingTooltip, anchoring beside the hovered point and flipping left when it would overflow the viewport.
+ * @returns {Object} tooltip state, node ref, and the external tooltip handler.
  */
 export default function useScatterTooltip() {
     const [tooltip, setTooltip] = useState({ visible: false, point: null, position: { x: 0, y: 0 } })

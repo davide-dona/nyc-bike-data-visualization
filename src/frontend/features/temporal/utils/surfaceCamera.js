@@ -1,6 +1,5 @@
-// Camera math for the 3D surface graph: the camera orbits the plot at a
-// fixed radius and height, constrained to a half turn, and the UI exposes
-// the azimuth as a -90..90 degree display angle centered on the default view.
+// Camera orbits the plot at a fixed radius/height within a half turn; the UI
+// exposes the azimuth as a -90..90 degree display angle centered on the default view.
 
 const INITIAL_CAMERA = {
     eye: { x: 1.6, y: -1.6, z: 0.9 },

@@ -102,8 +102,7 @@ describe('aggregateRoutesByFacilityClass', () => {
     })
 })
 
-// Two stations, one observed day each: every hour bucket occurred once
-// (hours_count 1), so per-day averages equal the raw counts
+// Two stations, one observed day each (hours_count 1), so per-day averages equal the raw counts
 const USAGE_FIXTURE = [
     {
         station_id: 'S1',
@@ -203,8 +202,7 @@ describe('rankCorridors', () => {
 
 describe('tripFlowOverviewStats', () => {
     it('totals daily rides, counts corridors, and takes the flow-weighted median distance', () => {
-        // Distances: short corridor carries most of the flow, so the weighted
-        // median lands on it even though the plain median would not.
+        // Short corridor carries most of the flow, so the weighted median lands on it, unlike the plain median.
         const short = trip({ end_station_lat: 40.701, end_station_lon: -73.9, total_daily_flow: 8 })
         const long = trip({ end_station_lat: 41.0, end_station_lon: -73.9, total_daily_flow: 2 })
         const stats = tripFlowOverviewStats([long, short])

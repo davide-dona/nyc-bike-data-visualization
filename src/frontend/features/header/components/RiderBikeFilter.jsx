@@ -3,11 +3,11 @@ import SegmentedControl from '@/components/SegmentedControl.jsx';
 import { FILTERS, FILTER_HINTS, formatFilterLabel, getFilterIcon } from '../utils/filterOptions.js';
 
 /**
- * Component for filtering rides based on rider type and bike type, allowing users to select from predefined options for each filter category, with an "All" option to reset filters.
- * @param {object} value - An object containing the current filter values, where keys correspond to filter categories (e.g., user_type, bike_type) and values are the selected options for those categories.
- * @param {function} onChange - A callback function that is called when the filter values change, receiving the updated filter values as an argument.
- * @param {boolean} [disabled=false] - Whether the filter buttons are disabled.
- * @returns The rendered rider/bike filter groups.
+ * Filter control for rider type and bike type, with an "All" option per category.
+ * @param {object} value - Current filter values keyed by category.
+ * @param {function} onChange - Called with the updated filter values.
+ * @param {boolean} [disabled=false] - Disables the filter buttons.
+ * @returns The rendered filter groups.
  */
 export default function RiderBikeFilter({ value = {}, onChange, disabled = false }) {
   return (

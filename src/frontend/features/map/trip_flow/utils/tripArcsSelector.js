@@ -4,7 +4,6 @@
  * @returns 
  */
 export function selectTrips(tripCounts) {
-    // Handle case where tripCounts is undefined or null
     if (!tripCounts) return []
     return tripCounts
         .map((trip) => {
@@ -19,10 +18,9 @@ export function selectTrips(tripCounts) {
                 station_b_lon: end_station_lon,
                 groups: [{ total_rides, hours_count, a_to_b_count, b_to_a_count }],
             } = trip;
-            const daysCount = Number(hours_count) / 24; // Convert hours count to days count for average daily flow calculation
+            const daysCount = Number(hours_count) / 24;
             return {
-                // Orientation-independent pair identity, shared by arcs and
-                // insight rows to link hover state across map and panel.
+                // Orientation-independent pair identity, shared by arcs and insight rows to link hover state.
                 corridor_key: [start_station_id, end_station_id].sort().join('|'),
                 start_station_id,
                 start_station_name,
@@ -33,15 +31,14 @@ export function selectTrips(tripCounts) {
                 end_station_lat,
                 end_station_lon,
                 total_rides: Number(total_rides) || 0,
-                total_daily_flow: daysCount > 0 ? total_rides / daysCount : 0, // Convert to average daily rides
+                total_daily_flow: daysCount > 0 ? total_rides / daysCount : 0,
                 a_to_b_flow: daysCount > 0 ? a_to_b_count / daysCount : 0,
                 b_to_a_flow: daysCount > 0 ? b_to_a_count / daysCount : 0,
             };
         })
         .filter(
             (trip) =>
-                // Round trips (same start and end station) are not corridors:
-                // they cannot render as arcs and would clutter the rankings
+                // Round trips (same start/end station) aren't corridors: they can't render as arcs.
                 trip.start_station_id !== trip.end_station_id &&
                 Number.isFinite(trip.start_station_lat) &&
                 Number.isFinite(trip.start_station_lon) &&
@@ -52,11 +49,9 @@ export function selectTrips(tripCounts) {
 }
 
 /**
- * Reorients trip rows so the focused station is always the start endpoint:
- * a_to_b_flow reads as outbound (focused to partner) and b_to_a_flow as
- * inbound (partner to focused). Rows already starting at the focused station,
- * or not touching it at all, pass through unchanged. Row shape is preserved,
- * so arc layers and tooltips consume oriented rows transparently.
+ * Reorients trip rows so the focused station is always the start endpoint: a_to_b_flow
+ * reads as outbound, b_to_a_flow as inbound. Rows not touching the focused station pass
+ * through unchanged; row shape is preserved for arc layers and tooltips.
  * @param {Array} trips - Processed trip rows from selectTrips.
  * @param {string} focusedStationId - Station to orient the rows around.
  * @returns {Array} Trip rows with the focused station as start endpoint.
@@ -90,10 +85,8 @@ export function selectMaxFlow(trips) {
 }
 
 /**
- * Filters oriented focus-view trips by direction relative to the focused
- * station. Rows keep their shape but total_daily_flow becomes the directional
- * flow (and the opposite direction is zeroed), so arcs, rankings, and stats
- * all read the filtered direction consistently.
+ * Filters oriented focus-view trips by direction: total_daily_flow becomes the
+ * directional flow and the opposite direction is zeroed, so arcs, rankings, and stats stay consistent.
  * @param {Array} orientedTrips - Trip rows oriented with orientTripsToFocus.
  * @param {'all'|'incoming'|'outgoing'} direction - Direction to keep.
  * @returns {Array} The filtered trip rows.
@@ -111,8 +104,7 @@ export function filterTripsByDirection(orientedTrips, direction) {
         }))
 }
 
-// A corridor counts as directional once one direction carries more than
-// 57.5% of its rides: |out - in| / (out + in) > 0.15, beyond day-to-day noise.
+// Directional once one direction carries >57.5% of rides: |out-in|/(out+in) > 0.15.
 const BALANCE_THRESHOLD = 0.15
 
 /**

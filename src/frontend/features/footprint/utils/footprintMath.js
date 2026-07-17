@@ -27,9 +27,7 @@ export function carTripsReplaced(totalRides, substitutionRate) {
 }
 
 /**
- * Sums the daily stat rows into the page totals. The tiles and the mode
- * comparison read plain sums of the per-date series, so one date-grouped
- * fetch serves every footprint chart.
+ * Sums the daily stat rows into page totals shared by every footprint chart.
  * @param {Array} dateRows - GroupedStats rows from /stats/?group_by=date.
  * @returns {{total_rides: number, total_distance_km: number}} Summed totals; zeros when empty.
  */

@@ -1,15 +1,6 @@
 import { useEffect, useState } from 'react'
 
-/**
- * Handler hook for a commit-on-Enter/blur numeric text input: keeps a local
- * draft string in sync with the external value, clamps the parsed number to
- * [min, max] on commit, and treats an empty draft as null.
- * @param {number|null} value - The committed external value; null shows the placeholder.
- * @param {number} min - Minimum committable value.
- * @param {number} max - Maximum committable value.
- * @param {Function} onCommit - Receives the clamped number, or null for an empty draft.
- * @returns {Object} The draft string plus change/commit/keydown handlers for the input element.
- */
+/** Handler hook for a commit-on-Enter/blur numeric input: keeps a local draft synced with the external value, clamps to [min, max] on commit, and treats an empty draft as null. */
 export default function useNumericInput({ value, min, max, onCommit }) {
     const [draft, setDraft] = useState(value == null ? '' : String(value))
 

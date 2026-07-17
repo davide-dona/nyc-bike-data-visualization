@@ -12,8 +12,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 export function useInfrastructureStationSelection(stations = [], activeLayer) {
     const [selectedStationIdSet, setSelectedStationIdSet] = useState(() => new Set())
 
-    // The selection (and the sidebar/halo it drives) belongs to the
-    // infrastructure view only, so switching layers resets it.
+    // The selection belongs to the infrastructure view only, so switching layers resets it.
     useEffect(() => {
         if (activeLayer === 'infrastructure') return
         setSelectedStationIdSet((previousSet) => previousSet.size ? new Set() : previousSet)
@@ -32,9 +31,7 @@ export function useInfrastructureStationSelection(stations = [], activeLayer) {
         ))
     }, [])
 
-    // Selects a station directly, bypassing deck.gl's pick-info shape - used
-    // by DOM-driven selection (e.g. clicking a leaderboard row) rather than a
-    // map click. No-ops for a station not present in the current data.
+    // Selects a station directly (bypassing deck.gl's pick-info shape) for DOM-driven selection, e.g. leaderboard rows.
     const selectStation = useCallback((stationId) => {
         if (!stations.some((station) => station.id === stationId)) return
         setSelectedStationIdSet(new Set([stationId]))

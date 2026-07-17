@@ -20,13 +20,7 @@ import {
 } from "../utils/weatherRidgeline.js";
 
 /**
- * Ridgeline plot of rides-per-hour distributions broken down by WMO weather
- * code, toggleable between hour-of-day and day-of-week dimensions.
- * @param {Array<object>} data - Raw weather stats rows from the backend.
- * @param {boolean} loading - Whether a refetch is currently in flight.
- * @param {unknown} error - Error object from the query, if any.
- * @param {Function} onRefetch - Handler invoked when the overlay requests a retry.
- * @returns {JSX.Element} The ridgeline frame with toolbar and Plotly chart.
+ * Ridgeline plot of rides-per-hour distributions by WMO weather code, toggleable between hour-of-day and day-of-week.
  */
 function WeatherRidgeline({ data, loading, error, onRefetch }) {
     const [dimension, setDimension] = useState("hour");

@@ -42,13 +42,12 @@ export default function useDateWindowPicker({ value, onCommit, disabled = false 
             const newStart = { year: s.getFullYear(), month: s.getMonth() }
             const newEnd = { year: e.getFullYear(), month: e.getMonth() }
 
-            // Update start/end only if changed
             const needStart = !start || start.year !== newStart.year || start.month !== newStart.month
             const needEnd = !end || end.year !== newEnd.year || end.month !== newEnd.month
             if (needStart) setStart(newStart)
             if (needEnd) setEnd(newEnd)
 
-            // Do not force visibleYear while modal is open - keep user's current view
+            // keep user's current view while modal is open
             if (visibleYear === null || openFor === null) {
                 setVisibleYear(newStart.year)
             }
@@ -58,8 +57,7 @@ export default function useDateWindowPicker({ value, onCommit, disabled = false 
     useEffect(() => {
         if (!bounds) return
         if (start === null || end === null) {
-            // Mirror the seeded default (last covered months) so the picker
-            // never flashes the full dataset span before the seed commits.
+            // mirrors the seeded default so the picker doesn't flash the full span before the seed commits
             const s = defaultWindowStart(bounds.minDate, bounds.maxDate, MAX_COVERED_MONTHS)
             const e = bounds.maxDate
             setStart({ year: s.getFullYear(), month: s.getMonth() })
@@ -68,13 +66,10 @@ export default function useDateWindowPicker({ value, onCommit, disabled = false 
         }
     }, [bounds])
 
-    // Loading state: consider hook loading, parent-disabled (global fetches), and missing bounds
     const isLoading = Boolean(loading) || Boolean(disabled) || !bounds
 
     useEffect(() => {
-        // Only close the modal when bounds are removed (data gone).
-        // Do not close when global `disabled` or transient `loading` changes,
-        // since we only want to disable month clicks in those cases.
+        // only close when bounds are actually removed, not on transient disabled/loading
         if (!bounds && openFor) {
             startClose()
         }
@@ -97,7 +92,6 @@ export default function useDateWindowPicker({ value, onCommit, disabled = false 
         if (!bounds) return
         minYearRef.current = bounds.minDate.getFullYear()
         maxYearRef.current = bounds.maxDate.getFullYear()
-        // clamp visibleYear into range when bounds change
         setVisibleYear((v) => {
             const cur = v ?? bounds.minDate.getFullYear()
             if (cur < minYearRef.current) return minYearRef.current
@@ -128,17 +122,14 @@ export default function useDateWindowPicker({ value, onCommit, disabled = false 
     const snapRange = (r) => r ? ({ year: r.year, month: r.month }) : null
 
     const openForField = (which) => {
-        // toggle: if same field close
         if (openFor === which) {
             startClose()
             return
         }
 
-        // snapshot initial values for comparison on close
         initialStartRef.current = snapRange(start)
         initialEndRef.current = snapRange(end)
 
-        // set open and visible year
         const targetYear = (which === 'start' && start) ? start.year : (which === 'end' && end) ? end.year : (years[0] ?? new Date().getFullYear())
         setOpenFor(which)
         setIsOpenedVisible(false)
@@ -164,7 +155,6 @@ export default function useDateWindowPicker({ value, onCommit, disabled = false 
         }, 0)
     }
 
-    // close modal when clicking outside or pressing Escape
     const samePos = (a, b) => {
         if (!a && !b) return true
         if (!a || !b) return false

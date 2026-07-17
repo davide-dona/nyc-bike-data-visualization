@@ -40,11 +40,10 @@ function WeatherPage({ filters = {} }) {
         <section className="page-card">
             <header className="page-card__header">
                 <div className="page-card__heading">
-                    <span className="page-card__eyebrow">03 - Climate</span>
+                    <span className="page-card__eyebrow">Weather</span>
                     <h2 className="page-card__title">When the sky decides.</h2>
                     <p className="page-card__subtitle">
-                        How average speed and trip frequency respond to the weather
-                        over New York.
+                        How users habits respond to the weather.
                     </p>
                 </div>
             </header>

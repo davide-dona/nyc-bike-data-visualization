@@ -2,8 +2,7 @@ import { useEffect, useRef } from 'react'
 import { MAX_FIT_ZOOM } from '../../utils/cameraBounds.js'
 import { INITIAL_VIEW_STATE } from '../../utils/mapConfig.js'
 
-// Zoom for the selected station; matches the fitted-view ceiling used
-// elsewhere on the map.
+// Zoom for the selected station; matches the map's fitted-view ceiling.
 const SINGLE_STATION_ZOOM = MAX_FIT_ZOOM
 
 /**
@@ -24,8 +23,7 @@ export function useInfrastructureCamera({
 
     useEffect(() => {
         if (activeLayer !== 'infrastructure') {
-            // Selection clears off-layer (see useInfrastructureStationSelection),
-            // so forget the last flight instead of flying back under another layer.
+            // Selection clears off-layer, so just forget the last flight instead of flying back.
             lastFlownStationIdRef.current = null
             return
         }

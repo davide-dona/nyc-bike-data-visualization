@@ -34,7 +34,7 @@ export default function useCompareLayerState({ filtersKey, baseLayerKey, overlay
     const isComparePanelOpen = isCompareMode || isCompareHovered;
 
     const handleCompareToggle = () => {
-        // If the panel is currently closed but hovered, open it without toggling (to prevent accidental close when moving mouse between button and panel)
+        // Avoid closing when hover already opened the panel.
         if (!isCompareMode && isCompareHovered) {
             if (compareHoverCloseTimeoutRef.current) {
                 clearTimeout(compareHoverCloseTimeoutRef.current);
@@ -43,7 +43,6 @@ export default function useCompareLayerState({ filtersKey, baseLayerKey, overlay
             setIsCompareMode(true);
             setIsCompareHovered(false);
         } else {
-            // Otherwise, toggle the compare mode as usual
             setIsCompareMode((prev) => !prev);
         }
     };
@@ -180,8 +179,7 @@ export default function useCompareLayerState({ filtersKey, baseLayerKey, overlay
         };
     }, [hasPinnedCompareLayers, onCompareModeChange]);
 
-    // Changing the page filters invalidates every pinned comparison, so the
-    // whole compare state resets to its defaults.
+    // Page filter changes invalidate every pinned comparison.
     useEffect(() => {
         if (previousFiltersKeyRef.current === filtersKey) return;
 

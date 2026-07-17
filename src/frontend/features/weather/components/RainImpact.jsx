@@ -22,7 +22,7 @@ export default function RainImpact({ data, loading, error, onRefetch }) {
     return (
         <ChartFrame
             title="Rain impact - ridership vs dry baseline"
-            note="Bars compare hourly ridership under each rain intensity with dry hours fixed at 100 percent. Shorter bars mean more riders sit that intensity out."
+            note="Bars compare hourly ridership under each rain intensity compared to the dry-weather baseline (100%), showing how rain reduces ridership."
             status={{ loading, error, refetch: onRefetch }}
             emptyMessage={buckets.length === 0 ? 'No precipitation data available for this filter range.' : null}
             frameClassName="weather-deepdive-frame"

@@ -2,13 +2,9 @@ import { BAR_SOLID, BAR_RUST } from '@/utils/styling'
 import { formatDailyRides } from '../utils/tripFlowFormat.js'
 
 /**
- * One ranked corridor row: rank, single-line label, an inline bar scaled to
- * the list maximum, and the daily-rides value. In split mode the fill is
- * two-tone - outbound in accent blue, inbound in rust - so each partner's
- * direction balance reads at a glance. Hovering the row highlights the
- * matching arc on the map, and map-arc hover highlights the row back.
- * Clicking the row pins its corridor: the map keeps its camera and every
- * other arc dims; clicking again unpins.
+ * One ranked corridor row: rank, label, an inline bar scaled to the list max, and the daily-rides value.
+ * In split mode the fill is two-tone (outbound accent, inbound rust) showing each partner's direction balance.
+ * Row hover highlights the matching map arc (and vice versa); a row click pins/unpins its corridor.
  * @param {Object} row - Ranked corridor from rankCorridors.
  * @param {number} rank - 1-based position in the list.
  * @param {number} maxValue - Maximum row value, for bar scaling.

@@ -1,9 +1,7 @@
 import { GeoJsonLayer } from '@deck.gl/layers'
 
 /**
- * Color map for bike facility classes - editorial palette.
- * Three clearly distinct hues, each carrying implicit meaning:
- * forest = segregated/safe, accent = primary network, amber = shared/caution.
+ * Color map for bike facility classes - editorial palette (forest = safe, accent = primary, amber = caution).
  */
 export const FACILITY_COLORS = {
     I:   [ 47, 125,  79, 255],   // forest - off-street path
@@ -25,9 +23,8 @@ export const FACILITY_LABELS = {
 }
 
 /**
- * CSS-friendly color strings, mirrored from FACILITY_COLORS - used by the
- * React legend component only (no deck.gl involvement).
-*/
+ * CSS-friendly color strings mirrored from FACILITY_COLORS, for the React legend component.
+ */
 export const FACILITY_CSS_COLORS = {
     I:   'rgb(47, 125, 79)',
     II:  'rgb(25, 83, 216)',
@@ -36,9 +33,7 @@ export const FACILITY_CSS_COLORS = {
     _default: 'rgb(110, 106, 98)',
 }
 
-// Geographic width (meters) with a pixel cap: routes shrink with the map
-// when zoomed out so they never blanket the city, and hold a comfortable
-// capped width once zoomed in - mirroring the station-dot sizing approach.
+// Geographic width with a pixel cap, mirroring the station-dot sizing approach.
 const LINE_WIDTH_M = 18
 const LINE_WIDTH_MIN_PIXELS = 0.75
 const LINE_WIDTH_MAX_PIXELS = 5
@@ -51,32 +46,26 @@ const LINE_WIDTH_MAX_PIXELS = 5
  * @returns {GeoJsonLayer|null}
  */
 export function createBikeRoutesLayer({ routes, hoveredrouteID, onRoutePick }) {
-    // To prevent rendering an empty layer, return null if there are no routes
     if (!routes?.length) return null
     return new GeoJsonLayer({
         id: 'bike-routes-line-layer',
         data: routes,
         stroked: true,
-        filled: false,  // No fill, just stroke
-        // Line width definition: geographic with a pixel cap, so routes
-        // scale down with the map instead of staying a fixed pixel width
-        // that reads as oversized once zoomed out.
+        filled: false,
         getLineWidth: LINE_WIDTH_M,
         lineWidthUnits: 'meters',
         lineWidthMinPixels: LINE_WIDTH_MIN_PIXELS,
         lineWidthMaxPixels: LINE_WIDTH_MAX_PIXELS,
-        // Line color: highlight every segment sharing the hovered routeID,
+        // Highlight every segment sharing the hovered routeID.
         getLineColor: (f) => {
             const base = FACILITY_COLORS[f.facilityClass] ?? FACILITY_COLORS._default
             if (hoveredrouteID == null) return base
             return f.routeID === hoveredrouteID
-                ? [255, 255, 255, 255]              // HIGHLIGHTED SEGMENTS
-                : [base[0], base[1], base[2], 255] // NOT SELECTED BIKE ROUTES
-            // No hover active - normal class-based colour
+                ? [255, 255, 255, 255]
+                : [base[0], base[1], base[2], 255]
         },
-        // Hover events
         pickable: true,
-        autoHighlight: false,   // Manual highlighting via getLineColor above
+        autoHighlight: false, // manual highlighting via getLineColor above
         onHover: onRoutePick,
         onClick: onRoutePick,
         // Rebuild colour accessor whenever the hovered id changes
@@ -87,20 +76,13 @@ export function createBikeRoutesLayer({ routes, hoveredrouteID, onRoutePick }) {
 }
 
 /**
- * Returns a plain-text tooltip string for a hovered bike route feature,
- * following the same title + detail-list convention as the trip-flow
- * corridor tooltip (see tripArcsTooltip). Safe-guards against missing
- * properties.
- *
+ * Returns a plain-text tooltip for a hovered bike route feature (title + detail list, matching tripArcsTooltip's convention).
  * @param {Object} object - The hovered GeoJSON feature (from deck.gl onHover).
  * @returns {string}
  */
 export function bikeRouteTooltip(object) {
-    // Avoid rendering if empty or malformed feature
     if (!object) return ''
-    // Extract relevant properties with safe fallbacks
     const { streetName, facilityClass, fromStreet, toStreet } = object
-    // Map facility class to human-readable label, with a fallback for unknown classes
     const classLabel = FACILITY_LABELS[facilityClass] ?? 'Unknown'
 
     return `Bike Route\n${streetName}\n\n - Segment: ${fromStreet} → ${toStreet}\n - Facility Class: ${classLabel}`

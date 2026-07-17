@@ -12,11 +12,7 @@ const WEATHER_ICONS = {
 }
 
 /**
- * Content of the weather scatter-plot tooltip: hovered weather condition with
- * its activity and journey statistics. Rendered inside the shared
- * FloatingTooltip surface.
- * @param {Object} point - The hovered scatter point (weather group, rides, duration, distance, speed).
- * @returns The rendered tooltip content.
+ * Weather scatter-plot tooltip content: hovered condition's activity and journey stats, rendered in the shared FloatingTooltip.
  */
 export default function WeatherTooltipContent({ point }) {
     return (

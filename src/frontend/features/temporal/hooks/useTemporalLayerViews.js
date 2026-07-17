@@ -75,9 +75,7 @@ export default function useTemporalLayerViews({
     const mergedLoading = loading || (hasPinnedCompareLayers && compareLoading);
     const mergedError = error || (hasPinnedCompareLayers ? compareError : null);
 
-    // Per-chart states: each chart merges only its own queries with the
-    // compare-layer queries it renders, so one failed request does not blank
-    // the other charts.
+    // Each chart merges only its own queries so one failed request doesn't blank the others.
     const withCompare = (chartQueries) => ({
         loading: chartQueries.some((q) => q.loading) || (hasPinnedCompareLayers && compareLoading),
         error: chartQueries.find((q) => q.error)?.error

@@ -1,10 +1,4 @@
-/**
- * Converts a 3- or 6-digit hex color to an rgba() string with the given alpha.
- * Falls back to the editorial accent blue when the input is malformed.
- * @param {string} hexColor - Hex color in "#RGB" or "#RRGGBB" form.
- * @param {number} alpha - Alpha channel in [0, 1].
- * @returns {string} CSS `rgba(...)` color string.
- */
+/** Converts a 3- or 6-digit hex color to an rgba() string with the given alpha; falls back to the editorial accent blue when malformed. */
 export function toRgba(hexColor, alpha) {
     if (!hexColor?.startsWith("#") || (hexColor.length !== 7 && hexColor.length !== 4)) {
         return `rgba(25, 83, 216, ${alpha})`;

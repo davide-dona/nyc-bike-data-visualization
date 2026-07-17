@@ -23,7 +23,6 @@ vi.mock('../clients/apiClient.js', () => ({
 const TEST_FILTERS = { start_date: '2026-01-01', end_date: '2026-01-31', user_type: 'member' }
 const wrapper = createQueryWrapper()
 
-// These tests primarily check that hooks that fetch data resolve without throwing
 describe('hooks smoke tests', () => {
     it('useDatasetDateRange resolves without throwing', async () => {
         const { result } = renderHook(() => useDatasetDateRange(), { wrapper })

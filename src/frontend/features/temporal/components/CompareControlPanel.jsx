@@ -4,24 +4,11 @@ import { FILTERS } from '@/features/header/utils/filterOptions.js'
 
 /**
  * The Compare toggle button plus the compare panel shell: filter dropdowns,
- * the Add Surface button with its tooltip-tracking wrapper, and the Reset
- * button. The surfaces list is passed as children so this stays render-only.
- * @param {boolean} isOpen - Whether the panel is open (pinned or hovered).
- * @param {boolean} isActive - Whether the toggle button shows its active state.
- * @param {boolean} disabled - Disables the toggle button (loading/error).
- * @param {Object} pendingLayerFilters - Draft filter values for the next layer.
+ * the Add Surface button, and the Reset button. The surfaces list is passed
+ * as children so this component stays render-only.
  * @param {Function} onPendingFilterChange - (key, value) updates a draft filter.
- * @param {Function} onAddLayer - Pins the draft filters as a new compare layer.
  * @param {boolean} isAddDisabled - Whether the draft duplicates an existing surface.
- * @param {Function} onResetCompare - Clears all compare layers and drafts.
- * @param {boolean} canReset - Whether there is anything to reset.
- * @param {Function} onToggle - Toggles the panel open/closed.
- * @param {Function} onHoverEnter - Hover-intent enter handler (button and panel).
- * @param {Function} onHoverLeave - Hover-intent leave handler (button and panel).
  * @param {{onMouseEnter: Function, onMouseMove: Function, onMouseLeave: Function}} addLayerMouseHandlers - Tooltip tracking for the Add Surface wrapper.
- * @param {Object} buttonRef - Ref to the toggle button node.
- * @param {Object} panelRef - Ref to the panel node.
- * @param {Object} addLayerButtonRef - Ref to the Add Surface button node.
  * @param {import('react').ReactNode} children - The surfaces list.
  * @returns The rendered compare button and panel.
  */

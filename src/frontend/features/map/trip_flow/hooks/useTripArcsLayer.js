@@ -28,8 +28,7 @@ export function useTripArcsLayer({ filters, focusedStationId, tripDirection = 'a
         ),
     })
 
-    // Every corridor of the focused station (no limit param, so the backend
-    // returns all partner pairs); disabled while no station is focused.
+    // Every corridor of the focused station (no limit param); disabled while no station is focused.
     const focusQuery = useApiQueryWithFilters({
         queryKey: 'station-flow-counts',
         fetcher: fetchStationFlowCounts,
@@ -44,9 +43,8 @@ export function useTripArcsLayer({ filters, focusedStationId, tripDirection = 'a
 
     const activeQuery = isFocusView ? focusQuery : overviewQuery
 
-    // Focus view rows are oriented so start_* is always the focused station,
-    // then filtered by the direction toggle; overview rows keep the backend's
-    // canonical pair order (direction has no meaning without a focus).
+    // Focus rows are oriented so start_* is the focused station, then filtered by direction;
+    // overview rows keep the backend's canonical pair order (direction is meaningless without focus).
     const trips = useMemo(() => {
         const rows = selectTrips(activeQuery.data)
         if (!isFocusView) return rows

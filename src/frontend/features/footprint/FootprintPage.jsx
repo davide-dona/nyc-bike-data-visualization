@@ -10,7 +10,6 @@ import { FOOTPRINT_GUIDE } from './utils/footprintGuide.js'
 /**
  * Component for the green mobility page: ridden kilometres translated into
  * environmental terms, with the assumptions on the table.
- * @param {Object} filters - The filters to apply to the data, such as date range or user-selected filters.
  */
 function FootprintPage({ filters = {} }) {
     const {

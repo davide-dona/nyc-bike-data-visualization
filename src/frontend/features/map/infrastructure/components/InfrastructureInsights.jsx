@@ -47,8 +47,7 @@ export default function InfrastructureInsights({ insights, selectedYear, setSele
         [byFacilityClass],
     )
 
-    // Clicking a year filters the map like the year slider; clicking the
-    // already-selected year (or the current one) returns to the present.
+    // Clicking a year filters like the slider; re-clicking it (or the current year) returns to present.
     const handleYearClick = useCallback((_index, label) => {
         const year = Number(label)
         if (!Number.isFinite(year)) return

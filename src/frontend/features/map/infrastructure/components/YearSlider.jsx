@@ -1,13 +1,8 @@
-// Major ticks every 10 years keep the track legible regardless of how wide
-// the underlying data range is, instead of one tick per year.
+// Ticks every 10 years keep the track legible regardless of the data range.
 const TICK_INTERVAL_YEARS = 10
 
 /**
- * Toolbar control for the infrastructure layer's historical view: shows the
- * bike network as it stood at the end of the selected year. The slider is
- * the only way to set the year, ticked every 10 years with the year label;
- * the current value is shown as a read-only readout. The maximum year means
- * "Present", i.e. every currently active route.
+ * Slider control for the infrastructure layer's historical view: sets the network year shown on the map ("Present" at maxYear).
  * @param {number|null} value - Selected year, or null for the present network.
  * @param {Function} onChange - Called with the new year, or null when back at present.
  * @param {number} minYear - Earliest installation year in the data.

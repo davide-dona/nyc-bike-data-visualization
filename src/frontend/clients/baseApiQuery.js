@@ -8,12 +8,7 @@ function hasDateRange(filters = {}) {
 function hasUserFilters(filters = {}) {
     return Boolean(filters.user_type)
 }
-/**
- * Fetches data with optional filters via React Query, exposing a simplified result shape.
- * @param {Object} options.enabledWhen - Predicate on filters; defaults to a valid date range or user-type filter.
- * @param {number} [options.staleTime] - Overrides QueryClient default freshness window if set.
- * @param {number} [options.gcTime] - Overrides QueryClient default cache GC time if set.
- */
+/** Fetches data with optional filters via React Query, exposing a simplified result shape. */
 function useApiQueryWithFilters({
     queryKey,
     fetcher,
@@ -46,12 +41,7 @@ function useApiQueryWithFilters({
     }
 }
 
-/**
- * Batch variant of `useApiQueryWithFilters` for firing many parallel requests
- * (e.g. compare mode rendering one request per layer × breakdown).
- * @param {Array<object>} descriptors - Same option shape as `useApiQueryWithFilters`, one per query.
- * @returns {Array<object>} React Query result objects, one per descriptor, in order.
- */
+/** Batch variant of `useApiQueryWithFilters` for firing many parallel requests (e.g. compare mode). */
 function useApiQueriesWithFilters(descriptors = []) {
     return useQueries({
         queries: descriptors.map(({
