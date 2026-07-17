@@ -7,6 +7,7 @@ import {
     FONT_MONO,
 } from '@/utils/editorialTokens.js'
 import { formatNumber } from '@/utils/numberFormat.js'
+import { RIDE_METRIC_LABELS } from '@/utils/rideMetricLabels.js'
 
 // Bins with fewer hours are dropped to avoid a wild single-hour outlier point.
 const MIN_HOURS = 5
@@ -92,7 +93,7 @@ export function buildTemperatureResponseConfig(formattedSeries) {
                     beginAtZero: true,
                     title: {
                         display: true,
-                        text: 'Rides Per Hour',
+                        text: RIDE_METRIC_LABELS.perHour.label,
                         font: { family: FONT_SANS, size: 13, weight: '500' },
                         color: INK,
                     },

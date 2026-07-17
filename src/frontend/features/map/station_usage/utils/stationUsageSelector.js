@@ -27,7 +27,7 @@ export function selectStations(stationUsageCounts) {
                     if (!Number.isInteger(hour) || hour < 0 || hour >= HOURS_IN_DAY) return
                     if (!Number.isFinite(hoursCount) || hoursCount <= 0) return
 
-                    // hours_count = days covered for this hour; dividing gives avg rides/day (matches infrastructure sidebar convention).
+                    // hours_count = days covered for this hour; dividing gives avg rides/hour (matches the infrastructure sidebar's per-hour convention).
                     USAGE_MODES.forEach((mode) => {
                         // Guard per mode: incoming can be 0 while outgoing is positive.
                         const rides = Number(group[MODE_FIELDS[mode]])

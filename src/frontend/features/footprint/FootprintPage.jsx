@@ -1,5 +1,6 @@
 import useFootprintPageState from './hooks/useFootprintPageState.js'
 import FootprintTiles from './components/FootprintTiles.jsx'
+import FootprintEquivalents from './components/FootprintEquivalents.jsx'
 import ModeComparisonBar from './components/ModeComparisonBar.jsx'
 import CumulativeAvoidedBand from './components/CumulativeAvoidedBand.jsx'
 import AssumptionsBox from './components/AssumptionsBox.jsx'
@@ -41,6 +42,14 @@ function FootprintPage({ filters = {} }) {
             </header>
             <div className="page-card__body">
                 <FootprintTiles
+                    totals={totals}
+                    substitutionRate={substitutionRate}
+                    loading={dailyLoading}
+                    error={dailyError}
+                    onRefetch={refetchDaily}
+                />
+
+                <FootprintEquivalents
                     totals={totals}
                     substitutionRate={substitutionRate}
                     loading={dailyLoading}

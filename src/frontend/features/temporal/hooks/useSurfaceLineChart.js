@@ -21,7 +21,8 @@ import {
  * @returns {Object} The metric config, Plotly traces and layout, and the hasData flag.
  */
 export default function useSurfaceLineChart({ dateData, activeMetric, compareMode, layers }) {
-    const metric = useMemo(() => getMetricConfig(activeMetric), [activeMetric])
+    // Each point is a single calendar date, so total_rides here is that day's own total, not an average.
+    const metric = useMemo(() => getMetricConfig(activeMetric, 'daily'), [activeMetric])
 
     const singleSeries = useMemo(
         () => buildSeries(dateData ?? [], metric.get),

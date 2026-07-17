@@ -13,6 +13,7 @@ import {
 import { WMO_WEATHER_CODES } from "../utils/wmoCodeHandler.js";
 import { PLOTLY_HOVERLABEL } from "@/utils/styling";
 import { toRgba } from "@/utils/color.js";
+import { RIDE_METRIC_LABELS } from "@/utils/rideMetricLabels.js";
 import {
     buildRidgelineSeries,
     buildTickText,
@@ -60,7 +61,7 @@ function WeatherRidgeline({ data, loading, error, onRefetch }) {
                         (dimension === "hour"
                             ? "Moment: <b>%{x:02d}:00</b><br>"
                             : "Moment: <b>%{x}</b><br>") +
-                        "Rides/hr: <b>%{customdata:,.2f}</b><extra></extra>",
+                        `${RIDE_METRIC_LABELS.perHour.label}: <b>%{customdata:,.2f}</b><extra></extra>`,
                     customdata: ridge.rawSeries,
                     showlegend: false,
                 };

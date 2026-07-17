@@ -1,4 +1,4 @@
-import { CAR_G_PER_KM, SUBSTITUTION_RATE } from './emissionFactors.js'
+import { CAR_G_PER_KM, SUBSTITUTION_RATE, EQUIVALENCE_FACTORS } from './emissionFactors.js'
 import { formatCount, formatNumber } from '../../../utils/numberFormat.js'
 
 const GRAMS_PER_TONNE = 1_000_000
@@ -24,6 +24,24 @@ export function avoidedCo2Range(distanceKm) {
 /** Number of car trips replaced when a share of rides substitutes a car trip. */
 export function carTripsReplaced(totalRides, substitutionRate) {
     return totalRides * substitutionRate
+}
+
+/** Number of urban trees (grown 10 years) needed to absorb the given avoided CO2. */
+export function treesToAbsorb(tonnesCo2) {
+    return tonnesCo2 / EQUIVALENCE_FACTORS.trees.tonnesPerTree
+}
+
+/** Equivalent number of average people's yearly emissions matching the given avoided CO2. */
+export function peopleYearlyEquivalent(tonnesCo2) {
+    return tonnesCo2 / EQUIVALENCE_FACTORS.globalPerCapita.tonnesPerPerson
+}
+
+/** Hours an average LED bulb could run on the grid electricity the avoided CO2 represents. */
+export function ledBulbHours(tonnesCo2) {
+    const { kgCo2PerKwh, watts } = EQUIVALENCE_FACTORS.ledBulb
+    if (!(kgCo2PerKwh > 0) || !(watts > 0)) return 0
+    const kwh = (tonnesCo2 * 1000) / kgCo2PerKwh
+    return kwh / (watts / 1000)
 }
 
 /**

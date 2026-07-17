@@ -1,4 +1,5 @@
 import { formatNumber } from '../../../utils/numberFormat.js'
+import { RIDE_METRIC_LABELS } from '../../../utils/rideMetricLabels.js'
 
 export const METRIC_FORMATTERS = {
     total_rides: value => formatNumber(value, 2),
@@ -8,11 +9,15 @@ export const METRIC_FORMATTERS = {
 }
 
 /**
- * Derives average rides per day from a stats row's totals and hour coverage.
+ * Derives the average rides value from a stats row's totals and hour coverage:
+ * an average per hour for day-hour cells and hour marginals, an average per day
+ * for day-of-week marginals, and (since a date row's hours_count is exactly one
+ * day) that day's own total for date rows. The row's `hour` field distinguishes
+ * hour-shaped rows from day-shaped ones, matching the backend's hours_count semantics.
  * @param {Object} row - Stats row with total_rides, hours_count, and optional hour.
- * @returns {number} Rides per covered day, 0 when coverage is missing.
+ * @returns {number} The row's average (or, for a single date, its total) rides, 0 when coverage is missing.
  */
-function getRidesPerDay(row) {
+function getAverageRides(row) {
     const totalRides = Number(row?.total_rides ?? 0)
     const hoursCount = Number(row?.hours_count ?? 0)
 
@@ -28,15 +33,37 @@ function getRidesPerDay(row) {
     return daysCount > 0 ? totalRides / daysCount : 0
 }
 
+// Rides has three presentations, all sharing the same `get`/`format` but differing in
+// label/unit: an average per hour (day-hour surface cells, hour marginals), an average
+// per day (day-of-week marginals), and a single date's own total (the date series - each
+// point is exactly one day, not an average, so it keeps the "/day" unit without "Avg").
 // `noun` is the tooltip name for the value; the unit follows separately, so noun stays unit-free.
-export const METRICS = {
-    total_rides: {
-        label: "Rides per Day",
+const RIDES_BY_AGGREGATION = {
+    hour: {
+        label: RIDE_METRIC_LABELS.perHour.label,
         noun: "Rides",
-        unit: "rides/day",
-        get: getRidesPerDay,
+        unit: RIDE_METRIC_LABELS.perHour.unit,
+        get: getAverageRides,
         format: METRIC_FORMATTERS.total_rides,
     },
+    day: {
+        label: RIDE_METRIC_LABELS.perDay.label,
+        noun: "Rides",
+        unit: RIDE_METRIC_LABELS.perDay.unit,
+        get: getAverageRides,
+        format: METRIC_FORMATTERS.total_rides,
+    },
+    daily: {
+        label: "Rides / day",
+        noun: "Rides",
+        unit: "rides/day",
+        get: getAverageRides,
+        format: METRIC_FORMATTERS.total_rides,
+    },
+}
+
+export const METRICS = {
+    total_rides: RIDES_BY_AGGREGATION.hour,
     average_duration_minutes: {
         label: "Avg Duration (min)",
         noun: "Duration",
@@ -61,8 +88,16 @@ export const METRICS = {
 }
 
 /**
- * Retrieves the metric configuration for a metric key.
+ * Retrieves the metric configuration for a metric key. Only total_rides varies by
+ * aggregation (its value is always an average or a single day's total depending on what
+ * the rows represent); other metrics are per-ride averages regardless of grouping.
  * @param {string} metric - Metric key.
+ * @param {'hour'|'day'|'daily'} [aggregation='hour'] - Time aggregation of the rows this config will read, for total_rides.
  * @returns {Object} The metric config, falling back to total_rides.
  */
-export const getMetricConfig = metric => METRICS[metric] ?? METRICS.total_rides
+export const getMetricConfig = (metric, aggregation = 'hour') => {
+    if (metric == null || metric === 'total_rides') {
+        return RIDES_BY_AGGREGATION[aggregation] ?? RIDES_BY_AGGREGATION.hour
+    }
+    return METRICS[metric] ?? RIDES_BY_AGGREGATION.hour
+}

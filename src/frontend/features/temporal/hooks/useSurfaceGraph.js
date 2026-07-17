@@ -59,7 +59,8 @@ export default function useSurfaceGraph({
     const rawDisplayAngle = useMemo(() => azimuthToDisplayAngle(azimuth), [azimuth])
     const roundedDisplayAngle = Math.round(rawDisplayAngle)
     const anglePercent = ((rawDisplayAngle - DISPLAY_MIN_DEG) / (DISPLAY_MAX_DEG - DISPLAY_MIN_DEG)) * 100
-    const metric = useMemo(() => getMetricConfig(activeMetric), [activeMetric])
+    // The surface always plots day-hour cells, so total_rides here is always an hourly average.
+    const metric = useMemo(() => getMetricConfig(activeMetric, 'hour'), [activeMetric])
 
     const hoverTemplate = useMemo(
         () =>

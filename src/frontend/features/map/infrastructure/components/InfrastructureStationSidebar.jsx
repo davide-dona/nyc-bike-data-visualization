@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import useInfrastructureStationSidebarData from '../hooks/useInfrastructureStationSidebarData.js'
 import { formatCount, formatNumber } from '@/utils/numberFormat.js'
+import { RIDE_METRIC_LABELS } from '@/utils/rideMetricLabels.js'
 import StatCard from '@/components/StatCard.jsx'
 import HorizontalBarRow from '../../components/HorizontalBarRow.jsx'
 import VerticalBarChart from '../../components/VerticalBarChart.jsx'
@@ -79,15 +80,15 @@ export default function InfrastructureStationSidebar({ selectedStations = [], fi
                 <ul className="infra-sidebar__highlights">
                     <li className="infra-sidebar__highlight-row">
                         <span className="infra-sidebar__highlight-label">Avg {DAY_FULL[todayDow]}</span>
-                        <strong className="infra-sidebar__highlight-value">~{formatNumber(todayRow.avg_rides, 2)} rides</strong>
+                        <strong className="infra-sidebar__highlight-value">~{formatNumber(todayRow.avg_rides, 2)} {RIDE_METRIC_LABELS.perDay.unit}</strong>
                     </li>
                     <li className="infra-sidebar__highlight-row">
                         <span className="infra-sidebar__highlight-label">Peak hour</span>
-                        <strong className="infra-sidebar__highlight-value">{peakHour.label}:00 (~{formatNumber(peakHour.avg_rides, 2)} rides/h)</strong>
+                        <strong className="infra-sidebar__highlight-value">{peakHour.label}:00 (~{formatNumber(peakHour.avg_rides, 2)} {RIDE_METRIC_LABELS.perHour.unit})</strong>
                     </li>
                     <li className="infra-sidebar__highlight-row">
                         <span className="infra-sidebar__highlight-label">Busiest day</span>
-                        <strong className="infra-sidebar__highlight-value">{DAY_FULL[busiestDay.day_of_week]} (~{formatNumber(busiestDay.avg_rides, 2)} rides)</strong>
+                        <strong className="infra-sidebar__highlight-value">{DAY_FULL[busiestDay.day_of_week]} (~{formatNumber(busiestDay.avg_rides, 2)} {RIDE_METRIC_LABELS.perDay.unit})</strong>
                     </li>
                     <li className="infra-sidebar__highlight-row">
                         <span className="infra-sidebar__highlight-label">Flow balance</span>
@@ -103,8 +104,8 @@ export default function InfrastructureStationSidebar({ selectedStations = [], fi
             {!stationData.loading && !stationData.error && <section className="infra-sidebar__section">
                 <div className="infra-sidebar__section-heading">Historical profile</div>
                 <div className="infra-sidebar__chart-grid">
-                    <VerticalBarChart title="Avg rides by day of week" rows={stationData.daySeries.map((row) => ({ ...row, label: DAY_ORDER[row.day_of_week] ?? row.label }))} labelKey="day_of_week" valueKey="avg_rides" unit="avg rides" />
-                    <VerticalBarChart title="Avg rides by hour" rows={stationData.hourSeries.map((row) => ({ ...row, tooltip_label: `${row.label}:00` }))} labelKey="hour" valueKey="avg_rides" unit="avg rides/h" />
+                    <VerticalBarChart title="Avg rides by day of week" rows={stationData.daySeries.map((row) => ({ ...row, label: DAY_ORDER[row.day_of_week] ?? row.label }))} labelKey="day_of_week" valueKey="avg_rides" unit={RIDE_METRIC_LABELS.perDay.unit} />
+                    <VerticalBarChart title="Avg rides by hour" rows={stationData.hourSeries.map((row) => ({ ...row, tooltip_label: `${row.label}:00` }))} labelKey="hour" valueKey="avg_rides" unit={RIDE_METRIC_LABELS.perHour.unit} />
                     <DivergingHourChart title="Avg in / out by hour" rows={stationData.hourSeries} />
                 </div>
             </section>}

@@ -1,6 +1,3 @@
-// Ticks every 10 years keep the track legible regardless of the data range.
-const TICK_INTERVAL_YEARS = 10
-
 /**
  * Slider control for the infrastructure layer's historical view: sets the network year shown on the map ("Present" at maxYear).
  * @param {number|null} value - Selected year, or null for the present network.
@@ -13,14 +10,6 @@ export default function YearSlider({ value, onChange, minYear, maxYear, disabled
     const range = Math.max(1, maxYear - minYear)
     const currentYear = value ?? maxYear
     const progressPct = ((currentYear - minYear) / range) * 100
-    const decadeTicks = []
-    for (
-        let year = Math.ceil(minYear / TICK_INTERVAL_YEARS) * TICK_INTERVAL_YEARS;
-        year <= maxYear;
-        year += TICK_INTERVAL_YEARS
-    ) {
-        decadeTicks.push(year)
-    }
 
     return (
         <div className="year-slider">
@@ -41,17 +30,9 @@ export default function YearSlider({ value, onChange, minYear, maxYear, disabled
                     }}
                     aria-label="Show the bike network as of a given year"
                 />
-                <div className="year-slider__ticks" aria-hidden="true">
-                    {decadeTicks.map((year) => (
-                        <span
-                            key={year}
-                            className={`year-slider__tick${year === Math.round(currentYear / TICK_INTERVAL_YEARS) * TICK_INTERVAL_YEARS ? ' is-active' : ''}`}
-                            style={{ left: `${((year - minYear) / range) * 100}%` }}
-                        >
-                            <span className="year-slider__tick-line" />
-                            <span className="year-slider__tick-label">{year}</span>
-                        </span>
-                    ))}
+                <div className="year-slider__bounds" aria-hidden="true">
+                    <span className="year-slider__bound">{minYear}</span>
+                    <span className="year-slider__bound">{maxYear}</span>
                 </div>
             </div>
             <span className="year-slider__value">{currentYear}</span>

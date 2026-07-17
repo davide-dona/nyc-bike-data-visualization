@@ -13,6 +13,7 @@ import {
  * @param {Function} onBarClick - Optional (index, label) callback; enables the pointer cursor over bars.
  * @param {Object} overlayDataset - Optional { label, data } line drawn over the bars (pinned slice from the other chart).
  * @param {string} selectedLabel - Label of the pinned bar, painted in the amber selection color.
+ * @param {string} [valueNoun='Rides'] - Tooltip name for the value (e.g. "Rides", "Duration").
  * @returns A canvas element where the Chart.js bar chart is rendered.
  */
 export default function BarChart({
@@ -28,6 +29,7 @@ export default function BarChart({
     onBarClick = null,
     overlayDataset = null,
     selectedLabel = null,
+    valueNoun = 'Rides',
 }) {
     // Read through this ref at call time so changes never recreate the chart.
     const live = useRef({})
@@ -44,6 +46,7 @@ export default function BarChart({
         unit ?? '',
         xLabelStep,
         hasBarClick,
+        valueNoun,
     ])
     const paintKey = `${highlight}|${selectedLabel}`
 
@@ -59,6 +62,7 @@ export default function BarChart({
                 unit,
                 xLabelStep,
                 hasBarClick,
+                valueNoun,
                 live,
             }),
         structuralKey,

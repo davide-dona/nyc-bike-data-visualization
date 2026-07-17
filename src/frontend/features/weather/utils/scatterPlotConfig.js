@@ -7,6 +7,7 @@ import {
     FONT_MONO,
 } from '@/utils/editorialTokens.js'
 import { SCATTER_BORDER_COLOR, SCATTER_BORDER_WIDTH, SCATTER_POINT_RADIUS } from '@/utils/styling'
+import { RIDE_METRIC_LABELS } from '@/utils/rideMetricLabels.js'
 
 /**
  * Builds the Chart.js config for the weather scatter plot (rides per hour vs
@@ -91,7 +92,7 @@ export function buildScatterPlotConfig({ formattedData, externalTooltipHandler }
                 y: {
                     title: {
                         display: true,
-                        text: 'Rides Per Hour',
+                        text: RIDE_METRIC_LABELS.perHour.label,
                         font: { family: FONT_SANS, size: 13, weight: '500' },
                         color: INK,
                     },

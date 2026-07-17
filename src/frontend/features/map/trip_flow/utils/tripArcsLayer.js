@@ -9,6 +9,7 @@ import {
 } from '@/utils/editorialTokens.js'
 import { classifyBalance } from './tripArcsSelector.js'
 import { formatCount, formatNumber } from '@/utils/numberFormat.js'
+import { RIDE_METRIC_LABELS } from '@/utils/rideMetricLabels.js'
 
 // Overview: thin translucent arcs driven by volume (width/opacity/hue ramp).
 // Focus: solid diverging colors by net direction; volume drives width/opacity only.
@@ -27,9 +28,8 @@ const RAMP_SPLIT = 0.6
 const EMPHASIS_ALPHA_FLOOR = 210
 const EMPHASIS_WIDTH_BONUS = 1.5
 const TAIL_ALPHA_FACTOR = 0.4
-// Corridor pin (leaderboard click): the pinned corridor is full opacity, others fade to a faint trace.
-const PIN_DIM_FACTOR = 0.12
-const PIN_DIM_ALPHA_FLOOR = 14
+// Corridor pin (leaderboard click): only the pinned corridor's arc is drawn (see
+// createTripsArcLayer), so once it's the sole arc left it always gets full opacity.
 
 const FOCUS_COLORS = {
     outbound: ACCENT_RGB,
@@ -72,7 +72,9 @@ function rampArcColor(t) {
 }
 
 /**
- * Applies the corridor-pin treatment: the pinned corridor is full opacity, others dim but stay visible.
+ * Applies the corridor-pin treatment: the pinned corridor is always full opacity. Non-pinned
+ * corridors are excluded from the layer's data entirely (see createTripsArcLayer), so by the
+ * time this runs every trip already matches the pin.
  * @param {Object} trip - Processed trip row.
  * @param {string|null} pinnedCorridorKey - Pinned corridor key, null for none.
  * @param {number} alpha - The alpha computed for the current mode.
@@ -80,8 +82,7 @@ function rampArcColor(t) {
  */
 function applyPinAlpha(trip, pinnedCorridorKey, alpha) {
     if (!pinnedCorridorKey) return alpha
-    if (trip.corridor_key === pinnedCorridorKey) return 255
-    return Math.max(PIN_DIM_ALPHA_FLOOR, Math.round(alpha * PIN_DIM_FACTOR))
+    return 255
 }
 
 /**
@@ -140,7 +141,8 @@ function getArcWidth(trip, maxTripCount, isFocusView, hoveredCorridorKey, pinned
  * @param {number} maxTripCount - Maximum total_daily_flow, for volume scaling.
  * @param {boolean} isFocusView - Whether a station is focused.
  * @param {string|null} hoveredCorridorKey - Corridor to highlight, null for none.
- * @param {string|null} pinnedCorridorKey - Corridor pinned via a leaderboard click, null for none.
+ * @param {string|null} pinnedCorridorKey - Corridor pinned via a leaderboard click, null for none. When
+ *   set, only that corridor's arc(s) are drawn — the rest are hidden, not just dimmed.
  * @param {Set|null} emphasizedCorridorKeys - Ranked corridors emphasized in the overview, null for none.
  * @param {Function} onArcHover - deck.gl hover handler syncing the highlight to the panel.
  * @returns {ArcLayer} The deck.gl layer.
@@ -156,9 +158,14 @@ export function createTripsArcLayer({
 }) {
     // Stable trigger key so accessor caches rebuild when the ranked set changes
     const emphasisKey = emphasizedCorridorKeys ? [...emphasizedCorridorKeys].sort().join('|') : null
+    // A pinned corridor hides every other arc: filter the data instead of just dimming it, so
+    // non-pinned arcs are also removed from picking, not just faded.
+    const visibleTrips = pinnedCorridorKey
+        ? trips.filter((trip) => trip.corridor_key === pinnedCorridorKey)
+        : trips
     return new ArcLayer({
         id: 'frequent-trips-layer',
-        data: trips,
+        data: visibleTrips,
         getSourcePosition: (trip) => [trip.start_station_lon, trip.start_station_lat],
         getTargetPosition: (trip) => [trip.end_station_lon, trip.end_station_lat],
         getWidth: (trip) => getArcWidth(trip, maxTripCount, isFocusView, hoveredCorridorKey, pinnedCorridorKey, emphasizedCorridorKeys),
@@ -198,5 +205,5 @@ export function tripArcsTooltip(object) {
     const outFlow = Number(object.a_to_b_flow) || 0;
     const inFlow = Number(object.b_to_a_flow) || 0;
 
-    return `Corridor\n${from} ↔ ${to}\n\nTraffic Volume\n - Daily Rides: ${formatCount(dailyTotal)}\n - Total Rides: ${formatCount(netTotal)}\n\nDirection Flow(Daily)\n - To ${to}: ${formatNumber(outFlow, 2)}\n - To ${from}: ${formatNumber(inFlow, 2)}`;
+    return `Corridor\n${from} ↔ ${to}\n\nTraffic Volume\n - ${RIDE_METRIC_LABELS.perDay.label}: ${formatCount(dailyTotal)}\n - ${RIDE_METRIC_LABELS.total.label}: ${formatCount(netTotal)}\n\nDirection Flow(Daily)\n - To ${to}: ${formatNumber(outFlow, 2)}\n - To ${from}: ${formatNumber(inFlow, 2)}`;
 }

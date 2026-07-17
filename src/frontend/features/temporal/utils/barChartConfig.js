@@ -92,6 +92,7 @@ export function applyTemporalBarPaint(chart, { labels, compareDatasets, highligh
  * @param {string} unit - Unit appended to y-axis ticks.
  * @param {number} xLabelStep - Show every Nth category tick.
  * @param {boolean} hasBarClick - Whether bars are clickable (enables pointer cursor).
+ * @param {string} [valueNoun='Rides'] - Tooltip name for the value (e.g. "Rides", "Duration").
  * @param {Object} live - Ref holding { highlight, selectedLabel, onBarClick, format }.
  * @returns {Object} The Chart.js config.
  */
@@ -105,6 +106,7 @@ export function buildTemporalBarChartConfig({
     unit,
     xLabelStep,
     hasBarClick,
+    valueNoun = 'Rides',
     live,
 }) {
     const hasCompareDatasets = Array.isArray(compareDatasets) && compareDatasets.length > 0
@@ -113,8 +115,8 @@ export function buildTemporalBarChartConfig({
     const tooltipLabelCallback = (tooltipCtx) => {
         const valueLabel = formatTooltipLabel(live.current.format, tooltipCtx)
         const datasetLabel = tooltipCtx.dataset.label
-        if (!datasetLabel) return `Rides: ${valueLabel.trim()}`
-        return `${datasetLabel} · Rides: ${valueLabel.trim()}`
+        if (!datasetLabel) return `${valueNoun}: ${valueLabel.trim()}`
+        return `${datasetLabel} · ${valueNoun}: ${valueLabel.trim()}`
     }
     const tooltipTitleCallback = (items) => {
         if (!items?.length) return ''

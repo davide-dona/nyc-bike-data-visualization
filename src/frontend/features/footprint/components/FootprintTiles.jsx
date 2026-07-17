@@ -32,7 +32,7 @@ export default function FootprintTiles({ totals, substitutionRate, loading, erro
                 key: 'distance',
                 value: `${formatCompact(distanceKm)} km`,
                 label: 'Distance ridden',
-                hint: `${formatCompact(totalRides)} number of rides`,
+                hint: `${formatCompact(totalRides)} total rides`,
             },
             {
                 key: 'avoided',

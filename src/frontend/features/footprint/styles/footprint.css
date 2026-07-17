@@ -53,4 +53,48 @@
   .footprint-assumptions__list li + li {
     @apply mt-1;
   }
+
+  /* Full-width subsection below the two-column assumptions grid, documenting
+     the equivalence cards' own factors and sources. */
+  .footprint-assumptions__equivalents {
+    @apply mt-6 border-t border-rule pt-5;
+  }
+
+  /* Citation link: a source name inline in the assumptions text, clickable
+     to the source and hoverable for its title/year/summary (CitationLink). */
+  .citation-link {
+    @apply text-accent underline decoration-accent/40 underline-offset-2 transition-colors;
+  }
+
+  .citation-link:hover,
+  .citation-link:focus-visible {
+    @apply decoration-accent;
+  }
+
+  /* Content inside the shared .floating-tooltip surface for a citation hover card. */
+  .citation-tooltip {
+    @apply w-[260px];
+  }
+
+  .citation-tooltip__title {
+    @apply m-0 font-sans text-[12px] font-semibold leading-snug;
+  }
+
+  .citation-tooltip__meta {
+    @apply m-0 mt-0.5 font-mono text-[10px] uppercase tracking-eyebrow text-white/55;
+  }
+
+  .citation-tooltip__summary {
+    @apply m-0 mt-1.5 font-sans text-[11px] leading-relaxed text-white/75;
+  }
+
+  /* Wraps the three equivalence cards below the headline tiles. */
+  .footprint-equivalents {
+    @apply relative;
+  }
+
+  /* New-card section header, matching the year-slider/stat-card eyebrow style. */
+  .footprint-equivalents__heading {
+    @apply mb-3 font-mono text-[11px] uppercase tracking-eyebrow text-ink-muted;
+  }
 }

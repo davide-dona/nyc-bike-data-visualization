@@ -5,6 +5,7 @@ import TripFlowCorridorList from './TripFlowCorridorList.jsx'
 import { rankCorridors, tripFlowFocusStats, tripFlowOverviewStats } from '../../utils/insightSelectors.js'
 import { formatCount, formatNumber } from '@/utils/numberFormat.js'
 import { TRIP_FLOW_LIST_SIZE } from '@/utils/config.js'
+import { RIDE_METRIC_LABELS } from '@/utils/rideMetricLabels.js'
 
 /**
  * Insight frame for the trip flow layer: headline stat tiles plus a ranked corridor list.
@@ -39,7 +40,7 @@ export default function TripFlowInsights({ insights, tripFlowHover, tripFlowPin 
                 autoHeight
             >
                 <div className="map-insights__stat-row">
-                    <StatCard value={formatCount(stats.totalDailyRides)} label="Daily rides" />
+                    <StatCard value={formatCount(stats.totalDailyRides)} label={RIDE_METRIC_LABELS.perDay.label} />
                     <StatCard value={formatCount(stats.partnerCount)} label="Linked stations" />
                     <StatCard value={`${formatCount(stats.outboundShare * 100)}%`} label="Outbound Share" />
                     <StatCard value={`${formatNumber(stats.medianDistanceKm, 1)} km`} label="Median trip" />
@@ -59,14 +60,14 @@ export default function TripFlowInsights({ insights, tripFlowHover, tripFlowPin 
     return (
         <InsightFrame
             title="Strongest corridors citywide"    
-            note="Bars show total volume relative to the busiest corridor, with actual ride counts on the right. Hover or click to trace its flow."            status={status}
+            note="Bars show total volume relative to the busiest corridor, with actual average daily counts on the right. Hover or click to trace its flow."            status={status}
             emptyMessage={rows.length === 0
                 ? 'No trips recorded for the current filters.'
                 : null}
             autoHeight
         >
             <div className="map-insights__stat-row">
-                <StatCard value={formatCount(stats.totalDailyRides)} label="Daily rides" />
+                <StatCard value={formatCount(stats.totalDailyRides)} label={RIDE_METRIC_LABELS.perDay.label} />
                 <StatCard value={formatCount(stats.corridorCount)} label="Corridors" />
                 <StatCard value={`${formatNumber(stats.medianDistanceKm, 1)} km`} label="Median corridor" />
                 <StatCard

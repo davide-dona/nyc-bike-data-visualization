@@ -1,6 +1,7 @@
 import { HexagonLayer } from '@deck.gl/aggregation-layers'
 import { STATION_USAGE_COLOR_RANGE } from '@/utils/styling/map.ts'
 import { formatCount } from '@/utils/numberFormat.js'
+import { RIDE_METRIC_LABELS } from '@/utils/rideMetricLabels.js'
 
 const LAYER_CONFIG = {
     radius: 150,
@@ -43,10 +44,11 @@ export function createStationUsageLayer({ frameStations, maxUsage, maxDelta }) {
         elevationDomain: [0, elevationScale],
     })
 }
+// The hexagon shows the currently animated hour's value, which is always an hourly average.
 const MODE_TOOLTIP_LABELS = {
-    all: 'Rides',
-    incoming: 'Incoming rides',
-    outgoing: 'Outgoing rides',
+    all: RIDE_METRIC_LABELS.perHour.label,
+    incoming: 'Avg incoming / hour',
+    outgoing: 'Avg outgoing / hour',
 }
 
 /**

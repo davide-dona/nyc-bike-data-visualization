@@ -27,9 +27,13 @@ export default function SurfaceHistograms({
     onBarClick = null,
     onClearPin = null,
 }) {
-    const metric = getMetricConfig(activeMetric)
-    const metricDayData = dayData?.map(metric.get)
-    const metricHourData = hourData?.map(metric.get)
+    // The day card marginalizes across weekdays (avg per day); the hour card marginalizes
+    // across hours (avg per hour) - total_rides means something different in each, so each
+    // card gets its own metric config even though both start from the same activeMetric key.
+    const dayMetric = getMetricConfig(activeMetric, 'day')
+    const hourMetric = getMetricConfig(activeMetric, 'hour')
+    const metricDayData = dayData?.map(dayMetric.get)
+    const metricHourData = hourData?.map(hourMetric.get)
     const cards = [
         {
             type: "day",
@@ -39,6 +43,7 @@ export default function SurfaceHistograms({
             highlight: coordinates?.day,
             xAxisTitle: "Day of Week",
             xLabelStep: 1,
+            metric: dayMetric,
         },
         {
             type: "hour",
@@ -48,6 +53,7 @@ export default function SurfaceHistograms({
             highlight: coordinates?.hour,
             xAxisTitle: "Hour of Day",
             xLabelStep: 3,
+            metric: hourMetric,
         },
     ]
 
@@ -56,19 +62,19 @@ export default function SurfaceHistograms({
             "Day of Week": layers.map((layer) => ({
                 label: layer.label,
                 color: layer.color,
-                data: (layer.dayStats ?? []).map(metric.get),
+                data: (layer.dayStats ?? []).map(dayMetric.get),
             })),
             "Hour of Day": layers.map((layer) => ({
                 label: layer.label,
                 color: layer.color,
-                data: (layer.hourStats ?? []).map(metric.get),
+                data: (layer.hourStats ?? []).map(hourMetric.get),
             })),
         }
         : null
 
     return (
         <div className="surface-histograms-grid">
-            {cards.map(({ type, label, data, labels, highlight, xAxisTitle, xLabelStep }) => {
+            {cards.map(({ type, label, data, labels, highlight, xAxisTitle, xLabelStep, metric }) => {
                 const isOverlayTarget = overlay?.target === type
                 const selectedLabel = pinnedSlice?.type === type ? pinnedSlice.label : null
                 const title = (
@@ -100,6 +106,7 @@ export default function SurfaceHistograms({
                             data={data}
                             labels={labels}
                             format={metric.format}
+                            valueNoun={metric.noun}
                             highlight={highlight}
                             xAxisTitle={xAxisTitle}
                             yAxisTitle={metric.label}
