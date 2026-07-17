@@ -32,19 +32,19 @@ export default function FootprintTiles({ totals, substitutionRate, loading, erro
                 key: 'distance',
                 value: `${formatCompact(distanceKm)} km`,
                 label: 'Distance ridden',
-                hint: `${formatCompact(totalRides)} rides in the selected period`,
+                hint: `${formatCompact(totalRides)} number of rides`,
             },
             {
                 key: 'avoided',
                 value: `${formatTonnes(range.low)}–${formatTonnes(range.high)} t CO2e`,
                 label: 'Avoided (range)',
-                hint: `≈ ${formatTonnes(midTonnes)} t at your ${ratePct}% setting (range spans ${lowPct}–${highPct}%)`,
+                hint: `at your ${ratePct}% setting`,
             },
             {
                 key: 'trips',
                 value: `≈ ${formatCompact(carTripsReplaced(totalRides, substitutionRate))}`,
                 label: 'Car trips replaced',
-                hint: `At the selected ${ratePct}% substitution rate`,
+                hint: `at your selected ${ratePct}% setting`,
             },
         ]
     }, [totals, substitutionRate, ratePct])

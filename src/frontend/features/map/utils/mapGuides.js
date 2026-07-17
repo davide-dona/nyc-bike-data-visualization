@@ -51,7 +51,7 @@ export const MAP_LAYER_GUIDES = {
         hints: [
             {
                 mapType: 'Infrastructure',
-                title: 'Station Availability',
+                title: 'Station Insights',
                 text: 'Click any station to open a sidebar displaying real-time dock availability, historical data, and flow demand, with map markers color-coded to reflect each station\'s current status.',
             },
             {

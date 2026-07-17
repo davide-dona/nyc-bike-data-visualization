@@ -65,5 +65,4 @@ export const EXCLUDED_EFFECTS = [
     'Manufacturing, maintaining, and installing bikes and docking stations.',
     'Emissions from the vans used to move bikes between stations to rebalance the fleet.',
     'Route differences (the math assumes 1 kilometer on a bike perfectly replaces 1 kilometer in a car).',
-    'E-bike charging emissions (around 5g of CO2 per km), which would lower the total savings by less than 2%.',
 ]

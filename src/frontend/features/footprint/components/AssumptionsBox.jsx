@@ -18,7 +18,7 @@ export default function AssumptionsBox() {
             <p className="panel-frame__title">Assumptions, stated explicitly</p>
             <div className="footprint-assumptions__grid">
                 <section>
-                    <p className="footprint-assumptions__heading">Emission factors (g CO2e per km)</p>
+                    <p className="footprint-assumptions__heading">Travel Emission Rates</p>
                     <p className="footprint-assumptions__text">
                         To calculate emissions, we use standard, real-world averages for each type of transport:
                     </p>
@@ -31,14 +31,14 @@ export default function AssumptionsBox() {
                     </ul>
                 </section>
                 <section>
-                    <p className="footprint-assumptions__heading">Substitution rate ({lowPct}–{highPct}%)</p>
+                    <p className="footprint-assumptions__heading">Car Replacement Range</p>
                     <p className="footprint-assumptions__text">
                         When people ride bikes, they aren't always replacing a car trip.
                         They might have otherwise walked, caught the bus, or stayed home.
-                        That is why we show avoided $CO_2$ as a range of possibilities, not a single, perfect number.
+                        That is why we show avoided CO2 as a range of possibilities, not a single, perfect number.
                         {SUBSTITUTION_RATE.source}
                     </p>
-                    <p className="footprint-assumptions__heading">What this estimate leaves out</p>
+                    <p className="footprint-assumptions__heading">Calculation Exclusions</p>
                     <p className="footprint-assumptions__text">
                         While we calculate direct travel savings, our current estimates do not account for the following factors:
                     </p>
