@@ -55,15 +55,15 @@ export default function AssumptionsBox() {
                             </li>
                         ))}
                         <li>
-                            <strong>Trees to absorb it:</strong> {EQUIVALENCE_FACTORS.trees.source}
+                            <strong>Trees to absorb it: {EQUIVALENCE_FACTORS.trees.tonnesPerTree.toFixed(3)} t CO2 per tree.</strong> {EQUIVALENCE_FACTORS.trees.source}
                             <Sources cites={EQUIVALENCE_FACTORS.trees.cites} />
                         </li>
                         <li>
-                            <strong>People's yearly CO2:</strong> {EQUIVALENCE_FACTORS.globalPerCapita.source}
+                            <strong>People's yearly CO2: {EQUIVALENCE_FACTORS.globalPerCapita.tonnesPerPerson} t CO2 per person.</strong> {EQUIVALENCE_FACTORS.globalPerCapita.source}
                             <Sources cites={EQUIVALENCE_FACTORS.globalPerCapita.cites} />
                         </li>
                         <li>
-                            <strong>LED bulb-hours powered:</strong> {EQUIVALENCE_FACTORS.ledBulb.source}
+                            <strong>LED bulb-hours powered: {EQUIVALENCE_FACTORS.ledBulb.watts} W bulb, {EQUIVALENCE_FACTORS.ledBulb.kgCo2PerKwh} kg CO2 per kWh.</strong> {EQUIVALENCE_FACTORS.ledBulb.source}
                             <Sources cites={EQUIVALENCE_FACTORS.ledBulb.cites} />
                         </li>
                     </ul>

@@ -33,13 +33,11 @@ export default function FootprintTiles({ totals, substitutionRate, loading, erro
                 key: 'avoided',
                 value: `${formatTonnes(tonnesCo2)} t CO2e`,
                 label: 'Avoided',
-                hint: `at your ${ratePct}% setting`,
-            },
+                    },
             {
                 key: 'trips',
                 value: `≈ ${formatCompact(carTripsReplaced(totalRides, substitutionRate))}`,
                 label: 'Car trips replaced',
-                hint: `at your ${ratePct}% setting`,
             },
         ]
     }, [totals, substitutionRate, ratePct])

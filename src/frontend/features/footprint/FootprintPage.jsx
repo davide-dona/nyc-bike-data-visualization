@@ -49,14 +49,6 @@ function FootprintPage({ filters = {} }) {
                     onRefetch={refetchDaily}
                 />
 
-                <FootprintEquivalents
-                    totals={totals}
-                    substitutionRate={substitutionRate}
-                    loading={dailyLoading}
-                    error={dailyError}
-                    onRefetch={refetchDaily}
-                />
-
                 <div className="footprint-grid">
                     <ModeComparisonBar
                         totals={totals}
@@ -72,6 +64,14 @@ function FootprintPage({ filters = {} }) {
                         onRefetch={refetchDaily}
                     />
                 </div>
+
+                <FootprintEquivalents
+                    totals={totals}
+                    substitutionRate={substitutionRate}
+                    loading={dailyLoading}
+                    error={dailyError}
+                    onRefetch={refetchDaily}
+                />
 
                 <AssumptionsBox />
 

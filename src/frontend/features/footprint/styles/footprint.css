@@ -82,14 +82,40 @@
     @apply m-0 mt-1.5 font-sans text-[11px] leading-relaxed text-white/75;
   }
 
-  /* Wraps the three equivalence cards below the headline tiles; a thin rule
-     divides them from the tiles above instead of a bare line of text. */
-  .footprint-equivalents {
-    @apply relative mt-1 border-t border-rule pt-5;
+  /* Pictogram rows inside the "what that CO2 equals" ChartFrame: label/hint on
+     the left, a proportional icon cluster in the middle, figure on the right. */
+  .footprint-pictogram {
+    @apply flex flex-col;
   }
 
-  /* New-card section header, matching the year-slider/stat-card eyebrow style. */
-  .footprint-equivalents__heading {
-    @apply mb-3 font-mono text-[11px] uppercase tracking-eyebrow text-ink-muted;
+  .footprint-pictogram__row {
+    @apply flex items-center gap-4 py-4;
+  }
+
+  .footprint-pictogram__row + .footprint-pictogram__row {
+    @apply border-t border-rule;
+  }
+
+  .footprint-pictogram__body {
+    @apply w-44 shrink-0;
+  }
+
+  .footprint-pictogram__label {
+    @apply m-0 font-sans text-sm text-ink;
+  }
+
+  /* Fixed "1 icon = N" scale, stated under the label so the icon count reads honestly. */
+  .footprint-pictogram__scale {
+    @apply m-0 mt-0.5 font-mono text-[10px] uppercase tracking-eyebrow text-accent;
+  }
+
+  /* Repeated icons wrap into a block; each FA <i> is forced display:flex in
+     base.css, so this row uses flex-wrap rather than inline flow. */
+  .footprint-pictogram__icons {
+    @apply flex flex-1 flex-wrap content-center items-center gap-1.5 text-sm text-accent;
+  }
+
+  .footprint-pictogram__value {
+    @apply m-0 shrink-0 font-mono text-xl leading-none text-ink;
   }
 }
