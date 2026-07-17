@@ -33,7 +33,7 @@ export default function FootprintEquivalents({ totals, substitutionRate, loading
                 key: 'people',
                 value: `≈ ${formatCompact(peopleYearlyEquivalent(tonnesCo2))}`,
                 label: "People's yearly CO2",
-                hint: 'global average person, one year',
+                hint: 'global average person',
             },
             {
                 key: 'bulbs',

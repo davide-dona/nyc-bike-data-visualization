@@ -1,4 +1,5 @@
 import { formatCount, formatNumber } from '@/utils/numberFormat.js'
+import { RIDE_METRIC_LABELS } from '@/utils/rideMetricLabels.js'
 
 const WEATHER_ICONS = {
     Clear: '☀',
@@ -27,8 +28,8 @@ export default function WeatherTooltipContent({ point }) {
             <div className="weather-tooltip__section weather-tooltip__section--tinted">
                 <div className="weather-tooltip__section-title">Activity</div>
                 <div className="weather-tooltip__row">
+                    <span className="weather-tooltip__muted">{RIDE_METRIC_LABELS.perHour.label}:</span>
                     <strong>{formatNumber(point.ridesPerHour, 2)}</strong>
-                    <span className="weather-tooltip__muted">/h</span>
                     {point.ridesPerHourSE != null && (
                         <span className="weather-tooltip__se">± {formatNumber(point.ridesPerHourSE, 2)}</span>
                     )}

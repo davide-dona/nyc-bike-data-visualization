@@ -54,7 +54,7 @@ export default function useSurfaceLineChart({ dateData, activeMetric, compareMod
                     hovertemplate:
                         `<b>${layer.label}</b><br>` +
                         'Moment: <b>%{x|%b %d, %Y}</b><br>' +
-                        `${metric.noun}: <b>%{y:,.2f}</b> ${metric.unit}<extra></extra>`,
+                        `${metric.label}: <b>%{y:,.2f}</b><extra></extra>`,
                 }
             })
             .filter(Boolean)
@@ -77,7 +77,7 @@ export default function useSurfaceLineChart({ dateData, activeMetric, compareMod
             },
             hovertemplate:
                 'Moment: <b>%{x|%b %d, %Y}</b><br>' +
-                `${metric.noun}: <b>%{y:,.2f}</b> ${metric.unit}<extra></extra>`,
+                `${metric.label}: <b>%{y:,.2f}</b><extra></extra>`,
         }),
         [singleSeries, metric],
     )

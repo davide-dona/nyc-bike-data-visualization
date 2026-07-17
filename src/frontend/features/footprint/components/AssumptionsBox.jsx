@@ -54,6 +54,18 @@ export default function AssumptionsBox() {
                                 <Sources cites={mode.cites} />
                             </li>
                         ))}
+                        <li>
+                            <strong>Trees to absorb it:</strong> {EQUIVALENCE_FACTORS.trees.source}
+                            <Sources cites={EQUIVALENCE_FACTORS.trees.cites} />
+                        </li>
+                        <li>
+                            <strong>People's yearly CO2:</strong> {EQUIVALENCE_FACTORS.globalPerCapita.source}
+                            <Sources cites={EQUIVALENCE_FACTORS.globalPerCapita.cites} />
+                        </li>
+                        <li>
+                            <strong>LED bulb-hours powered:</strong> {EQUIVALENCE_FACTORS.ledBulb.source}
+                            <Sources cites={EQUIVALENCE_FACTORS.ledBulb.cites} />
+                        </li>
                     </ul>
                 </section>
                 <section>
@@ -76,26 +88,6 @@ export default function AssumptionsBox() {
                     </ul>
                 </section>
             </div>
-            <section className="footprint-assumptions__equivalents">
-                <p className="footprint-assumptions__heading">What That CO2 Equals</p>
-                <p className="footprint-assumptions__text">
-                    The three equivalence cards translate your avoided CO2, at the substitution rate you've selected above, into everyday terms:
-                </p>
-                <ul className="footprint-assumptions__list">
-                    <li>
-                        <strong>Trees to absorb it:</strong> {EQUIVALENCE_FACTORS.trees.source}
-                        <Sources cites={EQUIVALENCE_FACTORS.trees.cites} />
-                    </li>
-                    <li>
-                        <strong>People's yearly CO2:</strong> {EQUIVALENCE_FACTORS.globalPerCapita.source}
-                        <Sources cites={EQUIVALENCE_FACTORS.globalPerCapita.cites} />
-                    </li>
-                    <li>
-                        <strong>LED bulb-hours powered:</strong> {EQUIVALENCE_FACTORS.ledBulb.source}
-                        <Sources cites={EQUIVALENCE_FACTORS.ledBulb.cites} />
-                    </li>
-                </ul>
-            </section>
         </aside>
     )
 }

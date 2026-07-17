@@ -67,8 +67,8 @@ export default function useSurfaceGraph({
             '<b>Weekly Pulse</b><br>' +
             'Day: <b>%{y}</b><br>' +
             'Hour: <b>%{x}</b><br>' +
-            `${metric.noun}: <b>%{z:,.2f}</b> ${metric.unit}<extra></extra>`,
-        [metric.noun, metric.unit]
+            `${metric.label}: <b>%{z:,.2f}</b><extra></extra>`,
+        [metric.label]
     )
 
     const updateCoordinatesFromEvent = useCallback((eventData) => {
@@ -105,7 +105,7 @@ export default function useSurfaceGraph({
                 `<b>${layer.label}</b><br>` +
                 'Day: <b>%{y}</b><br>' +
                 'Hour: <b>%{x}</b><br>' +
-                `${metric.noun}: <b>%{z:,.2f}</b> ${metric.unit}<extra></extra>`
+                `${metric.label}: <b>%{z:,.2f}</b><extra></extra>`
 
             return {
                 type: 'surface',

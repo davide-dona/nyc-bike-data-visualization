@@ -37,6 +37,13 @@ export const CITATIONS = {
         year: 2023,
         summary: 'EPA database of average US power-grid carbon intensity, used here to price the electricity an e-bike battery or an LED bulb draws.',
     },
+    cherryWeinert2009: {
+        label: 'Cherry, Weinert & Xinmiao, 2009',
+        url: 'https://ideas.repec.org/p/cdl/itsdav/qt16k918sh.html',
+        title: 'Comparative Environmental Impacts of Electric Bikes in China',
+        year: 2009,
+        summary: "Study quantifying e-bike per-km energy use and emissions directly, finding them far below cars and motorcycles - the basis for treating an e-bike's own electricity draw as small.",
+    },
     fishman2014: {
         label: 'Fishman, Washington & Haworth, 2014',
         url: 'https://www.sciencedirect.com/science/article/abs/pii/S1361920914000480',
@@ -106,7 +113,7 @@ export const COMPARISON_MODES = [
         gPerKm: 5,
         isBike: true,
         source: 'The tiny amount of electricity needed to charge the battery, calculated using the average cleanliness of the US power grid.',
-        cites: [CITATIONS.epaEgrid],
+        cites: [CITATIONS.cherryWeinert2009, CITATIONS.epaEgrid],
     },
     {
         key: 'bike',

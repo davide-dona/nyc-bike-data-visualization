@@ -54,12 +54,6 @@
     @apply mt-1;
   }
 
-  /* Full-width subsection below the two-column assumptions grid, documenting
-     the equivalence cards' own factors and sources. */
-  .footprint-assumptions__equivalents {
-    @apply mt-6 border-t border-rule pt-5;
-  }
-
   /* Citation link: a source name inline in the assumptions text, clickable
      to the source and hoverable for its title/year/summary (CitationLink). */
   .citation-link {
@@ -88,9 +82,10 @@
     @apply m-0 mt-1.5 font-sans text-[11px] leading-relaxed text-white/75;
   }
 
-  /* Wraps the three equivalence cards below the headline tiles. */
+  /* Wraps the three equivalence cards below the headline tiles; a thin rule
+     divides them from the tiles above instead of a bare line of text. */
   .footprint-equivalents {
-    @apply relative;
+    @apply relative mt-1 border-t border-rule pt-5;
   }
 
   /* New-card section header, matching the year-slider/stat-card eyebrow style. */

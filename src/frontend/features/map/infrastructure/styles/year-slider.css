@@ -28,18 +28,33 @@
   /* Just the start and end year of the range, clearly legible, in place of
      the old decade tick marks. */
   .year-slider__bounds {
-    @apply flex items-center justify-between;
+    @apply flex items-center justify-between mt-1.5;
   }
 
   .year-slider__bound {
     @apply font-mono text-[10px] leading-none text-ink-muted tabular-nums;
   }
 
-  /* Custom track: a solid accent fill up to the current value, fading to a
-     plain rule beyond it, replacing the flat native range look. */
-  .year-slider__input {
+  /* The input's own box is sized to the thumb (a generous hit target); the
+     visual "line" is the thinner ::-webkit-slider-runnable-track underneath
+     it, so the thumb centers against the track it's actually drawn on
+     instead of an ad-hoc margin against the input's own (unreliable) height.
+     Selector is qualified with the element type so its height reliably wins
+     over the shared .range-slider base class's own height at equal
+     class-only specificity. */
+  input.year-slider__input {
     appearance: none;
     -webkit-appearance: none;
+    height: 12px;
+    background: transparent;
+    cursor: pointer;
+  }
+
+  .year-slider__input:disabled {
+    @apply cursor-not-allowed opacity-50;
+  }
+
+  .year-slider__input::-webkit-slider-runnable-track {
     height: 4px;
     background: linear-gradient(
       to right,
@@ -48,11 +63,6 @@
       theme('colors.rule.strong') var(--year-slider-progress, 0%),
       theme('colors.rule.strong') 100%
     );
-    cursor: pointer;
-  }
-
-  .year-slider__input:disabled {
-    @apply cursor-not-allowed opacity-50;
   }
 
   .year-slider__input::-webkit-slider-thumb {
@@ -60,6 +70,7 @@
     -webkit-appearance: none;
     width: 12px;
     height: 12px;
+    /* Centers the 12px thumb on the 4px track: (4 - 12) / 2. */
     margin-top: -4px;
     border-radius: 9999px;
     background: theme('colors.accent.DEFAULT');
@@ -70,7 +81,13 @@
 
   .year-slider__input::-moz-range-track {
     height: 4px;
-    background: transparent;
+    background: linear-gradient(
+      to right,
+      theme('colors.accent.DEFAULT') 0%,
+      theme('colors.accent.DEFAULT') var(--year-slider-progress, 0%),
+      theme('colors.rule.strong') var(--year-slider-progress, 0%),
+      theme('colors.rule.strong') 100%
+    );
   }
 
   .year-slider__input::-moz-range-thumb {

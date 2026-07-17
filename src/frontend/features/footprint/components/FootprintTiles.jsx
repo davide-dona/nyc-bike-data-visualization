@@ -1,9 +1,7 @@
 import { useMemo } from 'react'
 import StatusMessage from '../../../components/StatusMessage.jsx'
 import StatCard from '@/components/StatCard.jsx'
-import { SUBSTITUTION_RATE } from '../utils/emissionFactors.js'
 import {
-    avoidedCo2Range,
     avoidedCo2Tonnes,
     carTripsReplaced,
     formatCompact,
@@ -11,8 +9,8 @@ import {
 } from '../utils/footprintMath.js'
 
 /**
- * Headline stat tiles: distance ridden, avoided CO2 (always a range), and car
- * trips replaced at the selected substitution rate.
+ * Headline stat tiles: distance ridden, avoided CO2, and car trips replaced,
+ * all at the selected substitution rate.
  * @param {Object} totals - Summed daily stats (total_rides, total_distance_km)
  * @param {number} substitutionRate - Selected car-substitution rate (fraction)
  */
@@ -22,10 +20,7 @@ export default function FootprintTiles({ totals, substitutionRate, loading, erro
     const tiles = useMemo(() => {
         const distanceKm = Number(totals?.total_distance_km) || 0
         const totalRides = Number(totals?.total_rides) || 0
-        const range = avoidedCo2Range(distanceKm)
-        const midTonnes = avoidedCo2Tonnes(distanceKm, substitutionRate)
-        const lowPct = Math.round(SUBSTITUTION_RATE.low * 100)
-        const highPct = Math.round(SUBSTITUTION_RATE.high * 100)
+        const tonnesCo2 = avoidedCo2Tonnes(distanceKm, substitutionRate)
 
         return [
             {
@@ -36,15 +31,15 @@ export default function FootprintTiles({ totals, substitutionRate, loading, erro
             },
             {
                 key: 'avoided',
-                value: `${formatTonnes(range.low)}–${formatTonnes(range.high)} t CO2e`,
-                label: 'Avoided (range)',
+                value: `${formatTonnes(tonnesCo2)} t CO2e`,
+                label: 'Avoided',
                 hint: `at your ${ratePct}% setting`,
             },
             {
                 key: 'trips',
                 value: `≈ ${formatCompact(carTripsReplaced(totalRides, substitutionRate))}`,
                 label: 'Car trips replaced',
-                hint: `at your selected ${ratePct}% setting`,
+                hint: `at your ${ratePct}% setting`,
             },
         ]
     }, [totals, substitutionRate, ratePct])

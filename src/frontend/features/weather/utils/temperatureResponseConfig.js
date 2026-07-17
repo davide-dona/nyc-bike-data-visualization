@@ -69,7 +69,7 @@ export function buildTemperatureResponseConfig(formattedSeries) {
                 tooltip: {
                     callbacks: {
                         title: (items) => `${items[0].parsed.x} to ${items[0].parsed.x + BIN_WIDTH}°C`,
-                        label: (item) => `${item.dataset.label}: ${formatNumber(item.parsed.y, 2)} rides/h`,
+                        label: (item) => `${item.dataset.label}: ${formatNumber(item.parsed.y, 2)} ${RIDE_METRIC_LABELS.perHour.unit}`,
                     },
                 },
             },
