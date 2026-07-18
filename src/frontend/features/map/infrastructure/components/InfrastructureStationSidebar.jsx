@@ -111,7 +111,10 @@ export default function InfrastructureStationSidebar({ selectedStations = [], fi
             </section>}
 
             {!stationData.loading && !stationData.error && topFlows.length > 0 && <section className="infra-sidebar__section">
-                <div className="infra-sidebar__section-heading">Top connected stations</div>
+                <div className="infra-sidebar__section-heading infra-sidebar__section-heading--metric">
+                    <span>Top connected stations</span>
+                    <span className="infra-sidebar__section-metric">{RIDE_METRIC_LABELS.total.label}</span>
+                </div>
                 <div className="infra-sidebar__flow-list">
                     {topFlows.map((flow) => {
                         const isPrimaryA = stationIds.includes(flow.station_a_id)

@@ -61,7 +61,7 @@ function WeatherRidgeline({ data, loading, error, onRefetch }) {
                         (dimension === "hour"
                             ? "Moment: <b>%{x:02d}:00</b><br>"
                             : "Moment: <b>%{x}</b><br>") +
-                        `${RIDE_METRIC_LABELS.perHour.label}: <b>%{customdata:,.2f}</b><extra></extra>`,
+                        `${dimension === "hour" ? RIDE_METRIC_LABELS.perHour.label : RIDE_METRIC_LABELS.perDay.label}: <b>%{customdata:,.2f}</b><extra></extra>`,
                     customdata: ridge.rawSeries,
                     showlegend: false,
                 };
@@ -164,7 +164,7 @@ function WeatherRidgeline({ data, loading, error, onRefetch }) {
             </div>
 
             <p className="chart-frame__note weather-ridgeline-note">
-                Each ridge traces average rides per hour under that weather condition, normalized to its own peak so rare and common conditions are equally comparable. Hover for the actual rides/hr value.
+                Each ridge traces {dimension === "hour" ? "average rides per hour" : "average rides per day"} under that weather condition, normalized to its own peak so rare and common conditions are equally comparable. Hover for the exact value.
             </p>
 
             {showOverlay && <StatusMessage loading={loading} error={error} onRefetch={onRefetch} />}

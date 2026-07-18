@@ -37,21 +37,21 @@ function getAverageRides(row) {
 const RIDES_BY_AGGREGATION = {
     hour: {
         label: RIDE_METRIC_LABELS.perHour.label,
-        noun: "Rides",
+        noun: "Avg Rides",
         unit: RIDE_METRIC_LABELS.perHour.unit,
         get: getAverageRides,
         format: METRIC_FORMATTERS.total_rides,
     },
     day: {
         label: RIDE_METRIC_LABELS.perDay.label,
-        noun: "Rides",
+        noun: "Avg Rides",
         unit: RIDE_METRIC_LABELS.perDay.unit,
         get: getAverageRides,
         format: METRIC_FORMATTERS.total_rides,
     },
     daily: {
         label: "Avg rides/day",
-        noun: "Rides",
+        noun: "Avg Rides",
         unit: "rides/day",
         get: getAverageRides,
         format: METRIC_FORMATTERS.total_rides,
@@ -60,29 +60,29 @@ const RIDES_BY_AGGREGATION = {
 
 export const METRICS = {
     average_rides: {
-        label: "Avg rides",
-        noun: "Avg rides",
+        label: "Avg Rides",
+        noun: "Avg Rides",
         unit: "rides",
         get: getAverageRides,
         format: METRIC_FORMATTERS.total_rides,
     },
     average_duration_minutes: {
         label: "Avg Duration (min)",
-        noun: "Duration",
+        noun: "Avg Duration",
         unit: "min",
         get: row => row.average_duration_seconds / 60,
         format: METRIC_FORMATTERS.average_duration_minutes,
     },
     average_speed_kmh: {
         label: "Avg Speed (km/h)",
-        noun: "Speed",
+        noun: "Avg Speed",
         unit: "km/h",
         get: row => row.average_speed_kmh,
         format: METRIC_FORMATTERS.average_speed_kmh,
     },
     average_distance: {
         label: "Avg Distance (km)",
-        noun: "Distance",
+        noun: "Avg Distance",
         unit: "km",
         get: row => row.average_distance_km,
         format: METRIC_FORMATTERS.average_distance,

@@ -1,5 +1,6 @@
 import TripFlowCorridorRow from './TripFlowCorridorRow.jsx'
 import { BAR_SOLID, BAR_RUST } from '@/utils/styling'
+import { RIDE_METRIC_LABELS } from '@/utils/rideMetricLabels.js'
 
 /**
  * Ranked corridor list for the trip-flow insights panel, ordered by daily rides.
@@ -36,6 +37,7 @@ export default function TripFlowCorridorList({
                     </span>
                 </div>
             )}
+            <p className="trip-corridors__caption">{RIDE_METRIC_LABELS.perDay.label}</p>
             <ol className="trip-corridors__list">
                 {rows.map((row, index) => (
                     <TripFlowCorridorRow

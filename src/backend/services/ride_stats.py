@@ -18,12 +18,12 @@ _GROUP_DIMS: dict[StatsGroupBy, list[str]] = {
 
 # Bucketing expression over the weather_hourly alias `w`, the output column name,
 # and the source column whose NULLs exclude an hour from the spine and facts.
-# Numeric bins are encoded as their lower edge: temperature in 2 °C steps,
-# precipitation in dry/trace/light/moderate/heavy buckets (mm/h) since uniform
-# bins would put nearly all hours in the dry bucket.
+# Numeric bins are encoded as their lower edge: temperature in whole-degree
+# (1 °C) steps, precipitation in dry/trace/light/moderate/heavy buckets (mm/h)
+# since uniform bins would put nearly all hours in the dry bucket.
 _WEATHER_EXPRS: dict[WeatherVariable, tuple[str, str, str]] = {
     WeatherVariable.WEATHER_CODE: ("w.weather_code", "weather_code", "w.weather_code"),
-    WeatherVariable.TEMPERATURE: ("(floor(w.temperature_2m / 2)::int * 2)", "weather_bin", "w.temperature_2m"),
+    WeatherVariable.TEMPERATURE: ("floor(w.temperature_2m)::int", "weather_bin", "w.temperature_2m"),
     WeatherVariable.PRECIPITATION: (
         "(CASE WHEN w.precipitation <= 0 THEN 0.0"
         " WHEN w.precipitation < 0.5 THEN 0.1"

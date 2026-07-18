@@ -68,6 +68,15 @@
     @apply font-mono text-[11px] uppercase tracking-eyebrow text-white/55;
   }
 
+  /* Heading row that also names the value column's metric on the right. */
+  .infra-sidebar__section-heading--metric {
+    @apply flex items-baseline justify-between gap-2;
+  }
+
+  .infra-sidebar__section-metric {
+    @apply text-white/40;
+  }
+
   .infra-sidebar__highlights {
     @apply m-0 flex list-none flex-col gap-2 border border-rule-invert/20 bg-white/5 px-3 py-2.5;
   }

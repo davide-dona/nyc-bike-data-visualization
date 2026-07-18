@@ -35,7 +35,7 @@ export default function WeatherTooltipContent({ point }) {
                     )}
                 </div>
                 <div className="weather-tooltip__row">
-                    <span className="weather-tooltip__muted">Volume:</span>
+                    <span className="weather-tooltip__muted">{RIDE_METRIC_LABELS.total.label}:</span>
                     <strong>{formatCount(point.totalRides)}</strong>
                 </div>
                 <div className="weather-tooltip__row">

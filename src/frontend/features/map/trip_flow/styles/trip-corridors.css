@@ -64,4 +64,9 @@
   .trip-corridors__value {
     @apply font-mono text-[11px] text-ink text-right;
   }
+
+  /* Metric caption right-aligned over the value column (0.5rem row padding). */
+  .trip-corridors__caption {
+    @apply m-0 pr-2 pb-1 font-mono text-[10px] uppercase tracking-eyebrow text-ink-muted text-right;
+  }
 }

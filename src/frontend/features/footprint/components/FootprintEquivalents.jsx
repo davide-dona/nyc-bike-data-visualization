@@ -81,7 +81,7 @@ export default function FootprintEquivalents({ totals, substitutionRate, loading
     return (
         <ChartFrame
             title="What that CO2 equals"
-            note="Translates the avoided CO2 at your selected rate into everyday yearly equivalents, with each icon marking a share that rescales with your selected date range so the picture stays readable."
+            note="Translates the avoided CO2 at your selected rate into everyday yearly equivalents, with each icon marking a share that rescales with your selected date range."
             status={{ loading, error, refetch: onRefetch }}
             emptyMessage={hasData ? null : 'No ride data available for this filter range.'}
             autoHeight

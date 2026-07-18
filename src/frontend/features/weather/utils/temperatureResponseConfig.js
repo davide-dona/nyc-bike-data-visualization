@@ -11,7 +11,8 @@ import { RIDE_METRIC_LABELS } from '@/utils/rideMetricLabels.js'
 
 // Bins with fewer hours are dropped to avoid a wild single-hour outlier point.
 const MIN_HOURS = 5
-const BIN_WIDTH = 2 // °C, must match _WEATHER_EXPRS in src/backend/services/ride_stats.py
+// Temperature is bucketed per whole degree in the backend (_WEATHER_EXPRS in
+// src/backend/services/ride_stats.py), so each point stands for one degree.
 
 const USER_TYPE_LABELS = { member: 'Member', casual: 'Casual' }
 const USER_TYPE_COLORS = { member: ACCENT, casual: '#c24747' }
@@ -68,7 +69,7 @@ export function buildTemperatureResponseConfig(formattedSeries) {
                 },
                 tooltip: {
                     callbacks: {
-                        title: (items) => `${items[0].parsed.x} to ${items[0].parsed.x + BIN_WIDTH}°C`,
+                        title: (items) => `${items[0].parsed.x}°C`,
                         label: (item) => `${item.dataset.label}: ${formatNumber(item.parsed.y, 2)} ${RIDE_METRIC_LABELS.perHour.unit}`,
                     },
                 },
