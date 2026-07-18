@@ -37,6 +37,5 @@ export const POINT_LAYER_ID_PREFIXES = [
     'station-availability-layer',
 ]
 
-// CartoDB Positron - subdued paper/grey basemap that lets the data layers carry
-// the color weight. Same provider as Voyager, no API key required.
+// CartoDB Positron: subdued paper/grey basemap that lets the data layers carry the color weight. No API key required.
 export const BASE_TILE_URL = 'https://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png'

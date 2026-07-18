@@ -43,8 +43,7 @@ export function useTripArcsLayer({ filters, focusedStationId, tripDirection = 'a
 
     const activeQuery = isFocusView ? focusQuery : overviewQuery
 
-    // Focus rows are oriented so start_* is the focused station, then filtered by direction;
-    // overview rows keep the backend's canonical pair order (direction is meaningless without focus).
+    // Focus rows: oriented so start_* is the focused station, then direction-filtered; overview keeps the backend's canonical pair order.
     const trips = useMemo(() => {
         const rows = selectTrips(activeQuery.data)
         if (!isFocusView) return rows

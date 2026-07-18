@@ -8,8 +8,7 @@ import {
 } from '../editorialTokens.js'
 import { toRgba } from '../color.js'
 
-// Single source for the near-black tooltip surface and accent border shared
-// by every Chart.js and Plotly tooltip.
+// Single source for the near-black tooltip surface and accent border shared by every Chart.js and Plotly tooltip.
 export const CHART_TOOLTIP_BG = toRgba(INK, 0.94)
 export const CHART_TOOLTIP_BORDER = toRgba(ACCENT, 0.72)
 

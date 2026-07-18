@@ -18,4 +18,8 @@ export const STATION_USAGE_TEXT = {
         incoming: 'incoming rides only',
         outgoing: 'outgoing rides only',
     },
+    speedController: {
+        eyebrow: 'Time wheel',
+        hint: 'Drag the wheel to adjust the time minute-by-minute, looping past midnight.',
+    },
 }

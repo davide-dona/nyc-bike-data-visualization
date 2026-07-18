@@ -70,8 +70,7 @@ export function buildDeckLayers({
     }
     if (activeLayer === 'infrastructure') {
         if (!availabilityLoading && !availabilityError) {
-            // Legend toggles hide categories/classes from the map only, so hasData still
-            // reads the unfiltered arrays; segments with no legend row stay visible.
+            // Legend toggles hide categories/classes from the map only; hasData still reads the unfiltered arrays.
             const visibleStations = hiddenHealthCategories?.size
                 ? stations.filter((s) => !hiddenHealthCategories.has(s.health_category))
                 : stations

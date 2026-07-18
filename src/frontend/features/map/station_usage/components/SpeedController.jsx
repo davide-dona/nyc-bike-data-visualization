@@ -1,11 +1,12 @@
-import PlayIcon from "../../components/PlayIcon.jsx";
-import PauseIcon from "../../components/PauseIcon.jsx";
-import useTimeWheel from "../hooks/useTimeWheel.js";
+import PlayIcon from '../../components/PlayIcon.jsx'
+import PauseIcon from '../../components/PauseIcon.jsx'
+import useTimeWheel from '../hooks/useTimeWheel.js'
 import {
     MAX_MINUTE_INDEX,
     SPEED_OPTIONS,
     formatSpeedLabel,
-} from "../utils/speedController.js";
+} from '../utils/speedController.js'
+import { STATION_USAGE_TEXT } from '../utils/stationUsageText.js'
 
 /**
  * Circular draggable time wheel for scrubbing the map time frame; wraps
@@ -33,22 +34,22 @@ export default function SpeedController({ setCurrentTime, currentTime, disabled 
         handlePointerCancel,
         handleKeyDown,
         handleSpeedKeyDown,
-    } = useTimeWheel({ setCurrentTime, currentTime, disabled });
+    } = useTimeWheel({ setCurrentTime, currentTime, disabled })
 
     return (
-        <div className={`map-speed-controls${disabled ? " is-disabled" : ""}`}>
+        <div className={`map-speed-controls${disabled ? ' is-disabled' : ''}`}>
             <div className="map-speed-controls__header">
                 <div className="map-speed-controls__meta">
                     <span className="map-speed-clock">{currentTimeLabel}</span>
-                    <span className="map-speed-controls__eyebrow">Time wheel</span>
+                    <span className="map-speed-controls__eyebrow">{STATION_USAGE_TEXT.speedController.eyebrow}</span>
                 </div>
-                <p className="map-speed-controls__hint">Drag the wheel to adjust the time minute-by-minute, looping past midnight.</p>
+                <p className="map-speed-controls__hint">{STATION_USAGE_TEXT.speedController.hint}</p>
             </div>
             <div className="map-time-wheel-layout">
                 <button
                     type="button"
-                    className={`map-speed-controls__play-btn${isPlaying ? " is-playing" : ""}`}
-                    aria-label={isPlaying ? "Pause animation" : "Play animation"}
+                    className={`map-speed-controls__play-btn${isPlaying ? ' is-playing' : ''}`}
+                    aria-label={isPlaying ? 'Pause animation' : 'Play animation'}
                     aria-pressed={isPlaying}
                     aria-disabled={disabled}
                     disabled={disabled}
@@ -59,7 +60,7 @@ export default function SpeedController({ setCurrentTime, currentTime, disabled 
 
                 <div
                     ref={trackRef}
-                    className={`map-time-wheel${isDragging ? " is-dragging" : ""}${disabled ? " is-disabled" : ""}`}
+                    className={`map-time-wheel${isDragging ? ' is-dragging' : ''}${disabled ? ' is-disabled' : ''}`}
                     role="slider"
                     tabIndex={disabled ? -1 : 0}
                     aria-label="Map time wheel"
@@ -84,10 +85,10 @@ export default function SpeedController({ setCurrentTime, currentTime, disabled 
                                     <span
                                         key={mark.hour}
                                         className={[
-                                            "map-time-wheel__tick",
-                                            mark.isMinor ? "map-time-wheel__tick--minor" : "",
-                                            mark.isMajor ? "map-time-wheel__tick--major" : "",
-                                        ].filter(Boolean).join(" ")}
+                                            'map-time-wheel__tick',
+                                            mark.isMinor ? 'map-time-wheel__tick--minor' : '',
+                                            mark.isMajor ? 'map-time-wheel__tick--major' : '',
+                                        ].filter(Boolean).join(' ')}
                                         style={{ left: `${mark.position}%` }}
                                     >
                                         <span className="map-time-wheel__tick-line" />
@@ -102,7 +103,7 @@ export default function SpeedController({ setCurrentTime, currentTime, disabled 
                 </div>
 
                 <div
-                    className={`map-speed-controls__speed-selector${disabled ? " is-disabled" : ""}`}
+                    className={`map-speed-controls__speed-selector${disabled ? ' is-disabled' : ''}`}
                     role="group"
                     aria-label="Playback speed"
                     aria-disabled={disabled}
@@ -118,7 +119,7 @@ export default function SpeedController({ setCurrentTime, currentTime, disabled 
                                 <button
                                     type="button"
                                     key={option}
-                                    className={`map-speed-controls__speed-step${speed === option ? " is-active" : ""}`}
+                                    className={`map-speed-controls__speed-step${speed === option ? ' is-active' : ''}`}
                                     aria-pressed={speed === option}
                                     disabled={disabled}
                                     onClick={() => setSpeed(option)}
@@ -131,5 +132,5 @@ export default function SpeedController({ setCurrentTime, currentTime, disabled 
                 </div>
             </div>
         </div>
-    );
+    )
 }

@@ -12,8 +12,7 @@ import { useTripArcsLayer } from "./useTripArcsLayer.js";
  * @returns {Object} Trips, max flow, view flag, clickable stations, and combined query states.
  */
 export function useTripFlowLayer({ filters, focusedStationId, tripDirection = 'all' }) {
-    // Only station coordinates are needed here, so this uses the station-availability
-    // hook directly instead of the whole infrastructure layer (which also fetches bike routes).
+    // Only station coordinates are needed, so use the station-availability hook directly, not the whole infrastructure layer.
     const { stationData, loading: stationLoading, error: stationError, refetch: refetchStations } = useStationAvailability()
     const stations = useMemo(() => selectStationAvailability(stationData), [stationData])
     const { trips, maxTripFlow, isFocusView, loading: tripLoading, error: tripError, refetch: refetchTrips } = useTripArcsLayer({ filters, focusedStationId, tripDirection })

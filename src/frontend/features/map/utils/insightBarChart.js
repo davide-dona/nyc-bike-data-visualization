@@ -7,17 +7,12 @@ import {
     FONT_MONO,
 } from '@/utils/editorialTokens.js'
 
-// Unit-separator control char: cannot appear in station names or year labels,
-// so joined keys round-trip safely even when labels contain spaces.
+// Unit-separator control char: cannot appear in station names or year labels, so joined keys round-trip safely.
 export const KEY_SEPARATOR = '\u001f'
-// Record-separator control char: joins the lines of a multi-line label inside
-// a key entry, so array labels round-trip through labelsKey alongside plain
-// string labels.
+// Record-separator control char: joins the lines of a multi-line label so array labels round-trip through labelsKey.
 export const LINE_SEPARATOR = '\u001e'
 
-// Long station/corridor names would eat the plot area on horizontal charts;
-// ticks are truncated in the middle (corridor labels differ at both ends),
-// tooltips keep the full label.
+// Long names would eat the horizontal plot area, so ticks are middle-truncated (corridors differ at both ends); tooltips keep the full label.
 export const MAX_CATEGORY_TICK_CHARS = 26
 
 /**

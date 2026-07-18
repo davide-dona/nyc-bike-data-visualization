@@ -63,15 +63,13 @@ export function useBuildLayers({ filters, currentTime, activeLayer, showBikeRout
         [bikeRoutes, selectedYear],
     )
 
-    // Emphasize the top-ranked corridors on the map; focus view already uses
-    // diverging colors, so it gets no emphasis set.
+    // Emphasize the top-ranked corridors; focus view already uses diverging colors, so it gets no emphasis set.
     const emphasizedCorridorKeys = useMemo(() => {
         if (isFocusView || trips.length === 0) return null
         return new Set(rankCorridors(trips, TRIP_FLOW_LIST_SIZE).map((row) => row.key))
     }, [trips, isFocusView])
 
-    // hasData is derived from the source arrays, not the deck.gl layer instances, so
-    // "still waiting on data" is distinct from "loaded but layer not built yet".
+    // hasData comes from the source arrays, not the layer instances, so "waiting on data" differs from "loaded but not built yet".
     const stateLayers = [
         { layer: 'station_usage', loading: stationLoading, error: stationError, refetch: stationRefetch, hasData: frameStations.length > 0 },
         { layer: 'trip_flow', loading: tripLoading, error: tripError, refetch: tripRefetch, hasData: tripStations.length > 0 },

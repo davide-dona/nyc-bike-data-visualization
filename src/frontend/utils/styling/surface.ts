@@ -11,8 +11,7 @@ import {
     FONT_MONO,
 } from '../editorialTokens.js'
 
-// Sequential editorial ramp: paper (min) → accent-ink (max).
-// Five stops map the full z range cleanly without muddying the midrange.
+// Sequential editorial ramp: paper (min) → accent-ink (max); five stops map the full z range cleanly without muddying the midrange.
 export const EDITORIAL_COLORSCALE = [
     [0.00, PAPER],
     [0.25, '#b8c9ec'],

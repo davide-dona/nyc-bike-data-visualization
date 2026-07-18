@@ -1,5 +1,4 @@
-// Single source of truth for colors/fonts/spacing; Tailwind and chart/map theming both derive from this file.
-// Two ink families coexist on purpose: chart ink (INK, near-black) for canvas plots, UI ink (UI_COLORS.ink, navy) for Tailwind `text-ink` classes.
+// Single source of truth for colors/fonts/spacing (Tailwind + chart/map theming derive from it); two ink families coexist on purpose — chart ink (INK, near-black) for canvas, UI ink (UI_COLORS.ink, navy) for Tailwind `text-ink`.
 
 // Hex tokens - for Plotly, Chart.js, SVG
 export const INK          = '#0b0c0e'

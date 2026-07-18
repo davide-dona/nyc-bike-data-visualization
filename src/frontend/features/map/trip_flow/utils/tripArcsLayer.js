@@ -11,8 +11,7 @@ import { classifyBalance } from './tripArcsSelector.js'
 import { formatCount, formatNumber } from '@/utils/numberFormat.js'
 import { RIDE_METRIC_LABELS } from '@/utils/rideMetricLabels.js'
 
-// Overview: thin translucent arcs driven by volume (width/opacity/hue ramp).
-// Focus: solid diverging colors by net direction; volume drives width/opacity only.
+// Overview: thin translucent arcs by volume (width/opacity/hue ramp); focus: solid diverging colors by net direction, volume drives width/opacity.
 const OVERVIEW_BASE_WIDTH = 1
 const OVERVIEW_WIDTH_RANGE = 5
 const OVERVIEW_BASE_ALPHA = 25
@@ -28,8 +27,7 @@ const RAMP_SPLIT = 0.6
 const EMPHASIS_ALPHA_FLOOR = 210
 const EMPHASIS_WIDTH_BONUS = 1.5
 const TAIL_ALPHA_FACTOR = 0.4
-// Corridor pin (leaderboard click): only the pinned corridor's arc is drawn (see
-// createTripsArcLayer), so once it's the sole arc left it always gets full opacity.
+// Corridor pin (leaderboard click): only the pinned corridor's arc is drawn, so it always gets full opacity.
 
 const FOCUS_COLORS = {
     outbound: ACCENT_RGB,
@@ -158,8 +156,7 @@ export function createTripsArcLayer({
 }) {
     // Stable trigger key so accessor caches rebuild when the ranked set changes
     const emphasisKey = emphasizedCorridorKeys ? [...emphasizedCorridorKeys].sort().join('|') : null
-    // A pinned corridor hides every other arc: filter the data instead of just dimming it, so
-    // non-pinned arcs are also removed from picking, not just faded.
+    // A pinned corridor hides every other arc: filter the data (not just dim) so non-pinned arcs leave picking too.
     const visibleTrips = pinnedCorridorKey
         ? trips.filter((trip) => trip.corridor_key === pinnedCorridorKey)
         : trips

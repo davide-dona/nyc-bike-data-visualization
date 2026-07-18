@@ -1,20 +1,17 @@
 import { ScatterplotLayer } from '@deck.gl/layers'
 import { WHITE_RGB, WARM_HIGHLIGHT_RGB } from '@/utils/editorialTokens.js'
 
-// Kept low so dots keep shrinking with the map instead of snapping to a
-// fixed minimum and overlapping closely-spaced stations at citywide zoom.
+// Kept low so dots keep shrinking with the map instead of snapping to a fixed minimum and overlapping at citywide zoom.
 const MIN_RADIUS_PIXELS = 0.75
 
 const HOVER_RADIUS_MULTIPLIER = 1.7
 
-// Selection halo: a warm ring under the dot, with its own pixel floor so the
-// ring stays readable even at the citywide zoom.
+// Selection halo: a warm ring under the dot, with its own pixel floor so it stays readable at citywide zoom.
 const HALO_RADIUS_MULTIPLIER = 2.2
 const HALO_FILL_ALPHA = 70
 const HALO_MIN_RADIUS_PIXELS = 3
 
-// Invisible pick layer: a constant screen-size hit target around each dot,
-// so stations stay comfortable to click even when the visual dots are small.
+// Invisible pick layer: a constant screen-size hit target around each dot, so small dots stay comfortable to click.
 const PICK_RADIUS_PIXELS = 14
 
 /**

@@ -3,8 +3,7 @@ import { MIN_ZOOM } from './mapConfig.js'
 
 // Pixel padding around the fitted bounds.
 const FIT_PADDING = 80
-// Zoom-in ceiling for fitted views, so tightly clustered targets still show a
-// readable neighborhood rather than one block.
+// Zoom-in ceiling for fitted views, so tightly clustered targets still show a readable neighborhood, not one block.
 export const MAX_FIT_ZOOM = 14
 
 /**

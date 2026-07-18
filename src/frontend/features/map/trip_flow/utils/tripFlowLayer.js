@@ -1,6 +1,5 @@
 import { createTripStationsLayers } from "./tripStationsLayer.js";
 import { createTripsArcLayer } from "./tripArcsLayer.js";
-import { formatCount } from "@/utils/numberFormat.js";
 
 /**
  * Creates the layers for visualizing trip flows between stations: arcs for trips, points for stations.
@@ -41,8 +40,7 @@ export function createTripFlowLayers({
         onStationPick,
         onStationHover,
     })
-    // Hit layer and hover overlay stay on top of the arcs: deck.gl picks the topmost pixel
-    // (arcs disable depth test), and the hover overlay must not be buried under the corridor web.
+    // Hit layer and hover overlay stay on top of the arcs so picks and hover aren't buried under the corridor web.
     const stationTopLayers = stationLayers.filter(
         (layer) => layer.id.endsWith('-hit') || layer.id.endsWith('-hover'),
     )

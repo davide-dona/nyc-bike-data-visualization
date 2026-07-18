@@ -4,8 +4,7 @@ import { createStationDotsLayers } from "../../utils/stationDotsLayer.js";
 // Overview dots recede behind the corridor web: smaller, semi-transparent.
 const STATION_COLOR_OVERVIEW = [...INK_MUTED_RGB, 170];
 
-// Geographic radii (meters) with pixel caps: dots shrink with the map when zoomed out,
-// then hold the capped size once zoomed in. Overview dots stay small so the corridor web reads first.
+// Geographic radii (meters) with pixel caps: dots shrink when zoomed out, hold once zoomed in; overview dots stay small.
 const STATION_RADIUS_FOCUS_M = 70;
 const STATION_RADIUS_OVERVIEW_M = 40;
 const STATION_MAX_PIXELS_FOCUS = 5;

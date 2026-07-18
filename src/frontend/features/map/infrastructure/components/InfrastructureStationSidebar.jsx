@@ -12,6 +12,7 @@ import {
     flowBalanceText,
     todayWeekdayIndex,
 } from '../utils/stationSidebarSelectors.js'
+import { INFRASTRUCTURE_TEXT } from '../utils/infrastructureText.js'
 
 /**
  * Slide-in sidebar for the infrastructure layer: live availability metrics,
@@ -49,7 +50,7 @@ export default function InfrastructureStationSidebar({ selectedStations = [], fi
             <div className="infra-sidebar__header">
                 <div>
                     <div className='flex justify-between items-center mb-1'>
-                        <p className="infra-sidebar__eyebrow">Infrastructure</p>
+                        <p className="infra-sidebar__eyebrow">{INFRASTRUCTURE_TEXT.sidebar.eyebrow}</p>
                         <button type="button" className="infra-sidebar__close" onClick={onClose} aria-label="Close station sidebar">
                             <i className="fa-solid fa-xmark" aria-hidden="true" />
                         </button>
@@ -65,52 +66,52 @@ export default function InfrastructureStationSidebar({ selectedStations = [], fi
             </div>
 
             <section className="infra-sidebar__metrics-grid">
-                <StatCard theme="dark" size="sm" label="Capacity" value={formatCount(liveTotals.actualCapacity)} hint="effective docks" />
-                <StatCard theme="dark" size="sm" label="Docks" value={formatCount(liveTotals.availableDocks)} hint="available now" />
-                <StatCard theme="dark" size="sm" label="Classic bikes" value={formatCount(liveTotals.classicBikes)} hint="available now" />
-                <StatCard theme="dark" size="sm" label="E-bikes" value={formatCount(liveTotals.electricBikes)} hint="available now" />
-                <StatCard theme="dark" size="sm" label="Bikes available" value={formatCount(bikesAvailable)} hint="available now" />
-                <StatCard theme="dark" size="sm" label="Disabled" value={formatCount(liveTotals.disabledBikes)} hint="out of service" />
+                <StatCard theme="dark" size="sm" label={INFRASTRUCTURE_TEXT.sidebar.metrics.capacity.label} value={formatCount(liveTotals.actualCapacity)} hint={INFRASTRUCTURE_TEXT.sidebar.metrics.capacity.hint} />
+                <StatCard theme="dark" size="sm" label={INFRASTRUCTURE_TEXT.sidebar.metrics.docks.label} value={formatCount(liveTotals.availableDocks)} hint={INFRASTRUCTURE_TEXT.sidebar.metrics.docks.hint} />
+                <StatCard theme="dark" size="sm" label={INFRASTRUCTURE_TEXT.sidebar.metrics.classicBikes.label} value={formatCount(liveTotals.classicBikes)} hint={INFRASTRUCTURE_TEXT.sidebar.metrics.classicBikes.hint} />
+                <StatCard theme="dark" size="sm" label={INFRASTRUCTURE_TEXT.sidebar.metrics.electricBikes.label} value={formatCount(liveTotals.electricBikes)} hint={INFRASTRUCTURE_TEXT.sidebar.metrics.electricBikes.hint} />
+                <StatCard theme="dark" size="sm" label={INFRASTRUCTURE_TEXT.sidebar.metrics.bikesAvailable.label} value={formatCount(bikesAvailable)} hint={INFRASTRUCTURE_TEXT.sidebar.metrics.bikesAvailable.hint} />
+                <StatCard theme="dark" size="sm" label={INFRASTRUCTURE_TEXT.sidebar.metrics.disabled.label} value={formatCount(liveTotals.disabledBikes)} hint={INFRASTRUCTURE_TEXT.sidebar.metrics.disabled.hint} />
             </section>
 
             {!stationData.loading && !stationData.error && <section className="infra-sidebar__section">
-                <div className="infra-sidebar__section-heading">Highlights</div>
+                <div className="infra-sidebar__section-heading">{INFRASTRUCTURE_TEXT.sidebar.headings.highlights}</div>
                 <ul className="infra-sidebar__highlights">
                     <li className="infra-sidebar__highlight-row">
                         <span className="infra-sidebar__highlight-label">Avg {DAY_FULL[todayDow]}</span>
                         <strong className="infra-sidebar__highlight-value">~{formatNumber(todayRow.avg_rides, 2)} {RIDE_METRIC_LABELS.perDay.unit}</strong>
                     </li>
                     <li className="infra-sidebar__highlight-row">
-                        <span className="infra-sidebar__highlight-label">Peak hour</span>
+                        <span className="infra-sidebar__highlight-label">{INFRASTRUCTURE_TEXT.sidebar.highlightLabels.peakHour}</span>
                         <strong className="infra-sidebar__highlight-value">{peakHour.label}:00 (~{formatNumber(peakHour.avg_rides, 2)} {RIDE_METRIC_LABELS.perHour.unit})</strong>
                     </li>
                     <li className="infra-sidebar__highlight-row">
-                        <span className="infra-sidebar__highlight-label">Busiest day</span>
+                        <span className="infra-sidebar__highlight-label">{INFRASTRUCTURE_TEXT.sidebar.highlightLabels.busiestDay}</span>
                         <strong className="infra-sidebar__highlight-value">{DAY_FULL[busiestDay.day_of_week]} (~{formatNumber(busiestDay.avg_rides, 2)} {RIDE_METRIC_LABELS.perDay.unit})</strong>
                     </li>
                     <li className="infra-sidebar__highlight-row">
-                        <span className="infra-sidebar__highlight-label">Flow balance</span>
+                        <span className="infra-sidebar__highlight-label">{INFRASTRUCTURE_TEXT.sidebar.highlightLabels.flowBalance}</span>
                         <strong className="infra-sidebar__highlight-value">{flowBalanceText(netFlow)}</strong>
                     </li>
                     <li className="infra-sidebar__highlight-row">
-                        <span className="infra-sidebar__highlight-label">Profile</span>
+                        <span className="infra-sidebar__highlight-label">{INFRASTRUCTURE_TEXT.sidebar.highlightLabels.profile}</span>
                         <strong className="infra-sidebar__highlight-value" title={characterHint(character.label) ?? undefined}>{character.label}</strong>
                     </li>
                 </ul>
             </section>}
 
             {!stationData.loading && !stationData.error && <section className="infra-sidebar__section">
-                <div className="infra-sidebar__section-heading">Historical profile</div>
+                <div className="infra-sidebar__section-heading">{INFRASTRUCTURE_TEXT.sidebar.headings.historicalProfile}</div>
                 <div className="infra-sidebar__chart-grid">
-                    <VerticalBarChart title="Avg rides by day of week" rows={stationData.daySeries.map((row) => ({ ...row, label: DAY_ORDER[row.day_of_week] ?? row.label }))} labelKey="day_of_week" valueKey="avg_rides" unit={RIDE_METRIC_LABELS.perDay.unit} />
-                    <VerticalBarChart title="Avg rides by hour" rows={stationData.hourSeries.map((row) => ({ ...row, tooltip_label: `${row.label}:00` }))} labelKey="hour" valueKey="avg_rides" unit={RIDE_METRIC_LABELS.perHour.unit} />
-                    <DivergingHourChart title="Avg in / out by hour" rows={stationData.hourSeries} />
+                    <VerticalBarChart title={INFRASTRUCTURE_TEXT.sidebar.chartTitles.byDayOfWeek} rows={stationData.daySeries.map((row) => ({ ...row, label: DAY_ORDER[row.day_of_week] ?? row.label }))} labelKey="day_of_week" valueKey="avg_rides" unit={RIDE_METRIC_LABELS.perDay.unit} />
+                    <VerticalBarChart title={INFRASTRUCTURE_TEXT.sidebar.chartTitles.byHour} rows={stationData.hourSeries.map((row) => ({ ...row, tooltip_label: `${row.label}:00` }))} labelKey="hour" valueKey="avg_rides" unit={RIDE_METRIC_LABELS.perHour.unit} />
+                    <DivergingHourChart title={INFRASTRUCTURE_TEXT.sidebar.chartTitles.inOutByHour} rows={stationData.hourSeries} />
                 </div>
             </section>}
 
             {!stationData.loading && !stationData.error && topFlows.length > 0 && <section className="infra-sidebar__section">
                 <div className="infra-sidebar__section-heading infra-sidebar__section-heading--metric">
-                    <span>Top connected stations</span>
+                    <span>{INFRASTRUCTURE_TEXT.sidebar.headings.topConnected}</span>
                     <span className="infra-sidebar__section-metric">{RIDE_METRIC_LABELS.total.label}</span>
                 </div>
                 <div className="infra-sidebar__flow-list">
@@ -131,7 +132,7 @@ export default function InfrastructureStationSidebar({ selectedStations = [], fi
                 </div>
             </section>}
 
-            {stationData.loading && <div className="infra-sidebar__loading">Loading station statistics…</div>}
+            {stationData.loading && <div className="infra-sidebar__loading">{INFRASTRUCTURE_TEXT.sidebar.loading}</div>}
             {stationData.error && <div className="infra-sidebar__error">{stationData.error}</div>}
         </aside>
     )
