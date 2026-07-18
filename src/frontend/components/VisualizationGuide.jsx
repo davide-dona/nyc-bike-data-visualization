@@ -1,8 +1,8 @@
-import { useState } from 'react'
+import useVisualizationGuide from '@/hooks/useVisualizationGuide.js'
 
 /** Collapsible "How To Read It" guide rendered under each visualization. */
 function VisualizationGuide({ title, summary, hints = [], mapName }) {
-    const [collapsed, setCollapsed] = useState(false)
+    const { collapsed, toggleCollapsed } = useVisualizationGuide()
 
     return (
         <section className={`viz-guide${collapsed ? ' is-collapsed' : ''}`} aria-label="Visualization guide">
@@ -18,7 +18,7 @@ function VisualizationGuide({ title, summary, hints = [], mapName }) {
                 <button
                     type="button"
                     className="viz-guide__toggle-btn"
-                    onClick={() => setCollapsed((prev) => !prev)}
+                    onClick={toggleCollapsed}
                     aria-expanded={!collapsed}
                 >
                     <span className="viz-guide__toggle-icon" aria-hidden="true">
