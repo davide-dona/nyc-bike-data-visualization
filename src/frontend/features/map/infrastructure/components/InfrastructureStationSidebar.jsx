@@ -1,4 +1,3 @@
-import { useMemo } from 'react'
 import useInfrastructureStationSidebarData from '../hooks/useInfrastructureStationSidebarData.js'
 import { formatCount, formatNumber } from '@/utils/numberFormat.js'
 import { RIDE_METRIC_LABELS } from '@/utils/rideMetricLabels.js'
@@ -25,8 +24,7 @@ import {
  * @returns The rendered sidebar, or null when nothing is selected.
  */
 export default function InfrastructureStationSidebar({ selectedStations = [], filters = {}, onClose, selectStation }) {
-    const stationIds = useMemo(() => selectedStations.map((station) => station.id), [selectedStations])
-    const stationData = useInfrastructureStationSidebarData({ stationIds, filters })
+    const stationData = useInfrastructureStationSidebarData({ selectedStations, filters })
 
     if (!selectedStations.length) return null
 
@@ -117,7 +115,7 @@ export default function InfrastructureStationSidebar({ selectedStations = [], fi
                 </div>
                 <div className="infra-sidebar__flow-list">
                     {topFlows.map((flow) => {
-                        const isPrimaryA = stationIds.includes(flow.station_a_id)
+                        const isPrimaryA = stationData.stationIds.includes(flow.station_a_id)
                         const partnerName = isPrimaryA ? flow.station_b_name : flow.station_a_name
                         const partnerId = isPrimaryA ? flow.station_b_id : flow.station_a_id
                         return (

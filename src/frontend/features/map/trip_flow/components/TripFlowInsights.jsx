@@ -1,11 +1,10 @@
-import { useMemo } from 'react'
 import InsightFrame from '../../components/InsightFrame.jsx'
 import StatCard from '@/components/StatCard.jsx'
 import TripFlowCorridorList from './TripFlowCorridorList.jsx'
-import { rankCorridors, tripFlowFocusStats, tripFlowOverviewStats } from '../../utils/insightSelectors.js'
 import { formatCount, formatNumber } from '@/utils/numberFormat.js'
-import { TRIP_FLOW_LIST_SIZE } from '@/utils/config.js'
 import { RIDE_METRIC_LABELS } from '@/utils/rideMetricLabels.js'
+import useTripFlowInsights from '../hooks/useTripFlowInsights.js'
+import { TRIP_FLOW_TEXT } from '../utils/tripFlowText.js'
 
 /**
  * Insight frame for the trip flow layer: headline stat tiles plus a ranked corridor list.
@@ -17,33 +16,25 @@ import { RIDE_METRIC_LABELS } from '@/utils/rideMetricLabels.js'
  * @returns The rendered trip flow insight frame.
  */
 export default function TripFlowInsights({ insights, tripFlowHover, tripFlowPin }) {
-    const { trips, isFocusView, focusedStationName } = insights
-    const status = insights
+    const { status, isFocusView, focusedStationName, rows, stats, strongestCorridor } =
+        useTripFlowInsights({ insights })
     const { hoveredCorridorKey, onCorridorHover } = tripFlowHover
     const { pinnedCorridorKey, onCorridorToggle } = tripFlowPin
-
-    const rows = useMemo(() => rankCorridors(trips, TRIP_FLOW_LIST_SIZE), [trips])
-    const stats = useMemo(
-        () => (isFocusView ? tripFlowFocusStats(trips) : tripFlowOverviewStats(trips)),
-        [trips, isFocusView],
-    )
-    const strongestCorridor = rows[0] ?? null
 
     if (isFocusView) {
         return (
             <InsightFrame
-                title={`Corridors of ${focusedStationName ?? 'the focused station'}`}
-                note="Bars show daily rides relative to the busiest corridor, split by direction, with actual average daily counts on the right. Hover or click to map its flow."                status={status}
-                emptyMessage={rows.length === 0
-                    ? 'No trips recorded for the focused station with the current filters.'
-                    : null}
+                title={TRIP_FLOW_TEXT.focus.titleLead + (focusedStationName ?? TRIP_FLOW_TEXT.focus.titleFallback)}
+                note={TRIP_FLOW_TEXT.focus.note}
+                status={status}
+                emptyMessage={rows.length === 0 ? TRIP_FLOW_TEXT.focus.emptyMessage : null}
                 autoHeight
             >
                 <div className="map-insights__stat-row">
                     <StatCard value={formatCount(stats.totalDailyRides)} label={RIDE_METRIC_LABELS.perDay.label} />
-                    <StatCard value={formatCount(stats.partnerCount)} label="Linked stations" />
-                    <StatCard value={`${formatCount(stats.outboundShare * 100)}%`} label="Outbound Share" />
-                    <StatCard value={`${formatNumber(stats.medianDistanceKm, 1)} km`} label="Median trip" />
+                    <StatCard value={formatCount(stats.partnerCount)} label={TRIP_FLOW_TEXT.focus.partnerCountLabel} />
+                    <StatCard value={`${formatCount(stats.outboundShare * 100)}%`} label={TRIP_FLOW_TEXT.focus.outboundShareLabel} />
+                    <StatCard value={`${formatNumber(stats.medianDistanceKm, 1)} km`} label={TRIP_FLOW_TEXT.focus.medianDistanceLabel} />
                 </div>
                 <TripFlowCorridorList
                     rows={rows}
@@ -59,20 +50,19 @@ export default function TripFlowInsights({ insights, tripFlowHover, tripFlowPin 
 
     return (
         <InsightFrame
-            title="Strongest corridors citywide"    
-            note="Bars show total volume relative to the busiest corridor, with actual average daily counts on the right. Hover or click to trace its flow."            status={status}
-            emptyMessage={rows.length === 0
-                ? 'No trips recorded for the current filters.'
-                : null}
+            title={TRIP_FLOW_TEXT.overview.title}
+            note={TRIP_FLOW_TEXT.overview.note}
+            status={status}
+            emptyMessage={rows.length === 0 ? TRIP_FLOW_TEXT.overview.emptyMessage : null}
             autoHeight
         >
             <div className="map-insights__stat-row">
                 <StatCard value={formatCount(stats.totalDailyRides)} label={RIDE_METRIC_LABELS.perDay.label} />
-                <StatCard value={formatCount(stats.corridorCount)} label="Corridors" />
-                <StatCard value={`${formatNumber(stats.medianDistanceKm, 1)} km`} label="Median corridor" />
+                <StatCard value={formatCount(stats.corridorCount)} label={TRIP_FLOW_TEXT.overview.corridorCountLabel} />
+                <StatCard value={`${formatNumber(stats.medianDistanceKm, 1)} km`} label={TRIP_FLOW_TEXT.overview.medianDistanceLabel} />
                 <StatCard
                     value={strongestCorridor ? formatCount(strongestCorridor.value) : '0'}
-                    label="Strongest corridor"
+                    label={TRIP_FLOW_TEXT.overview.strongestCorridorLabel}
                 />
             </div>
             <TripFlowCorridorList

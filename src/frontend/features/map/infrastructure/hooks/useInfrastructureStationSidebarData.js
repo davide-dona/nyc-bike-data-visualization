@@ -7,11 +7,12 @@ import { aggregateFlows, aggregateUsage, buildSummary } from '../utils/stationSi
  * Fetch hook for the infrastructure station sidebar: loads the selected
  * stations' usage and flow stats, then applies the sidebar selectors to
  * expose ready-to-render series and summary.
- * @param {Array<string>} stationIds - Selected station ids; empty disables the query.
+ * @param {Array<Object>} selectedStations - Selected station(s); empty disables the query.
  * @param {Object} filters - Active header filters forwarded to the API.
- * @returns {Object} Query state plus daySeries, hourSeries, totals, summary, and topFlows.
+ * @returns {Object} Query state plus stationIds, daySeries, hourSeries, totals, summary, and topFlows.
  */
-export default function useInfrastructureStationSidebarData({ stationIds = [], filters = {} } = {}) {
+export default function useInfrastructureStationSidebarData({ selectedStations = [], filters = {} } = {}) {
+    const stationIds = useMemo(() => selectedStations.map((station) => station.id), [selectedStations])
     const queryFilters = useMemo(() => ({
         ...filters,
         stationIds,
@@ -42,6 +43,7 @@ export default function useInfrastructureStationSidebarData({ stationIds = [], f
             totals: aggregatedUsage.totals,
             summary: buildSummary(aggregatedUsage),
             topFlows: aggregatedFlows.slice(0, 6),
+            stationIds,
         }
-    }, [query.data, query.error, query.loading, query.refetch])
+    }, [query.data, query.error, query.loading, query.refetch, stationIds])
 }
