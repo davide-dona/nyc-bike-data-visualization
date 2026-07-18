@@ -64,7 +64,6 @@ export default function useSurfaceGraph({
 
     const hoverTemplate = useMemo(
         () =>
-            '<b>Weekly Pulse</b><br>' +
             'Day: <b>%{y}</b><br>' +
             'Hour: <b>%{x}</b><br>' +
             `${metric.label}: <b>%{z:,.2f}</b><extra></extra>`,
