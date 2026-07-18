@@ -33,11 +33,7 @@ function getAverageRides(row) {
     return daysCount > 0 ? totalRides / daysCount : 0
 }
 
-// Rides has three presentations, all sharing the same `get`/`format` but differing in
-// label/unit: an average per hour (day-hour surface cells, hour marginals), an average
-// per day (day-of-week marginals), and a single date's own total (the date series - each
-// point is exactly one day, not an average, so it keeps the "/day" unit without "Avg").
-// `noun` is the tooltip name for the value; the unit follows separately, so noun stays unit-free.
+// Rides has three presentations, all sharing the same `get`/`format` but differing in label
 const RIDES_BY_AGGREGATION = {
     hour: {
         label: RIDE_METRIC_LABELS.perHour.label,
@@ -54,7 +50,7 @@ const RIDES_BY_AGGREGATION = {
         format: METRIC_FORMATTERS.total_rides,
     },
     daily: {
-        label: "Rides / day",
+        label: "Avg rides/day",
         noun: "Rides",
         unit: "rides/day",
         get: getAverageRides,
@@ -63,7 +59,13 @@ const RIDES_BY_AGGREGATION = {
 }
 
 export const METRICS = {
-    total_rides: RIDES_BY_AGGREGATION.hour,
+    average_rides: {
+        label: "Avg rides",
+        noun: "Avg rides",
+        unit: "rides",
+        get: getAverageRides,
+        format: METRIC_FORMATTERS.total_rides,
+    },
     average_duration_minutes: {
         label: "Avg Duration (min)",
         noun: "Duration",
