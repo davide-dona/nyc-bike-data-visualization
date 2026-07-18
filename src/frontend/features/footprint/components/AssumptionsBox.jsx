@@ -55,15 +55,15 @@ export default function AssumptionsBox() {
                             </li>
                         ))}
                         <li>
-                            <strong>Trees to absorb it: {EQUIVALENCE_FACTORS.trees.tonnesPerTree.toFixed(3)} t CO2 per tree.</strong> {EQUIVALENCE_FACTORS.trees.source}
+                            <strong>Trees' yearly uptake: {EQUIVALENCE_FACTORS.trees.tonnesPerTreePerYear.toFixed(3)} t CO2 per tree per year:</strong> {EQUIVALENCE_FACTORS.trees.source}
                             <Sources cites={EQUIVALENCE_FACTORS.trees.cites} />
                         </li>
                         <li>
-                            <strong>People's yearly CO2: {EQUIVALENCE_FACTORS.globalPerCapita.tonnesPerPerson} t CO2 per person.</strong> {EQUIVALENCE_FACTORS.globalPerCapita.source}
+                            <strong>People's yearly CO2: {EQUIVALENCE_FACTORS.globalPerCapita.tonnesPerPerson} t CO2 per person:</strong> {EQUIVALENCE_FACTORS.globalPerCapita.source}
                             <Sources cites={EQUIVALENCE_FACTORS.globalPerCapita.cites} />
                         </li>
                         <li>
-                            <strong>LED bulb-hours powered: {EQUIVALENCE_FACTORS.ledBulb.watts} W bulb, {EQUIVALENCE_FACTORS.ledBulb.kgCo2PerKwh} kg CO2 per kWh.</strong> {EQUIVALENCE_FACTORS.ledBulb.source}
+                            <strong>LED bulbs for a year: {EQUIVALENCE_FACTORS.ledBulb.watts} W bulb, {EQUIVALENCE_FACTORS.ledBulb.kgCo2PerKwh} kg CO2 per kWh:</strong> {EQUIVALENCE_FACTORS.ledBulb.source}
                             <Sources cites={EQUIVALENCE_FACTORS.ledBulb.cites} />
                         </li>
                     </ul>
@@ -74,7 +74,6 @@ export default function AssumptionsBox() {
                         When people ride bikes, they aren't always replacing a car trip.
                         They might have otherwise walked, caught the bus, or stayed home.
                         That is why we show avoided CO2 as a range of possibilities, not a single, perfect number.
-                        {' '}{SUBSTITUTION_RATE.source}
                         <Sources cites={SUBSTITUTION_RATE.cites} />
                     </p>
                     <p className="footprint-assumptions__heading">Calculation Exclusions</p>

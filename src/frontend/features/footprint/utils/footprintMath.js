@@ -26,9 +26,11 @@ export function carTripsReplaced(totalRides, substitutionRate) {
     return totalRides * substitutionRate
 }
 
-/** Number of urban trees (grown 10 years) needed to absorb the given avoided CO2. */
-export function treesToAbsorb(tonnesCo2) {
-    return tonnesCo2 / EQUIVALENCE_FACTORS.trees.tonnesPerTree
+const HOURS_PER_YEAR = 8760
+
+/** Number of urban trees whose one-year uptake matches the given avoided CO2. */
+export function treesYearlyEquivalent(tonnesCo2) {
+    return tonnesCo2 / EQUIVALENCE_FACTORS.trees.tonnesPerTreePerYear
 }
 
 /** Equivalent number of average people's yearly emissions matching the given avoided CO2. */
@@ -37,11 +39,16 @@ export function peopleYearlyEquivalent(tonnesCo2) {
 }
 
 /** Hours an average LED bulb could run on the grid electricity the avoided CO2 represents. */
-export function ledBulbHours(tonnesCo2) {
+function ledBulbHours(tonnesCo2) {
     const { kgCo2PerKwh, watts } = EQUIVALENCE_FACTORS.ledBulb
     if (!(kgCo2PerKwh > 0) || !(watts > 0)) return 0
     const kwh = (tonnesCo2 * 1000) / kgCo2PerKwh
     return kwh / (watts / 1000)
+}
+
+/** Number of LED bulbs the same grid electricity could run for a full year. */
+export function ledBulbYears(tonnesCo2) {
+    return ledBulbHours(tonnesCo2) / HOURS_PER_YEAR
 }
 
 /**

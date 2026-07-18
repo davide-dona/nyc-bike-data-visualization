@@ -2,33 +2,34 @@ import { useMemo } from 'react'
 import ChartFrame from '@/components/ChartFrame.jsx'
 import {
     avoidedCo2Tonnes,
-    treesToAbsorb,
+    treesYearlyEquivalent,
     peopleYearlyEquivalent,
-    ledBulbHours,
+    ledBulbYears,
     formatCompact,
 } from '../utils/footprintMath.js'
+import { SUBSTITUTION_RATE } from '../utils/emissionFactors.js'
 
-// Fixed "1 icon = N" scale per row: the icon count grows with the value (never
-// clamped) while each icon always stands for the same quantity. Scales differ
-// per row because trees, people and bulb-hours span many orders of magnitude.
-const PER_ICON = {
-    trees: 250,
-    people: 5,
-    bulbs: 5_000_000,
-}
+// Every row aims for this many icons so the pictogram stays readable at any
+// date range: the per-icon scale is derived from the value, not hardcoded.
+const TARGET_ICONS = 24
 
-// Icons shown for a value at a fixed per-icon scale; at least one for any
-// non-zero value so a row is never blank.
-function iconCount(value, perIcon) {
-    if (!(value > 0)) return 0
-    return Math.max(1, Math.round(value / perIcon))
+// Rounds a raw per-icon size to a clean 1/2/5 x 10^k number so the "1 icon = N"
+// label reads nicely (e.g. 261 -> 250, 4200 -> 5000).
+function niceScale(value) {
+    if (!(value > 0)) return 1
+    const base = 10 ** Math.floor(Math.log10(value))
+    const frac = value / base
+    const nice = frac < 1.5 ? 1 : frac < 3.5 ? 2 : frac < 7.5 ? 5 : 10
+    return nice * base
 }
 
 /**
- * Pictogram translating the avoided CO2 at the user's current substitution-rate
- * setting into everyday equivalents: each row repeats its icon proportionally to
- * the value at a fixed "1 icon = N" scale, with the precise figure on the right.
- * Every factor is stated in the assumptions box (AssumptionsBox.jsx).
+ * Pictogram translating the avoided CO2 into everyday yearly equivalents: each
+ * row repeats its icon proportionally to the value, with the precise figure on
+ * the right. The "1 icon = N" scale is anchored to the mid substitution rate and
+ * the selected date range, so the icon count stays near TARGET_ICONS whatever the
+ * range length while the slider still visibly moves it. Every factor is stated in
+ * the assumptions box (AssumptionsBox.jsx).
  * @param {Object} totals - Summed daily stats (total_distance_km).
  * @param {number} substitutionRate - Selected car-substitution rate (fraction).
  */
@@ -36,41 +37,41 @@ export default function FootprintEquivalents({ totals, substitutionRate, loading
     const { rows, hasData } = useMemo(() => {
         const distanceKm = Number(totals?.total_distance_km) || 0
         const tonnesCo2 = avoidedCo2Tonnes(distanceKm, substitutionRate)
+        // Scale reference: fixed to the mid rate so it tracks the date range, not the slider.
+        const tonnesCo2Ref = avoidedCo2Tonnes(distanceKm, SUBSTITUTION_RATE.mid)
 
         const specs = [
             {
                 key: 'trees',
                 icon: 'fa-solid fa-tree',
-                raw: treesToAbsorb(tonnesCo2),
-                label: 'Trees to absorb it',
-                suffix: '',
+                fn: treesYearlyEquivalent,
+                label: "Trees' yearly uptake",
             },
             {
                 key: 'people',
                 icon: 'fa-solid fa-user',
-                raw: peopleYearlyEquivalent(tonnesCo2),
+                fn: peopleYearlyEquivalent,
                 label: "People's yearly CO2",
-                suffix: '',
             },
             {
                 key: 'bulbs',
                 icon: 'fa-solid fa-lightbulb',
-                raw: ledBulbHours(tonnesCo2),
-                label: 'LED bulb-hours powered',
-                suffix: ' h',
+                fn: ledBulbYears,
+                label: 'LED bulbs for a year',
             },
         ]
 
         return {
             hasData: tonnesCo2 > 0,
             rows: specs.map((spec) => {
-                const perIcon = PER_ICON[spec.key]
+                const raw = spec.fn(tonnesCo2)
+                const perIcon = niceScale(spec.fn(tonnesCo2Ref) / TARGET_ICONS)
                 return {
                     key: spec.key,
                     icon: spec.icon,
                     perIcon,
-                    iconCount: iconCount(spec.raw, perIcon),
-                    value: `≈ ${formatCompact(spec.raw)}${spec.suffix}`,
+                    iconCount: raw > 0 ? Math.max(1, Math.round(raw / perIcon)) : 0,
+                    value: `≈ ${formatCompact(raw)}`,
                     label: spec.label,
                 }
             }),
@@ -80,7 +81,7 @@ export default function FootprintEquivalents({ totals, substitutionRate, loading
     return (
         <ChartFrame
             title="What that CO2 equals"
-            note="Translates the avoided CO2 at your selected rate into everyday equivalents, with each icon marking a fixed share of the total."
+            note="Translates the avoided CO2 at your selected rate into everyday yearly equivalents, with each icon marking a share that rescales with your selected date range so the picture stays readable."
             status={{ loading, error, refetch: onRefetch }}
             emptyMessage={hasData ? null : 'No ride data available for this filter range.'}
             autoHeight

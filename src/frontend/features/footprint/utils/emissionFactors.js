@@ -141,14 +141,16 @@ export const EXCLUDED_EFFECTS = [
     'Manufacturing, maintaining, and installing bikes and docking stations.',
     'Emissions from the vans used to move bikes between stations to rebalance the fleet.',
     'Route differences (the math assumes 1 kilometer on a bike perfectly replaces 1 kilometer in a car).',
+    'Disposing of and recycling bikes and parts at the end of their life.',
+    'The wider drop in traffic and congestion when a bike replaces a car.',
 ]
 
 // Conversion factors for the footprint page's "what that CO2 equals" cards,
 // each surfaced verbatim in the assumptions box alongside its source.
 export const EQUIVALENCE_FACTORS = {
     trees: {
-        tonnesPerTree: 0.060,
-        source: 'Assumes a mix of urban tree species grown for 10 years, accounting for survival rates.',
+        tonnesPerTreePerYear: 0.006,
+        source: 'Assumes a mix of urban tree species, counting one year of their average uptake over a 10-year growth period.',
         cites: [CITATIONS.epaTreeEquivalency],
     },
     globalPerCapita: {
@@ -159,7 +161,7 @@ export const EQUIVALENCE_FACTORS = {
     ledBulb: {
         kgCo2PerKwh: 0.37,
         watts: 9,
-        source: 'Assumes the US average grid carbon intensity and a standard 9-watt LED bulb (60-watt incandescent equivalent).',
+        source: 'Assumes the US average grid carbon intensity and a standard 9-watt LED bulb (60-watt incandescent equivalent), counted as one bulb running for a full year.',
         cites: [CITATIONS.epaEgrid],
     },
 }
