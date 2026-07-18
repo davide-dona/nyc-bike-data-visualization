@@ -2,6 +2,7 @@ import useDateWindowPicker from '../hooks/useDateWindowPicker.js'
 import { MONTH_LABELS, MONTH_ORDER } from '@/utils/config.js'
 import CalendarIcon from './CalendarIcon.jsx'
 import MonthCell from './MonthCell.jsx'
+import { HEADER_TEXT } from '../utils/headerText.js'
 
 /**
  * FROM/TO month-range picker; all state and behavior live in useDateWindowPicker, this only renders.
@@ -39,17 +40,17 @@ export default function DateWindowPicker({ value, onCommit, disabled = false }) 
         <div className="date-window-picker font-mono" ref={wrapperRef}>
             <div className="dw-inputs">
                 <div className="dw-row">
-                    <div className="dw-label">FROM</div>
+                    <div className="dw-label">{HEADER_TEXT.dateWindow.from}</div>
                     <button ref={startAnchorRef} className="dw-input dw-input--thin" onClick={() => openForField('start')} aria-haspopup="dialog" disabled={isLoading}>
                         <span className="dw-icon"><CalendarIcon/></span>
-                        <span className="dw-text">{start ? `${MONTH_ORDER[start.month]} ${start.year}` : 'Select start'}</span>
+                        <span className="dw-text">{start ? `${MONTH_ORDER[start.month]} ${start.year}` : HEADER_TEXT.dateWindow.selectStart}</span>
                     </button>
                 </div>
                 <div className="dw-row">
-                    <div className="dw-label">TO</div>
+                    <div className="dw-label">{HEADER_TEXT.dateWindow.to}</div>
                     <button ref={endAnchorRef} className="dw-input dw-input--thin" onClick={() => openForField('end')} aria-haspopup="dialog" disabled={isLoading}>
                         <span className="dw-icon"><CalendarIcon/></span>
-                        <span className="dw-text">{end ? `${MONTH_ORDER[end.month]} ${end.year}` : 'Select end'}</span>
+                        <span className="dw-text">{end ? `${MONTH_ORDER[end.month]} ${end.year}` : HEADER_TEXT.dateWindow.selectEnd}</span>
                     </button>
                 </div>
             </div>

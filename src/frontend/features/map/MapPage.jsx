@@ -13,6 +13,7 @@ import LayerSelector from './components/LayerSelector.jsx'
 import InfrastructureStationSidebar from './infrastructure/components/InfrastructureStationSidebar.jsx'
 import StatusMessage from '../../components/StatusMessage.jsx'
 import mapTooltip from './utils/mapTooltip.js'
+import { MAP_TEXT } from './utils/mapText.js'
 import VisualizationGuide from '../../components/VisualizationGuide.jsx'
 import MapInsightsPanel from './components/MapInsightsPanel.jsx'
 
@@ -97,11 +98,10 @@ function MapPage({ filters }) {
         <section className="page-card">
             <header className="page-card__header">
                 <div className="page-card__heading">
-                    <span className="page-card__eyebrow">Atlas</span>
-                    <h2 className="page-card__title">Map the city's flow</h2>
+                    <span className="page-card__eyebrow">{MAP_TEXT.page.eyebrow}</span>
+                    <h2 className="page-card__title">{MAP_TEXT.page.title}</h2>
                     <p className="page-card__subtitle">
-                        An interactive read of station usage, trip flows, and cycling
-                        infrastructure across the five boroughs.
+                        {MAP_TEXT.page.subtitle}
                     </p>
                 </div>
                 <div className="page-card__actions">
@@ -128,14 +128,14 @@ function MapPage({ filters }) {
                         type="button"
                         className="map-fullscreen-button"
                         onClick={toggleFullscreen}
-                        title={isFullscreen ? 'Exit full screen' : 'Enter full screen'}
+                        title={isFullscreen ? MAP_TEXT.fullscreen.exitTitle : MAP_TEXT.fullscreen.enterTitle}
                         aria-label={isFullscreen ? 'Exit full screen map' : 'Enter full screen map'}
                     >
                         <span className="map-fullscreen-button__icon" aria-hidden="true">
                             <i className={`fa-solid ${isFullscreen ? 'fa-compress' : 'fa-expand'}`} />
                         </span>
                         <span className="map-fullscreen-button__text">
-                            {isFullscreen ? 'Exit Full Screen' : 'Full Screen'}
+                            {isFullscreen ? MAP_TEXT.fullscreen.exit : MAP_TEXT.fullscreen.enter}
                         </span>
                     </button>
                     {shouldShowMapUi && (

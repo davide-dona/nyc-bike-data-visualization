@@ -1,7 +1,6 @@
-import { useMemo } from "react"
-import useChartJs from "@/hooks/useChartJs.js"
-import ChartFrame from "@/components/ChartFrame.jsx"
-import { formatRainBuckets, buildRainImpactConfig } from "../utils/rainImpactConfig.js"
+import ChartFrame from '@/components/ChartFrame.jsx'
+import useRainImpactChart from '../hooks/useRainImpactChart.js'
+import { WEATHER_TEXT } from '../utils/weatherText.js'
 
 /**
  * Bar chart of ridership per precipitation bucket, relative to the dry-weather
@@ -12,19 +11,14 @@ import { formatRainBuckets, buildRainImpactConfig } from "../utils/rainImpactCon
  * @param {Function} onRefetch - Callback to trigger a retry after error
  */
 export default function RainImpact({ data, loading, error, onRefetch }) {
-    const buckets = useMemo(() => formatRainBuckets(data), [data])
-
-    const { canvasRef } = useChartJs({
-        buildConfig: () => buildRainImpactConfig(buckets),
-        structuralKey: useMemo(() => JSON.stringify(buckets), [buckets]),
-    })
+    const { canvasRef, isEmpty } = useRainImpactChart({ data })
 
     return (
         <ChartFrame
-            title="Rain impact - ridership vs dry baseline"
-            note="Bars compare hourly ridership under each rain intensity compared to the dry-weather baseline (100%), showing how rain reduces ridership."
+            title={WEATHER_TEXT.rainImpact.title}
+            note={WEATHER_TEXT.rainImpact.note}
             status={{ loading, error, refetch: onRefetch }}
-            emptyMessage={buckets.length === 0 ? 'No precipitation data available for this filter range.' : null}
+            emptyMessage={isEmpty ? WEATHER_TEXT.rainImpact.emptyMessage : null}
             frameClassName="weather-deepdive-frame"
             titleClassName="weather-deepdive-frame__title"
             plotClassName="weather-deepdive-plot"

@@ -1,6 +1,6 @@
 /* Shared bordered panel frame, used standalone (e.g. footprint tiles wrapper,
    assumptions box) and as the base recipe for ChartFrame (chart-frame.css)
-   and the weather ridgeline/deep-dive frames (features/weather/styles/charts.css). */
+   and the weather ridgeline/deep-dive frames (features/weather/styles/weather-ridgeline.css, weather-page.css). */
 @layer components {
   /* Border + surface only, no padding: reused by frames that place their own
      padding on inner elements instead (e.g. .scatter-plot-frame). */

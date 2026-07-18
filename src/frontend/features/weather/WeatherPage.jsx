@@ -8,13 +8,13 @@ import TemperatureResponse from "./components/TemperatureResponse"
 import RainImpact from "./components/RainImpact"
 import VisualizationGuide from "../../components/VisualizationGuide"
 import { WEATHER_GUIDE } from "./utils/weatherGuide.js"
+import { WEATHER_TEXT } from './utils/weatherText.js'
 
 /**
  *  Component for the weather impact on ride behaviour page
  * @param {Object} filters - The filters to apply to the data, such as date range or user-selected filters.
  */
 function WeatherPage({ filters = {} }) {
-    // Fetch weather statistics using the custom hook
     const { weatherStats, loading, error, refetch } = useWeatherStats(filters)
     const {
         ridgelineStats,
@@ -40,11 +40,9 @@ function WeatherPage({ filters = {} }) {
         <section className="page-card">
             <header className="page-card__header">
                 <div className="page-card__heading">
-                    <span className="page-card__eyebrow">Weather</span>
-                    <h2 className="page-card__title">When the sky decides.</h2>
-                    <p className="page-card__subtitle">
-                        How users habits respond to the weather.
-                    </p>
+                    <span className="page-card__eyebrow">{WEATHER_TEXT.page.eyebrow}</span>
+                    <h2 className="page-card__title">{WEATHER_TEXT.page.title}</h2>
+                    <p className="page-card__subtitle">{WEATHER_TEXT.page.subtitle}</p>
                 </div>
             </header>
             <div className="page-card__body">

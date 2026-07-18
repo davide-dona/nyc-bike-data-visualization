@@ -1,11 +1,8 @@
-import { useMemo, useRef } from 'react'
-import { formatData } from '../utils/scatterPlot.js'
-import { buildScatterPlotConfig } from '../utils/scatterPlotConfig.js'
-import useScatterTooltip from '../hooks/useScatterTooltip.js'
-import useChartJs from '@/hooks/useChartJs.js'
+import useScatterPlot from '../hooks/useScatterPlot.js'
 import StatusMessage from '@/components/StatusMessage'
 import FloatingTooltip from '@/components/FloatingTooltip.jsx'
 import WeatherTooltipContent from './WeatherTooltipContent.jsx'
+import { WEATHER_TEXT } from '../utils/weatherText.js'
 
 /**
  * Component for rendering a scatter plot of weather data
@@ -16,33 +13,18 @@ import WeatherTooltipContent from './WeatherTooltipContent.jsx'
  * @returns {JSX.Element} The rendered scatter plot
  */
 export default function ScatterPlot({ data, loading, error, onRefetch }) {
-    const formattedData = useMemo(() => formatData(data), [data])
-    const { tooltip, tooltipNodeRef, handleExternalTooltip } = useScatterTooltip()
-    // The handler is read through a ref so the chart config never goes stale.
-    const externalTooltipRef = useRef(handleExternalTooltip)
-    externalTooltipRef.current = handleExternalTooltip
-
-    const { canvasRef } = useChartJs({
-        buildConfig: () =>
-            buildScatterPlotConfig({
-                formattedData,
-                externalTooltipHandler: (context) => externalTooltipRef.current(context),
-            }),
-        structuralKey: useMemo(() => JSON.stringify(formattedData), [formattedData]),
-    })
+    const { canvasRef, tooltip, tooltipNodeRef } = useScatterPlot({ data })
 
     return (
         <div className="scatter-plot-frame">
-            <p className="scatter-plot-frame__title">Weather conditions - speed vs trip frequency</p>
+            <p className="scatter-plot-frame__title">{WEATHER_TEXT.scatter.title}</p>
             <div className="scatter-plot">
                 <canvas ref={canvasRef} />
                 {(loading || error) && (
                     <StatusMessage loading={loading} error={error} onRefetch={onRefetch} />
                 )}
             </div>
-            <p className="scatter-plot-frame__note">
-                The placement and coloring of the points reveal how different weather conditions affect rider behavior. Hover over any point to see its exact weather conditions and metrics.
-            </p>
+            <p className="scatter-plot-frame__note">{WEATHER_TEXT.scatter.note}</p>
             {tooltip.point && (
                 <FloatingTooltip
                     visible={tooltip.visible}

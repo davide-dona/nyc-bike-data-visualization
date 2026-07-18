@@ -1,6 +1,7 @@
 import Plot from "react-plotly.js";
 import ChartFrame from "@/components/ChartFrame.jsx";
 import useSurfaceLineChart from "../hooks/useSurfaceLineChart.js";
+import { TEMPORAL_TEXT } from "../utils/temporalText.js";
 
 /**
  * Per-date line chart of the selected metric, drawing one line per layer in
@@ -27,10 +28,10 @@ function SurfaceLineChart({
 
     return (
         <ChartFrame
-            title={`${metric.label} over selected time range`}
-            note={`This line chart shows the daily breakdown of ${metric.label} over the selected time range, helping you spot key trends and easily identify anomalies.`}
+            title={`${metric.label}${TEMPORAL_TEXT.lineChart.titleSuffix}`}
+            note={`${TEMPORAL_TEXT.lineChart.noteLead}${metric.label}${TEMPORAL_TEXT.lineChart.noteTail}`}
             status={{ loading, error, refetch: onRefetch }}
-            emptyMessage={!hasData ? "No daily stats available for this selection." : null}
+            emptyMessage={!hasData ? TEMPORAL_TEXT.lineChart.emptyMessage : null}
             frameClassName="surface-card"
             titleClassName="surface-card__eyebrow"
             plotClassName="surface-chart"

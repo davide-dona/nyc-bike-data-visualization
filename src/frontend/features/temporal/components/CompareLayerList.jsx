@@ -1,3 +1,5 @@
+import { TEMPORAL_TEXT } from '../utils/temporalText.js'
+
 /**
  * Collapsible list of surfaces in the compare panel: the base layer swatch
  * plus one row per compare layer with Hide/Show and Remove actions.
@@ -12,17 +14,17 @@ export default function CompareLayerList({ baseLayer, layers, onToggleVisibility
         <details className="surface-layer-list" open>
             <summary>
                 <span className="surface-layer-list__title">
-                    Surfaces ({1 + layers.length})
+                    {TEMPORAL_TEXT.layerList.title} ({1 + layers.length})
                 </span>
                 <span
                     className="surface-layer-list__hint"
                     aria-hidden="true"
                 >
                     <span className="surface-layer-list__hint-open">
-                        Collapse
+                        {TEMPORAL_TEXT.layerList.collapse}
                     </span>
                     <span className="surface-layer-list__hint-closed">
-                        Expand
+                        {TEMPORAL_TEXT.layerList.expand}
                     </span>
                 </span>
                 <span
@@ -72,7 +74,7 @@ export default function CompareLayerList({ baseLayer, layers, onToggleVisibility
                                     className={`fa-solid ${layer.visible ? "fa-eye-slash" : "fa-eye"}`}
                                 />
                             </span>
-                            {layer.visible ? "Hide" : "Show"}
+                            {layer.visible ? TEMPORAL_TEXT.layerList.hide : TEMPORAL_TEXT.layerList.show}
                         </button>
                         <button
                             type="button"
@@ -85,7 +87,7 @@ export default function CompareLayerList({ baseLayer, layers, onToggleVisibility
                             >
                                 <i className="fa-solid fa-trash" />
                             </span>
-                            Remove
+                            {TEMPORAL_TEXT.layerList.remove}
                         </button>
                     </div>
                 ))}

@@ -1,9 +1,4 @@
-import { useRef } from "react"
-import useChartJs from "@/hooks/useChartJs.js"
-import {
-    applyTemporalBarPaint,
-    buildTemporalBarChartConfig,
-} from "../utils/barChartConfig.js"
+import useBarChart from '../hooks/useBarChart.js'
 
 /**
  * Renders a bar chart via Chart.js; recreated only when data/structure
@@ -31,49 +26,20 @@ export default function BarChart({
     selectedLabel = null,
     valueNoun = 'Rides',
 }) {
-    // Read through this ref at call time so changes never recreate the chart.
-    const live = useRef({})
-    live.current = { highlight, selectedLabel, onBarClick, format }
-    const hasBarClick = Boolean(onBarClick)
-
-    const structuralKey = JSON.stringify([
+    const { canvasRef } = useBarChart({
         data,
         labels,
-        compareDatasets,
-        overlayDataset,
-        xAxisTitle ?? '',
-        yAxisTitle ?? '',
-        unit ?? '',
+        format,
+        highlight,
+        xAxisTitle,
+        yAxisTitle,
+        unit,
         xLabelStep,
-        hasBarClick,
+        compareDatasets,
+        onBarClick,
+        overlayDataset,
+        selectedLabel,
         valueNoun,
-    ])
-    const paintKey = `${highlight}|${selectedLabel}`
-
-    const { canvasRef } = useChartJs({
-        buildConfig: () =>
-            buildTemporalBarChartConfig({
-                data,
-                labels,
-                compareDatasets,
-                overlayDataset,
-                xAxisTitle,
-                yAxisTitle,
-                unit,
-                xLabelStep,
-                hasBarClick,
-                valueNoun,
-                live,
-            }),
-        structuralKey,
-        paintKey,
-        applyPaint: (chart) =>
-            applyTemporalBarPaint(chart, {
-                labels,
-                compareDatasets,
-                highlight: live.current.highlight,
-                selectedLabel: live.current.selectedLabel,
-            }),
     })
 
     return <canvas ref={canvasRef} />

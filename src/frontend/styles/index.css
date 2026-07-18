@@ -21,7 +21,10 @@
 @import '../features/map/infrastructure/styles/year-slider.css';
 @import '../features/map/infrastructure/styles/bike-routes-toggle.css';
 @import '../features/map/infrastructure/styles/infrastructure-sidebar.css';
-@import '../features/weather/styles/charts.css';
+@import '../features/weather/styles/scatter-plot.css';
+@import '../features/weather/styles/weather-ridgeline.css';
+@import '../features/weather/styles/weather-page.css';
+@import '../features/weather/styles/weather-tooltip.css';
 @import '../features/header/styles/scrollable-button-row.css';
 @import '../features/header/styles/date-window-picker.css';
 @import './status.css';

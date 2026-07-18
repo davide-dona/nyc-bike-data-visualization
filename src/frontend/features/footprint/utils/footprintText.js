@@ -1,7 +1,4 @@
-// Centralized display copy for the footprint page: page header, chart
-// titles/notes, empty-state messages, stat-tile labels, and the assumptions-box
-// prose. Mirrors the pattern in footprintGuide.js. Per-factor data (labels,
-// sources, citations, numeric factors) stays in emissionFactors.js.
+// Centralized display copy for the footprint page; mirrors footprintGuide.js (per-factor data stays in emissionFactors.js).
 export const FOOTPRINT_TEXT = {
     page: {
         eyebrow: 'Environmental Impact',

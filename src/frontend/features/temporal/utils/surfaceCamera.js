@@ -1,5 +1,4 @@
-// Camera orbits the plot at a fixed radius/height within a half turn; the UI
-// exposes the azimuth as a -90..90 degree display angle centered on the default view.
+// Camera orbits at a fixed radius/height over a half turn, exposed to the UI as a -90..90 degree display angle.
 
 const INITIAL_CAMERA = {
     eye: { x: 1.6, y: -1.6, z: 0.9 },

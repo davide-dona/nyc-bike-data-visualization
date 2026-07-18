@@ -7,8 +7,7 @@ import {
 } from './footprintMath.js'
 import { SUBSTITUTION_RATE } from './emissionFactors.js'
 
-// Every row aims for this many icons so the pictogram stays readable at any
-// date range: the per-icon scale is derived from the value, not hardcoded.
+// Target icons per row; the per-icon scale is derived from the value, not hardcoded.
 export const TARGET_ICONS = 24
 
 /**
@@ -26,11 +25,8 @@ export function niceScale(value) {
 }
 
 /**
- * Translates the avoided CO2 into everyday yearly equivalents, one pictogram
- * row per factor. Each row's "1 icon = N" scale is anchored to the mid
- * substitution rate and the selected date range, so the icon count stays near
- * TARGET_ICONS whatever the range length while the slider still visibly moves
- * the values.
+ * Translates avoided CO2 into everyday yearly equivalents, one pictogram row per
+ * factor, with each row's "1 icon = N" scale anchored to the mid rate.
  * @param {Object} totals - Summed daily stats (total_distance_km).
  * @param {number} substitutionRate - Selected car-substitution rate (fraction).
  * @returns {{rows: Array, hasData: boolean}} Pictogram rows and whether any data exists.

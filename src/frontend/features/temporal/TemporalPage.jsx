@@ -15,6 +15,7 @@ import FloatingTooltip from "@/components/FloatingTooltip.jsx";
 import VisualizationGuide from "../../components/VisualizationGuide";
 import { stripClassFilters } from "./utils/compareLayers.js";
 import { TEMPORAL_GUIDE } from "./utils/temporalGuide.js";
+import { TEMPORAL_TEXT } from "./utils/temporalText.js";
 
 /**
  * Page for the temporal stats: composes the metric selector, the 3D surface
@@ -111,12 +112,12 @@ function TemporalPage({ filters, onCompareModeChange }) {
         <section className="page-card">
             <header className="page-card__header">
                 <div className="page-card__heading">
-                    <span className="page-card__eyebrow">Habits</span>
+                    <span className="page-card__eyebrow">{TEMPORAL_TEXT.page.eyebrow}</span>
                     <h2 className="page-card__title">
-                        The week, hour by hour.
+                        {TEMPORAL_TEXT.page.title}
                     </h2>
                     <p className="page-card__subtitle">
-                        See how rider habits and daily behaviors shape the rise and fall of ridership across hours and days.
+                        {TEMPORAL_TEXT.page.subtitle}
                     </p>
                 </div>
                 <div

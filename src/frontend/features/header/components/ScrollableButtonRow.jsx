@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import useScrollableButtonRow from '../hooks/useScrollableButtonRow.js'
 
 /**
  * Horizontal scroller for filter button rows: shows edge arrows when the
@@ -9,56 +9,13 @@ import { useEffect, useMemo, useRef, useState } from 'react'
  * @returns The rendered scrollable row.
  */
 export default function ScrollableButtonRow({ children, className = '', disabled = false }) {
-    const scrollerRef = useRef(null)
-    const [canScrollLeft, setCanScrollLeft] = useState(false)
-    const [canScrollRight, setCanScrollRight] = useState(false)
-
-    const updateScrollState = () => {
-        const node = scrollerRef.current
-        if (!node) return
-
-        const { scrollLeft, scrollWidth, clientWidth } = node
-        setCanScrollLeft(scrollLeft > 1)
-        setCanScrollRight(scrollLeft + clientWidth < scrollWidth - 1)
-    }
-
-    useEffect(() => {
-        updateScrollState()
-
-        const node = scrollerRef.current
-        if (!node) return undefined
-
-        const handleScroll = () => updateScrollState()
-        node.addEventListener('scroll', handleScroll, { passive: true })
-
-        const resizeObserver = typeof ResizeObserver !== 'undefined'
-            ? new ResizeObserver(() => updateScrollState())
-            : null
-
-        if (resizeObserver) {
-            resizeObserver.observe(node)
-        }
-
-        window.addEventListener('resize', updateScrollState)
-
-        return () => {
-            node.removeEventListener('scroll', handleScroll)
-            window.removeEventListener('resize', updateScrollState)
-            if (resizeObserver) resizeObserver.disconnect()
-        }
-    }, [children])
-
-    const scrollByAmount = (direction) => {
-        const node = scrollerRef.current
-        if (!node) return
-
-        const amount = Math.max(180, Math.floor(node.clientWidth * 0.8))
-        node.scrollBy({ left: direction * amount, behavior: 'smooth' })
-    }
-
-    const mergedClassName = useMemo(() => {
-        return ['scrollable-button-row', className].filter(Boolean).join(' ')
-    }, [className])
+    const {
+        scrollerRef,
+        canScrollLeft,
+        canScrollRight,
+        scrollByAmount,
+        mergedClassName,
+    } = useScrollableButtonRow({ children, className })
 
     return (
         <div className={`${mergedClassName}${disabled ? ' scrollable-button-row--disabled' : ''}`}>

@@ -1,7 +1,5 @@
 import useFloatingTooltip from '@/hooks/useFloatingTooltip.js'
-
-const DUPLICATE_TOOLTIP_TEXT =
-    'This surface is already present. Change User Type or Bike Type.'
+import { TEMPORAL_TEXT } from '../utils/temporalText.js'
 
 /**
  * Handler hook for the cursor-following tooltip on the disabled Add Surface
@@ -21,7 +19,7 @@ export default function useAddLayerTooltip({ isActive }) {
 
     return {
         showTooltip: isVisible,
-        tooltipText: isActive ? DUPLICATE_TOOLTIP_TEXT : null,
+        tooltipText: isActive ? TEMPORAL_TEXT.compare.duplicateTooltip : null,
         tooltipPosition: position,
         addLayerTooltipRef: nodeRef,
         handleAddLayerMouseEnter: updateTooltip,

@@ -27,9 +27,7 @@ export default function SurfaceHistograms({
     onBarClick = null,
     onClearPin = null,
 }) {
-    // The day card marginalizes across weekdays (avg per day); the hour card marginalizes
-    // across hours (avg per hour) - total_rides means something different in each, so each
-    // card gets its own metric config even though both start from the same activeMetric key.
+    // total_rides means something different per marginal, so day and hour cards each get their own metric config.
     const dayMetric = getMetricConfig(activeMetric, 'day')
     const hourMetric = getMetricConfig(activeMetric, 'hour')
     const metricDayData = dayData?.map(dayMetric.get)

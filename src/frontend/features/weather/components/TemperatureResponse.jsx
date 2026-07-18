@@ -1,10 +1,6 @@
-import { useMemo } from "react"
-import useChartJs from "@/hooks/useChartJs.js"
-import ChartFrame from "@/components/ChartFrame.jsx"
-import {
-    formatTemperatureSeries,
-    buildTemperatureResponseConfig,
-} from "../utils/temperatureResponseConfig.js"
+import ChartFrame from '@/components/ChartFrame.jsx'
+import useTemperatureResponseChart from '../hooks/useTemperatureResponseChart.js'
+import { WEATHER_TEXT } from '../utils/weatherText.js'
 
 /**
  * Line chart of average rides per hour across temperature bins, one curve per
@@ -15,20 +11,14 @@ import {
  * @param {Function} onRefetch - Callback to trigger a retry after error
  */
 export default function TemperatureResponse({ series, loading, error, onRefetch }) {
-    const formattedSeries = useMemo(() => formatTemperatureSeries(series), [series])
-    const hasData = formattedSeries.some((entry) => entry.points.length > 0)
-
-    const { canvasRef } = useChartJs({
-        buildConfig: () => buildTemperatureResponseConfig(formattedSeries),
-        structuralKey: useMemo(() => JSON.stringify(formattedSeries), [formattedSeries]),
-    })
+    const { canvasRef, hasData } = useTemperatureResponseChart({ series })
 
     return (
         <ChartFrame
-            title="Temperature response - avg rides per hour"
-            note="Lines track how hourly demand climbs with temperature for each rider group, showing different behaviour patterns between members and casual riders."
+            title={WEATHER_TEXT.temperatureResponse.title}
+            note={WEATHER_TEXT.temperatureResponse.note}
             status={{ loading, error, refetch: onRefetch }}
-            emptyMessage={!hasData ? 'No temperature data available for this filter range.' : null}
+            emptyMessage={!hasData ? WEATHER_TEXT.temperatureResponse.emptyMessage : null}
             frameClassName="weather-deepdive-frame"
             titleClassName="weather-deepdive-frame__title"
             plotClassName="weather-deepdive-plot"

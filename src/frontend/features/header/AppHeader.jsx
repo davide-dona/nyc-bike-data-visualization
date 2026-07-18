@@ -8,6 +8,7 @@ import useSafeIsFetching from "./hooks/useSafeIsFetching.js";
 import useDateRangeSeed from "./hooks/useDateRangeSeed.js";
 import useLockHint from "./hooks/useLockHint.js";
 import FloatingTooltip from "@/components/FloatingTooltip.jsx";
+import { HEADER_TEXT } from "./utils/headerText.js";
 
 const PAGES = [
     { to: "/map", label: "Map", icon: "fa-solid fa-map-location-dot" },
@@ -113,9 +114,7 @@ function AppHeader({ onFiltersChange, forceDisableFilters = false }) {
                             ariaLive="polite"
                             className="app-header__filter-lock-hint"
                         >
-                            Class filters are locked while comparison surfaces
-                            are active. Remove all surfaces or press Reset to
-                            unlock them.
+                            {HEADER_TEXT.lockHint}
                         </FloatingTooltip>
                     )}
                     </div>

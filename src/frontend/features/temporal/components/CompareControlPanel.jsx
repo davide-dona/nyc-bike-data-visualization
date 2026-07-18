@@ -1,6 +1,7 @@
 import CompareFilterDropdown from './CompareFilterDropdown.jsx'
 import { CLASS_FILTER_KEYS } from '../utils/compareLayers.js'
 import { FILTERS } from '@/features/header/utils/filterOptions.js'
+import { TEMPORAL_TEXT } from '../utils/temporalText.js'
 
 /**
  * The Compare toggle button plus the compare panel shell: filter dropdowns,
@@ -48,7 +49,7 @@ export default function CompareControlPanel({
                 >
                     <i className="fa-solid fa-code-compare" />
                 </span>
-                Compare
+                {TEMPORAL_TEXT.compare.button}
             </button>
 
             <div
@@ -93,7 +94,7 @@ export default function CompareControlPanel({
                             >
                                 <i className="fa-solid fa-plus" />
                             </span>
-                            Add Surface
+                            {TEMPORAL_TEXT.compare.addSurface}
                         </button>
                     </div>
                     <button
@@ -108,7 +109,7 @@ export default function CompareControlPanel({
                         >
                             <i className="fa-solid fa-rotate-left" />
                         </span>
-                        Reset
+                        {TEMPORAL_TEXT.compare.reset}
                     </button>
                 </div>
 

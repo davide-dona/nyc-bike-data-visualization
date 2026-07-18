@@ -1,13 +1,9 @@
-// Operational emission factors in g CO2e per passenger-km. Kept as frontend
-// constants (backend only reports distances) and surfaced verbatim in the
-// assumptions box, so keep label/source strings user-readable.
+// Operational emission factors (g CO2e per passenger-km), surfaced verbatim in the assumptions box, so keep label/source strings user-readable.
 
 // US EPA: 404 g CO2/mile ≈ 251 g/km for a solo-driven car trip.
 const CAR_G_PER_KM = 251
 
-// Citation metadata for every source referenced below: the assumptions box
-// renders `label` as a clickable link to `url`, with `title`/`year`/`summary`
-// shown in a hover tooltip.
+// Citation metadata for every source: label links to url, with title/year/summary shown in a hover tooltip.
 export const CITATIONS = {
     epaVehicle: {
         label: 'US EPA',
@@ -127,8 +123,7 @@ export const COMPARISON_MODES = [
 
 export { CAR_G_PER_KM }
 
-// Bike-share car-substitution shares cluster widely (~2-25%; see sources
-// below), so avoided-CO2 is always shown as a range, never a single number.
+// Bike-share car-substitution shares cluster widely (~2-25%), so avoided-CO2 is shown as a range, never a single number.
 export const SUBSTITUTION_RATE = {
     low: 0.05,
     mid: 0.15,
@@ -145,8 +140,7 @@ export const EXCLUDED_EFFECTS = [
     'The wider drop in traffic and congestion when a bike replaces a car.',
 ]
 
-// Conversion factors for the footprint page's "what that CO2 equals" cards,
-// each surfaced verbatim in the assumptions box alongside its source.
+// Conversion factors for the "what that CO2 equals" cards, each surfaced in the assumptions box with its source.
 export const EQUIVALENCE_FACTORS = {
     trees: {
         tonnesPerTreePerYear: 0.006,
