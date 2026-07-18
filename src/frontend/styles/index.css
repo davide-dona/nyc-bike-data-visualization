@@ -31,7 +31,12 @@
 @import '../features/temporal/styles/compare-layer-list.css';
 @import '../features/temporal/styles/surface-histograms.css';
 @import '../features/temporal/styles/surface-line-chart.css';
-@import '../features/footprint/styles/footprint.css';
+@import '../features/footprint/styles/footprint-tiles.css';
+@import '../features/footprint/styles/footprint-pictogram.css';
+@import '../features/footprint/styles/footprint-assumptions.css';
+@import '../features/footprint/styles/citation-link.css';
+@import '../features/footprint/styles/footprint-rate.css';
+@import '../features/footprint/styles/footprint-page.css';
 @import '../features/header/styles/user-filter.css';
 
 @tailwind base;

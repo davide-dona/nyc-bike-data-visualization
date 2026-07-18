@@ -7,6 +7,7 @@ import AssumptionsBox from './components/AssumptionsBox.jsx'
 import SubstitutionRateControl from './components/SubstitutionRateControl.jsx'
 import VisualizationGuide from '../../components/VisualizationGuide.jsx'
 import { FOOTPRINT_GUIDE } from './utils/footprintGuide.js'
+import { FOOTPRINT_TEXT } from './utils/footprintText.js'
 
 /**
  * Component for the green mobility page: ridden kilometres translated into
@@ -27,10 +28,9 @@ function FootprintPage({ filters = {} }) {
         <section className="page-card">
             <header className="page-card__header">
                 <div className="page-card__heading">
-                    <span className="page-card__eyebrow">Environmental Impact</span>
-                    <h2 className="page-card__title">Turning pedal power into a healthier planet.</h2>
-                    <p className="page-card__subtitle">
-                        See how kilometers translate to the environment using realistic ranges and transparent math.                    </p>
+                    <span className="page-card__eyebrow">{FOOTPRINT_TEXT.page.eyebrow}</span>
+                    <h2 className="page-card__title">{FOOTPRINT_TEXT.page.title}</h2>
+                    <p className="page-card__subtitle">{FOOTPRINT_TEXT.page.subtitle}</p>
                 </div>
                 <div className="page-card__actions">
                     <SubstitutionRateControl

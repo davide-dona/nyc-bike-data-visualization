@@ -1,6 +1,7 @@
 import Plot from 'react-plotly.js'
 import ChartFrame from '@/components/ChartFrame.jsx'
 import useCumulativeAvoidedBand from '../hooks/useCumulativeAvoidedBand.js'
+import { FOOTPRINT_TEXT } from '../utils/footprintText.js'
 
 /**
  * Cumulative avoided-CO2 band: the low/high substitution envelope is the primary mark, the selected-rate line secondary. Trace/layout building lives in useCumulativeAvoidedBand.
@@ -18,10 +19,10 @@ export default function CumulativeAvoidedBand({
 
     return (
         <ChartFrame
-            title="Cumulative CO2 avoided"
-            note="Shows the range of potential CO2 savings based on different car-substitution estimates, with the dotted line highlighting your selected rate."
+            title={FOOTPRINT_TEXT.cumulativeBand.title}
+            note={FOOTPRINT_TEXT.cumulativeBand.note}
             status={{ loading, error, refetch: onRefetch }}
-            emptyMessage={!hasData ? 'No daily stats available for this selection.' : null}
+            emptyMessage={!hasData ? FOOTPRINT_TEXT.cumulativeBand.emptyMessage : null}
             plotClassName="footprint-plot"
         >
             <Plot

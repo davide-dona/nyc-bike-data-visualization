@@ -4,6 +4,7 @@ import {
     EXCLUDED_EFFECTS,
     EQUIVALENCE_FACTORS,
 } from '../utils/emissionFactors.js'
+import { FOOTPRINT_TEXT } from '../utils/footprintText.js'
 import CitationLink from './CitationLink.jsx'
 
 /**
@@ -35,17 +36,14 @@ function Sources({ cites }) {
  * Every source is a clickable link with a hover summary (see CitationLink).
  */
 export default function AssumptionsBox() {
-    const lowPct = Math.round(SUBSTITUTION_RATE.low * 100)
-    const highPct = Math.round(SUBSTITUTION_RATE.high * 100)
-
     return (
         <aside className="panel-frame footprint-assumptions">
-            <p className="panel-frame__title">Assumptions, stated explicitly</p>
+            <p className="panel-frame__title">{FOOTPRINT_TEXT.assumptions.title}</p>
             <div className="footprint-assumptions__grid">
                 <section>
-                    <p className="footprint-assumptions__heading">Travel Emission Rates</p>
+                    <p className="footprint-assumptions__heading">{FOOTPRINT_TEXT.assumptions.emissionRatesHeading}</p>
                     <p className="footprint-assumptions__text">
-                        To calculate emissions, we use standard, real-world averages for each type of transport:
+                        {FOOTPRINT_TEXT.assumptions.emissionRatesIntro}
                     </p>
                     <ul className="footprint-assumptions__list">
                         {COMPARISON_MODES.map((mode) => (
@@ -69,16 +67,14 @@ export default function AssumptionsBox() {
                     </ul>
                 </section>
                 <section>
-                    <p className="footprint-assumptions__heading">Car Replacement Range</p>
+                    <p className="footprint-assumptions__heading">{FOOTPRINT_TEXT.assumptions.carReplacementHeading}</p>
                     <p className="footprint-assumptions__text">
-                        When people ride bikes, they aren't always replacing a car trip.
-                        They might have otherwise walked, caught the bus, or stayed home.
-                        That is why we show avoided CO2 as a range of possibilities, not a single, perfect number.
+                        {FOOTPRINT_TEXT.assumptions.carReplacementText}
                         <Sources cites={SUBSTITUTION_RATE.cites} />
                     </p>
-                    <p className="footprint-assumptions__heading">Calculation Exclusions</p>
+                    <p className="footprint-assumptions__heading">{FOOTPRINT_TEXT.assumptions.exclusionsHeading}</p>
                     <p className="footprint-assumptions__text">
-                        While we calculate direct travel savings, our current estimates do not account for the following factors:
+                        {FOOTPRINT_TEXT.assumptions.exclusionsIntro}
                     </p>
                     <ul className="footprint-assumptions__list">
                         {EXCLUDED_EFFECTS.map((item) => (

@@ -1,26 +1,20 @@
-import { useMemo } from 'react'
-import useChartJs from '@/hooks/useChartJs.js'
 import ChartFrame from '@/components/ChartFrame.jsx'
-import { buildModeComparisonBars, buildModeComparisonConfig } from '../utils/modeComparisonConfig.js'
+import useModeComparisonBar from '../hooks/useModeComparisonBar.js'
+import { FOOTPRINT_TEXT } from '../utils/footprintText.js'
 
 /**
  * Horizontal bars re-expressing the period's ridden distance as CO2 per mode - a comparison, not an "avoided" claim.
  * @param {Object} totals - Summed daily stats (total_distance_km)
  */
 export default function ModeComparisonBar({ totals, loading, error, onRefetch }) {
-    const bars = useMemo(() => buildModeComparisonBars(totals), [totals])
-
-    const { canvasRef } = useChartJs({
-        buildConfig: () => buildModeComparisonConfig(bars),
-        structuralKey: useMemo(() => JSON.stringify(bars), [bars]),
-    })
+    const { canvasRef, isEmpty } = useModeComparisonBar({ totals })
 
     return (
         <ChartFrame
-            title="Comparative Emissions by Transport Mode"
-            note="Displays the estimated CO2 emissions generated if the same distance were traveled using alternative modes of transport."
+            title={FOOTPRINT_TEXT.modeComparison.title}
+            note={FOOTPRINT_TEXT.modeComparison.note}
             status={{ loading, error, refetch: onRefetch }}
-            emptyMessage={bars.length === 0 ? 'No ride data available for this filter range.' : null}
+            emptyMessage={isEmpty ? FOOTPRINT_TEXT.modeComparison.emptyMessage : null}
             plotClassName="footprint-plot"
         >
             <canvas ref={canvasRef} />

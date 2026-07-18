@@ -1,27 +1,7 @@
-import { useMemo } from 'react'
 import ChartFrame from '@/components/ChartFrame.jsx'
-import {
-    avoidedCo2Tonnes,
-    treesYearlyEquivalent,
-    peopleYearlyEquivalent,
-    ledBulbYears,
-    formatCompact,
-} from '../utils/footprintMath.js'
-import { SUBSTITUTION_RATE } from '../utils/emissionFactors.js'
-
-// Every row aims for this many icons so the pictogram stays readable at any
-// date range: the per-icon scale is derived from the value, not hardcoded.
-const TARGET_ICONS = 24
-
-// Rounds a raw per-icon size to a clean 1/2/5 x 10^k number so the "1 icon = N"
-// label reads nicely (e.g. 261 -> 250, 4200 -> 5000).
-function niceScale(value) {
-    if (!(value > 0)) return 1
-    const base = 10 ** Math.floor(Math.log10(value))
-    const frac = value / base
-    const nice = frac < 1.5 ? 1 : frac < 3.5 ? 2 : frac < 7.5 ? 5 : 10
-    return nice * base
-}
+import { formatCompact } from '../utils/footprintMath.js'
+import useFootprintEquivalents from '../hooks/useFootprintEquivalents.js'
+import { FOOTPRINT_TEXT } from '../utils/footprintText.js'
 
 /**
  * Pictogram translating the avoided CO2 into everyday yearly equivalents: each
@@ -34,56 +14,14 @@ function niceScale(value) {
  * @param {number} substitutionRate - Selected car-substitution rate (fraction).
  */
 export default function FootprintEquivalents({ totals, substitutionRate, loading, error, onRefetch }) {
-    const { rows, hasData } = useMemo(() => {
-        const distanceKm = Number(totals?.total_distance_km) || 0
-        const tonnesCo2 = avoidedCo2Tonnes(distanceKm, substitutionRate)
-        // Scale reference: fixed to the mid rate so it tracks the date range, not the slider.
-        const tonnesCo2Ref = avoidedCo2Tonnes(distanceKm, SUBSTITUTION_RATE.mid)
-
-        const specs = [
-            {
-                key: 'trees',
-                icon: 'fa-solid fa-tree',
-                fn: treesYearlyEquivalent,
-                label: "Trees' yearly uptake",
-            },
-            {
-                key: 'people',
-                icon: 'fa-solid fa-user',
-                fn: peopleYearlyEquivalent,
-                label: "People's yearly CO2",
-            },
-            {
-                key: 'bulbs',
-                icon: 'fa-solid fa-lightbulb',
-                fn: ledBulbYears,
-                label: 'LED bulbs for a year',
-            },
-        ]
-
-        return {
-            hasData: tonnesCo2 > 0,
-            rows: specs.map((spec) => {
-                const raw = spec.fn(tonnesCo2)
-                const perIcon = niceScale(spec.fn(tonnesCo2Ref) / TARGET_ICONS)
-                return {
-                    key: spec.key,
-                    icon: spec.icon,
-                    perIcon,
-                    iconCount: raw > 0 ? Math.max(1, Math.round(raw / perIcon)) : 0,
-                    value: `≈ ${formatCompact(raw)}`,
-                    label: spec.label,
-                }
-            }),
-        }
-    }, [totals, substitutionRate])
+    const { rows, hasData } = useFootprintEquivalents({ totals, substitutionRate })
 
     return (
         <ChartFrame
-            title="What that CO2 equals"
-            note="Translates the avoided CO2 at your selected rate into everyday yearly equivalents, with each icon marking a share that rescales with your selected date range."
+            title={FOOTPRINT_TEXT.equivalents.title}
+            note={FOOTPRINT_TEXT.equivalents.note}
             status={{ loading, error, refetch: onRefetch }}
-            emptyMessage={hasData ? null : 'No ride data available for this filter range.'}
+            emptyMessage={hasData ? null : FOOTPRINT_TEXT.equivalents.emptyMessage}
             autoHeight
         >
             <div className="footprint-pictogram">
