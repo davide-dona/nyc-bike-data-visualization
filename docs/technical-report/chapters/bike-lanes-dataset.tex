@@ -64,7 +64,7 @@ Unused columns were removed to simplify the analysis without affecting the visua
 
 Current and retired segments are treated separately so that obsolete infrastructure is not included in the active network layer.
 
-Installation and retirement dates are occasionally missing, causing slight underestimation in historical summaries.
+Installation and retirement dates are occasionally missing, causing slight underestimation in historical summaries. When the installation date is unknown, NYC OpenData records the placeholder value \texttt{01/01/1900} instead of leaving it blank, so this sentinel year appears as the lower bound of the historical timeline.
 
 Records with missing or invalid geometries cannot be displayed and are filtered before mapping. For the interactive visualization, only a sample of segments is rendered to improve responsiveness while preserving the overall spatial pattern.
 

@@ -18,21 +18,15 @@
            font-mono text-[11px] uppercase tracking-eyebrow text-white tabular-nums whitespace-nowrap;
   }
 
-  /* Stacks the range input above its start/end bounds row; inset
-     horizontally to roughly match the native thumb's half-width so the
-     bounds line up with the track ends. */
+  /* Lays the slider on one centered row between its start/end year labels, so
+     the track reads as a range flanked by, and centered between, its bounds. */
   .year-slider__track {
-    @apply relative flex flex-1 flex-col gap-1 px-1.5;
+    @apply flex flex-1 items-center gap-3;
   }
 
-  /* Just the start and end year of the range, clearly legible, in place of
-     the old decade tick marks. */
-  .year-slider__bounds {
-    @apply flex items-center justify-between mt-1.5;
-  }
-
+  /* Start and end year of the range, flanking the slider. */
   .year-slider__bound {
-    @apply font-mono text-[10px] leading-none text-ink-muted tabular-nums;
+    @apply font-mono text-[11px] leading-none text-ink-muted tabular-nums whitespace-nowrap;
   }
 
   /* The input's own box is sized to the thumb (a generous hit target); the
@@ -45,6 +39,8 @@
   input.year-slider__input {
     appearance: none;
     -webkit-appearance: none;
+    flex: 1 1 0%;
+    min-width: 0;
     height: 12px;
     background: transparent;
     cursor: pointer;

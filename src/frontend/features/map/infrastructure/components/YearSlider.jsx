@@ -15,6 +15,7 @@ export default function YearSlider({ value, onChange, minYear, maxYear, disabled
         <div className="year-slider">
             <span className="year-slider__label">Network year</span>
             <div className="year-slider__track">
+                <span className="year-slider__bound" aria-hidden="true">{minYear}</span>
                 <input
                     type="range"
                     className="range-slider year-slider__input"
@@ -30,10 +31,7 @@ export default function YearSlider({ value, onChange, minYear, maxYear, disabled
                     }}
                     aria-label="Show the bike network as of a given year"
                 />
-                <div className="year-slider__bounds" aria-hidden="true">
-                    <span className="year-slider__bound">{minYear}</span>
-                    <span className="year-slider__bound">{maxYear}</span>
-                </div>
+                <span className="year-slider__bound" aria-hidden="true">{maxYear}</span>
             </div>
             <span className="year-slider__value">{currentYear}</span>
         </div>
