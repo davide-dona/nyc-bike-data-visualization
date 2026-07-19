@@ -77,19 +77,18 @@ export default function MapController({
                     />
                 )}
 
-                {activeLayer === 'trip_flow' && (
+                {activeLayer === 'trip_flow' && hasTripFlowFocus && (
                     <SegmentedControl
                         options={USAGE_MODE_OPTIONS}
                         value={tripDirection}
                         onChange={setTripDirection}
-                        disabled={disabled || !hasTripFlowFocus}
+                        disabled={disabled}
                         ariaLabel="Trip flow direction"
                     />
                 )}
 
-                {activeLayer === 'trip_flow' && (
+                {activeLayer === 'trip_flow' && (hasTripFlowFocus || hasCorridorPin) && (
                     <ResetButton
-                        disabled={!hasTripFlowFocus && !hasCorridorPin}
                         onClick={clearTripFlowFocus}
                     />
                 )}
