@@ -1,3 +1,4 @@
+import { useLayoutEffect } from 'react'
 import DeckGL from '@deck.gl/react'
 import { useMapHandler } from './hooks/useMapHandler.js'
 import { useBuildLayers } from './hooks/useBuildLayers.js'
@@ -23,9 +24,10 @@ import MapInsightsPanel from './components/MapInsightsPanel.jsx'
  * insights panel and reading guide. All state lives in the map handler
  * hooks; this page only wires their results into components.
  * @param {Object} filters - The filters to apply to the data.
+ * @param {Function} [onLoadingChange] - Notified with the active layer's loading state so the header can lock the date filter only while the shown layer fetches.
  * @returns The rendered MapPage.
  */
-function MapPage({ filters }) {
+function MapPage({ filters, onLoadingChange }) {
     const { isFullscreen, mapShellRef, toggleFullscreen } = useMapFullscreen()
     const { handleHover, getCursor } = useMapCursor()
 
@@ -85,6 +87,15 @@ function MapPage({ filters }) {
         shouldShowStatusOverlay,
         guide,
     } = useMapPageStatus({ activeLayer, loading, error, hasData, bikeRoutes })
+
+    // Surface the active layer's loading to the header so it locks the filters
+    // only while the layer on screen fetches; reset on unmount. Layout effect
+    // (not useEffect) so the header's lock commits in the same paint as the
+    // map's loading state instead of a frame later.
+    useLayoutEffect(() => {
+        onLoadingChange?.(loading)
+        return () => onLoadingChange?.(false)
+    }, [loading, onLoadingChange])
 
     const handleMapClick = useMapClickActions({
         activeLayer,

@@ -10,6 +10,7 @@ import FootprintPage from './features/footprint/FootprintPage.jsx'
 function App() {
     const [filters, setFilters] = useState({})
     const [isTemporalCompareActive, setIsTemporalCompareActive] = useState(false)
+    const [isMapDataLoading, setIsMapDataLoading] = useState(false)
 
     return (
         <BrowserRouter>
@@ -18,12 +19,13 @@ function App() {
                     filters={filters}
                     onFiltersChange={setFilters}
                     forceDisableFilters={isTemporalCompareActive}
+                    mapDataLoading={isMapDataLoading}
                 />
                 <main className="app-content">
                     <div className="page-shell">
                         <Routes>
                             <Route path="/" element={<Navigate to="/map" replace />} />
-                            <Route path="/map" element={<MapPage filters={filters} />} />
+                            <Route path="/map" element={<MapPage filters={filters} onLoadingChange={setIsMapDataLoading} />} />
                             <Route
                                 path="/temporal"
                                 element={

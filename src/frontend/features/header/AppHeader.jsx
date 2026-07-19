@@ -20,9 +20,10 @@ const PAGES = [
 /**
  * App header: title, nav links, and the date range filter.
  */
-function AppHeader({ onFiltersChange, forceDisableFilters = false }) {
+function AppHeader({ onFiltersChange, forceDisableFilters = false, mapDataLoading = false }) {
     const location = useLocation();
     const isTemporalRoute = location.pathname === "/temporal";
+    const isMapRoute = location.pathname === "/map";
     const {
         dateRange,
         currentUserFilters,
@@ -31,8 +32,12 @@ function AppHeader({ onFiltersChange, forceDisableFilters = false }) {
     } = useHeaderFilters(onFiltersChange);
     const { dateRange: datasetRange, loading: datasetRangeLoading } = useDatasetDateRange();
     const activeDataFetches = useSafeIsFetching();
-    const areDateFiltersDisabled = datasetRangeLoading || activeDataFetches > 0;
-    const areUserFiltersDisabled = forceDisableFilters;
+    // The map eagerly fetches every layer, so the global fetch count would lock the
+    // date filter for layers that aren't on screen. On the map, block only while the
+    // selected layer is loading; on other routes the single mounted page is the only fetcher.
+    const isDisplayLoading = isMapRoute ? mapDataLoading : activeDataFetches > 0;
+    const areDateFiltersDisabled = datasetRangeLoading || isDisplayLoading;
+    const areUserFiltersDisabled = forceDisableFilters || isDisplayLoading;
     const shouldShowLockHint = isTemporalRoute && forceDisableFilters;
     const kicker =
         datasetRange?.min_date && datasetRange?.max_date
