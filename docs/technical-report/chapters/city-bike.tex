@@ -1,20 +1,17 @@
 \section{City Bike Dataset}
-Our main source of data is the City Bike dataset, which contains information about bike trips in New York City.
-These datasets are published on a monthly basis and can be accessed through the Citi Bike website\footnote{\url{https://www.citibikenyc.com/system-data}}.
-
-The process involved in writing this report can be found in the Jupyter notebook in our repository\footnote{\url{https://github.com/davide-dona/nyc-bike-data-visualization/blob/main/src/notebooks/analysis.ipynb}}.
+For this project, our main dataset is the \href{https://www.citibikenyc.com/system-data}{Citi Bike system dataset}, a public repository tracking New York City bike trips since 2013.
 
 \subsection{Dataset Structure}
-The data is organized in multiple CSV files, each containing information about bike trips that ended in that month.
-Each row in the dataset represents a single bike trip and includes various attributes that describe the trip.
+Released monthly as open-data CSV files, these records log every completed ride, with high-volume months split across multiple files.
+Each row represents a single trip, offering detailed attributes that characterize the journey.
 
 \subsubsection{Original Structure}
 The original dataset includes the following columns:
 \begin{itemize}
     \item \textbf{Ride ID}: A unique identifier for each bike trip.
-    \item \textbf{Rideable Type}: The type of bike used for the trip. Can be either "classic bike" or "electric bike".
-    \item \textbf{Started At}: a timestamp indicating when the trip started.
-    \item \textbf{Ended At}: a timestamp indicating when the trip ended.
+    \item \textbf{Rideable Type}: The type of bike used for the trip (``classic bike'' or ``electric bike'').
+    \item \textbf{Started At}: A timestamp indicating when the trip started.
+    \item \textbf{Ended At}: A timestamp indicating when the trip ended.
     \item \textbf{Start Info}: Information about the station and location where the trip started, structured as:
           \begin{itemize}
               \item \textbf{Station Name}: The name of the starting station.
@@ -22,69 +19,72 @@ The original dataset includes the following columns:
               \item \textbf{Latitude}: The latitude coordinate of the starting station.
               \item \textbf{Longitude}: The longitude coordinate of the starting station.
           \end{itemize}
-    \item \textbf{End Info}: Information about the destination station, structured similarly to Start Info.
-    \item \textbf{User Type}: The type of user: "member" or "casual".
+    \item \textbf{End Info}: Information about the destination station, structured equally to Start Info.
+    \item \textbf{User Type}: The type of user (``member'' or ``casual'').
 \end{itemize}
 
 \subsubsection{Extracted Features}
 Additional per-trip features were derived to support the analysis:
 \begin{itemize}
     \item \textbf{Trip Duration}: The duration of the trip in seconds, calculated as $\text{Ended At} - \text{Started At}$.
-    \item \textbf{Trip Distance}: The distance between the start and end stations, computed using the Haversine formula and multiplied by a circuity factor of 1.3 to better approximate real routes.
+    \item \textbf{Trip Distance}: The distance between the start and end stations, computed using the Haversine formula and multiplied by a circuity factor of $1.3$ to better approximate real routes.
     \item \textbf{Day of the Week}: The weekday extracted from the end timestamp, which is used to partition the data since trips are published based on when they ended.
     \item \textbf{Hour of the Day}: The hour extracted from the end timestamp, for the same reason.
 \end{itemize}
 
-Beyond these per-trip features, two aggregated datasets are derived from the cleaned trips to support station- and route-level analysis:
+Beyond these per-trip features, two aggregated datasets are derived from the cleaned trip data to support station- and route-level analysis: [Name of Dataset 1] and [Name of Dataset 2].
 \begin{itemize}
     \item \textbf{Station Popularity}: for each station and time period, the number of trips starting and ending at that station, obtained by grouping trips by station.
     \item \textbf{Trips Flow}: for each pair of stations and time period, the number of trips travelling between them, obtained by grouping trips by station pair.
 \end{itemize}
 
 \subsection{Analysis and Insights}
-\begin{comment}
-Extracted insights from the dataset, also using visual features
-\end{comment}
-
+To ensure transparency and reproducibility, the entire analysis is supported by \href{https://github.com/davide-dona/nyc-bike-data-visualization/blob/main/src/notebooks/analysis.ipynb}{\underline{Jupyter notebook}} within our repository.
 The exploratory analysis focuses on temporal, spatial, and behavioural patterns in bike usage.
 
-Temporal analysis shows clear variations in demand depending on the hour of the day and the day of the week. Trips are concentrated during commuting hours, while weekends show different usage patterns associated with leisure activities. Figure~\ref{fig:rides_time} summarizes the temporal distribution of bike trips.
+\paragraph{Temporal Analysis}
+Temporal analysis shows clear variations in demand depending on the hour of the day and the day of the week.
+Trips are concentrated during commuting hours, while weekends show different usage patterns associated with leisure activities.
 
-\begin{figure}[tb]
+\begin{figure}[H]
     \centering
-    \includegraphics[width=.9\textwidth]{../media/rides_time.png}
+    \includegraphics[width=.8\textwidth]{../media/rides_time.png}
     \caption{Distribution of trips by hour of the day and day of the week.}
     \label{fig:rides_time}
 \end{figure}
 
-Spatial analysis highlights the distribution of trips across the city. Station popularity and trip flows reveal that demand is concentrated around Manhattan and other high-density areas, with some stations acting as important origins and destinations. The spatial distribution of station activity is shown in Figure~\ref{fig:rides_stations}.
+\paragraph{Spatial Analysis}
+Spatial analysis highlights the distribution of trips across the city.
+Station popularity and trip flows reveal that demand is concentrated around Manhattan and other high-density areas, with some stations acting as important origins and destinations.
 
-\begin{figure}[tb]
+\begin{figure}[H]
     \centering
-    \includegraphics[width=0.8\textwidth]{../media/rides_stations.png}
-    \caption{Distribution of trips by station.}
+    \includegraphics[width=0.5\textwidth]{../media/rides_stations.png}
+    \caption{Distribution of trips by station, showed through an heatmap.}
     \label{fig:rides_stations}
 \end{figure}
 
+\paragraph{User Behaviour Analysis}
 User behaviour analysis compares members and casual users. Members generally show more regular commuting patterns, while casual users tend to have shorter-term and more variable usage patterns, as shown in Figure~\ref{fig:rides_type}.
 
-\begin{figure}[tb]
+\begin{figure}[H]
     \centering
     \includegraphics[width=.9\textwidth]{../media/rides_type.png}
     \caption{Distribution of trips by user type.}
     \label{fig:rides_type}
 \end{figure}
 
+\paragraph{Trip Duration and Distance}
 Trip duration and distance distributions provide additional insight into mobility behaviour. Most trips are relatively short, while longer rides are less frequent and often correspond to recreational usage. The distributions of trip duration and distance are shown in Figures~\ref{fig:rides_duration} and~\ref{fig:rides_distance}.
 
-\begin{figure}[ptb]
+\begin{figure}[H]
     \centering
-    \includegraphics[width=.9\textwidth]{../media/rides_duration.png}
+    \includegraphics[width=.7\textwidth]{../media/rides_duration.png}
     \caption{Distribution of trip durations.}
     \label{fig:rides_duration}
 \end{figure}
 
-\begin{figure}[ptb]
+\begin{figure}[H]
     \centering
     \includegraphics[width=.9\textwidth]{../media/rides_distance.png}
     \caption{Distribution of trip distances.}
