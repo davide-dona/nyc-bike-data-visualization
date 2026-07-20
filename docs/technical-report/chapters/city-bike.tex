@@ -40,7 +40,7 @@ Beyond these per-trip features, two aggregated datasets are derived from the cle
 
 \subsection{Analysis and Insights}
 To ensure transparency and reproducibility, the entire analysis is supported by \href{https://github.com/davide-dona/nyc-bike-data-visualization/blob/main/src/notebooks/analysis.ipynb}{\underline{Jupyter notebook}} within our repository.
-The exploratory analysis focuses on temporal, spatial, and behavioural patterns in bike usage.
+The exploratory analysis is based on the February 2025 trip file (\href{https://s3.amazonaws.com/tripdata/202502-citibike-tripdata.zip}{202502-citibike-tripdata.zip}) and focuses on temporal, spatial, and behavioural patterns in bike usage.
 
 \paragraph{Temporal Analysis}
 Temporal analysis shows clear variations in demand depending on the hour of the day and the day of the week.
@@ -54,7 +54,7 @@ Trips are concentrated during commuting hours, while weekends show different usa
 \end{figure}
 
 \paragraph{Spatial Analysis}
-Spatial analysis highlights the distribution of trips across the city.
+Spatial analysis highlights the distribution of station origins across the city.
 Station popularity and trip flows reveal that demand is concentrated around Manhattan and other high-density areas, with some stations acting as important origins.
 
 \begin{figure}[H]
@@ -77,6 +77,7 @@ Furthermore, casual riders take longer trips on both bike types, whereas members
 \paragraph{Trip Duration and Distance}
 Trip duration and distance distributions provide additional insight into mobility behaviour.
 Most trips are relatively short, while longer rides are less frequent and often correspond to recreational usage.
+Durations begin at one minute, as Citi Bike removes trips shorter than 60 seconds at the source.
 The distributions of trip duration and distance shows some anomalies that we are describing in the following section.
 
 \begin{figure}[H]
@@ -96,39 +97,39 @@ The distributions of trip duration and distance shows some anomalies that we are
     \end{minipage}
 \end{figure}
 
-These analyses justify our dashboard proposal, as they instantly reveal the clear relationships across temporal patterns, station-level dynamics, and user flows.
+These analyses justify our dashboard proposal, as they clearly reveal patterns in temporal demand, station-level activity, user and bike-type behaviour, and trip duration and distance.
 
 \subsection{Data Quality}
 Various data quality issues were encountered during the analysis of the City Bike dataset.
 
-\paragraph{Different Structure}
-During the analysis, we noticed that older datasets have a different structure compared to newer ones.
-Older datasets may miss columns introduced in newer versions, such as "Rideable Type" or station-related fields, while including deprecated attributes such as Gender, Birth Year, and Bike ID.
+\paragraph{Different Legacy Structure}
+Around 2020, Citi Bike updated its trip-file schema.
+Files from the 2013-2019 period use a legacy layout featuring different column names, dropped attributes, and distinct formatting (see the \href{https://github.com/davide-dona/nyc-bike-data-visualization/blob/main/src/notebooks/analysis.ipynb}{analysis notebook} for further details).
+Despite these discrepancies, this historic data remains highly valuable.
+To leverage it, the preprocessing pipeline implements specific schema adjustments, standardizing all monthly files into a single, compatible feature set.
 
-This inconsistency required adjustments in the preprocessing pipeline to ensure that all monthly files produced compatible features.
+\paragraph{Missing Station Values}
+A small fraction of trips contain missing values, exclusively within the station-related columns.
+The end-of-trip fields are the most affected: in a representative month, roughly $4{,}800$ trips ($0.24\%$) lack an end station identifier, while start station fields are missing just $0.03\%$ of the time.
+This issue likely occurs when bikes are abandoned or returned outside a dock.
+A complete per-column breakdown is available in the \href{https://github.com/davide-dona/nyc-bike-data-visualization/blob/main/src/notebooks/analysis.ipynb}{analysis notebook}.
+Because valid origin and destination data is essential for spatial and distance metrics, these incomplete rows are dropped during preprocessing.
 
-\paragraph{Missing Values and Inconsistencies}
+\paragraph{Trip Outliers}
+Beyond missing values, a small number of trips are clear outliers.
+In a representative month, about $315$ trips ($0.02\%$) last up to $25$ hours, appearing in the final bin of the duration histogram (Figure~\ref{fig:rides_duration}).
+These likely reflect unreturned bikes rather than continuous rides, so trips exceeding a maximum-duration threshold are dropped. 
+Additionally, around $27{,}000$ trips ($1.4\%$) start and end at the same station, resulting in a zero straight-line distance (Figure~\ref{fig:rides_distance}); because distance metrics are meaningless for these round trips, they are removed.
+Finally, some trips report impossible distances over $11{,}000$~km, as an example, due to corrupted station coordinates, and are filtered out using a maximum-distance threshold.
+
+\paragraph{Biases}
+This dataset carries certain inherent limitations.
+Because it relies exclusively on the Citi Bike system dataset, the findings may not accurately reflect the demographics of the entire population of cyclists in New York City.
+Additionally, trip distances are calculated using the Haversine formula between the start and end stations; this straight-line metric serves only as a geometric approximation and cannot account for the actual routes or detours taken by riders.
+Unfortunately, these structural data constraints cannot be resolved within the scope of our project.
 
 \begin{comment}
-TODO:
-Discussion of any data quality issues, such as missing values, outliers, noise, bias, or inconsistencies, and how they were addressed in the analysis.
-OUTLIERS: some trips have too long durations (may be caused by user not docking the bike properly, keeping the bike for a long time, but surely not a real trip), or too short (may be caused by user not docking the bike properly, but surely not a real trip)
-some trips have the same start and end station (could be possible, but it might screw up the analysis, need to be filtered out)
-
-BIAS: 1) we are considering only the data from the Citi Bike system, which may not be representative of the entire population of bike users in New York City.
-2) To compute the length of the trips, we are using the Haversine formula between start station and end station. This is just an approximation.
-
-ISSUES:
+ISSUES TO STATIONS NOT TRIPS:
 Two UUID (short name and station id) were used to uniquely identify stations, but they are not consistent across the dataset, so we had to use the short name as the unique identifier for stations.
-Live data has inactive stations that need to be filtered out, and bike counts aren't always perfect
-
-This are just the ones that come to my mind as of now, but IDK
+Live data has inactive stations that need to be filtered out, and bike counts aren't always perfectremov
 \end{comment}
-
-Several data quality issues were considered during preprocessing.
-
-The trip records contain a small number of outliers in terms of duration. Extremely short trips are often associated with docking or rental issues, while very long trips typically correspond to users keeping a bike for an extended period before returning it rather than continuous riding. Since these records do not accurately represent typical cycling activity, they are removed using reasonable duration thresholds. Similarly, trips starting and ending at the same station are excluded from distance-based analyses, as they likely correspond to round trips or erroneous records and would otherwise bias the results.
-
-The dataset also presents some inherent sources of bias. First, it only includes trips performed through the Citi Bike system and therefore is not representative of all bicycle traffic in New York City. Second, trip distances are estimated using the Haversine formula applied to the start and end station coordinates. As this computes the great-circle distance between the two stations rather than the actual route taken, the reported distances should be regarded as approximations.
-
-Station identifiers require particular attention. Although each station is associated with both a station ID and a public short name, these identifiers are not always consistent across different datasets and years. Consequently, stations are uniquely identified using the normalized short name.

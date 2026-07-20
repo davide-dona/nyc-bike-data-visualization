@@ -55,6 +55,8 @@ class IngestionSettings(BaseSettings):
     parquet_compression: str
     street_circuity_factor: float
     earth_radius_km: float
+    max_trip_duration_hours: int
+    max_trip_distance_km: float
 
     # Weather retrieval settings
     nyc_coords: tuple[float, float]

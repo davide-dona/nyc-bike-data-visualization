@@ -230,8 +230,15 @@ def _iter_month_frames(zip_path: Path) -> Iterator[pl.DataFrame]:
                 return
             yield pl.concat(frames, how="diagonal_relaxed")
 
+def _haversine_km_expr() -> pl.Expr:
+    """Great-circle distance (km) between the start and end coordinates, circuity-scaled."""
+    lat1, lon1 = pl.col("start_lat").radians(), pl.col("start_lng").radians()
+    lat2, lon2 = pl.col("end_lat").radians(), pl.col("end_lng").radians()
+    a = ((lat2 - lat1) / 2).sin() ** 2 + lat1.cos() * lat2.cos() * ((lon2 - lon1) / 2).sin() ** 2
+    return settings.earth_radius_km * 2 * a.sqrt().arcsin() * settings.street_circuity_factor
+
 def _clean_rides_data(df: pl.DataFrame) -> pl.DataFrame:
-    """Drop rows missing required fields, parse timestamps, drop bad intervals."""
+    """Drop rows missing required fields, parse timestamps, and drop interval/distance outliers."""
     return (
         df.drop_nulls(subset=_REQUIRED_RIDE_COLS)
         .with_columns(
@@ -240,6 +247,15 @@ def _clean_rides_data(df: pl.DataFrame) -> pl.DataFrame:
         )
         .drop_nulls(subset=["started_at", "ended_at"])
         .filter(pl.col("ended_at") >= pl.col("started_at"))
+        # Drop implausibly long trips (a bike that was never returned, not a real ride).
+        .filter(
+            (pl.col("ended_at") - pl.col("started_at")).dt.total_seconds()
+            <= settings.max_trip_duration_hours * 3600
+        )
+        # Drop round trips (same start and end station): their straight-line distance is 0.
+        .filter(pl.col("start_station_id") != pl.col("end_station_id"))
+        # Drop trips with an impossible straight-line distance (bad station coordinates).
+        .filter(_haversine_km_expr() <= settings.max_trip_distance_km)
     )
 
 def _add_partition_columns(df: pl.DataFrame) -> pl.DataFrame:
