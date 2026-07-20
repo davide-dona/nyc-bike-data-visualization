@@ -55,43 +55,48 @@ Trips are concentrated during commuting hours, while weekends show different usa
 
 \paragraph{Spatial Analysis}
 Spatial analysis highlights the distribution of trips across the city.
-Station popularity and trip flows reveal that demand is concentrated around Manhattan and other high-density areas, with some stations acting as important origins and destinations.
+Station popularity and trip flows reveal that demand is concentrated around Manhattan and other high-density areas, with some stations acting as important origins.
 
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.5\textwidth]{../media/rides_stations.png}
-    \caption{Distribution of trips by station, showed through an heatmap.}
+    \caption{Distribution of trips by station of origin, showed through an heatmap.}
     \label{fig:rides_stations}
 \end{figure}
 
-\paragraph{User Behaviour Analysis}
-User behaviour analysis compares members and casual users. Members generally show more regular commuting patterns, while casual users tend to have shorter-term and more variable usage patterns, as shown in Figure~\ref{fig:rides_type}.
-
+\paragraph{User/Bike Type Behaviour Analysis}
+As shown in Figure~\ref{fig:rides_type}, casual riders lean much more heavily on electric bikes than members do.
+Furthermore, casual riders take longer trips on both bike types, whereas members maintain a steady, short duration regardless of the bike they choose. 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=.9\textwidth]{../media/rides_type.png}
-    \caption{Distribution of trips by user type.}
+    \includegraphics[width=.8\textwidth]{../media/rides_type.png}
+    \caption{Distribution of trips by user type based on shares of rides and trip length.}
     \label{fig:rides_type}
 \end{figure}
 
 \paragraph{Trip Duration and Distance}
-Trip duration and distance distributions provide additional insight into mobility behaviour. Most trips are relatively short, while longer rides are less frequent and often correspond to recreational usage. The distributions of trip duration and distance are shown in Figures~\ref{fig:rides_duration} and~\ref{fig:rides_distance}.
+Trip duration and distance distributions provide additional insight into mobility behaviour.
+Most trips are relatively short, while longer rides are less frequent and often correspond to recreational usage.
+The distributions of trip duration and distance shows some anomalies that we are describing in the following section.
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=.7\textwidth]{../media/rides_duration.png}
-    \caption{Distribution of trip durations.}
-    \label{fig:rides_duration}
+    \begin{minipage}[t]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../media/rides_duration.png}
+        \caption{Distribution of trip durations.}
+        \label{fig:rides_duration}
+    \end{minipage}
+    \hfill
+    \begin{minipage}[t]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../media/rides_distance.png}
+        \caption{Distribution of trip straight-line distances.}
+        \label{fig:rides_distance}
+    \end{minipage}
 \end{figure}
 
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=.9\textwidth]{../media/rides_distance.png}
-    \caption{Distribution of trip distances.}
-    \label{fig:rides_distance}
-\end{figure}
-
-These analyses motivate the use of temporal aggregation, station-level summaries, and flow visualizations in the final dashboard.
+These analyses justify our dashboard proposal, as they instantly reveal the clear relationships across temporal patterns, station-level dynamics, and user flows.
 
 \subsection{Data Quality}
 Various data quality issues were encountered during the analysis of the City Bike dataset.
