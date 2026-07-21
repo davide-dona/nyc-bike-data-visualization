@@ -6,14 +6,14 @@ Unlike historical trip records, station metadata is served via a public JSON API
 From this service, we query two key Citi Bike endpoints:
 \begin{itemize}
     \item \texttt{station\_information.json}: Static properties like location and capacity, whose content changes only when the network itself changes.
-    \item \texttt{station\_status.json}: Live availability and operational state, which the specification classifies as near-realtime and requires to be no more than five minutes out of date.
+    \item \texttt{station\_status.json}: Live availability and operational state.
 \end{itemize}
 
 \subsubsection{Original Structure}
 The two endpoints share the numeric \texttt{station\_id} field, on which they are merged to produce a unified station record comprising:
 
 \begin{itemize}
-    \item \textbf{From \texttt{station\_information} (static):}
+    \item \textbf{From \texttt{station\_information}:}
     \begin{itemize}
         \item \textbf{Station ID}: numeric GBFS identifier.
         \item \textbf{Short Name}: public station identifier used for joins with Citi Bike trip data.
@@ -22,7 +22,7 @@ The two endpoints share the numeric \texttt{station\_id} field, on which they ar
         \item \textbf{Capacity}: number of available docks.
     \end{itemize}
 
-    \item \textbf{From \texttt{station\_status} (live):}
+    \item \textbf{From \texttt{station\_status}:}
     \begin{itemize}
         \item \textbf{Bikes available}: currently rentable bikes.
         \item \textbf{Vehicle types available}: per-type counts of the bikes currently at the station.
@@ -34,18 +34,12 @@ The two endpoints share the numeric \texttt{station\_id} field, on which they ar
 \subsubsection{Extracted Features} %#TODO: Not sure if those can be considered extracted features or more like a cleaning step
 Using the three operational flags (\texttt{is\_installed}, \texttt{is\_renting}, and \texttt{is\_returning}), we derive a boolean \texttt{active} indicator to filter out unavailable stations from live views.
 
-The feed reports availability as a list of \texttt{(vehicle\_type\_id, count)} pairs, where a type may be missing.
-We index it by type to derive \texttt{num\_classic\_bikes\_available} and \texttt{num\_ebikes\_available}, counting absent types as zero.
-The feed also publishes the electric count directly, in a dedicated field that does not always agree with the one derived from the vehicle-type list, as discussed in the data quality section.
-
 \subsection{Analysis and Insights}
-The analysis focuses on station capacity, live availability, and spatial distribution.
+The analysis focuses on station capacity, live availability, and docks reconciliation.
 
 \paragraph{Capacity Distribution}
-Capacity distributions show how the network is provisioned, distinguishing small stations from larger hubs, as shown in Figure~\ref{fig:station_capacity}.
-Most stations fall in a narrow band of around twenty to thirty docks, with a thin tail of large hubs.
-The isolated bar at zero docks is discussed in the data quality section, as it corresponds to stations that are not installed rather than to missing values.
-
+Figure~\ref{fig:station_capacity} illustrates network capacity provisioning, which distinguishes smaller stations from major hubs.
+Most facilities cluster tightly around 20–30 docks, meanwhile the bar at 0 docks is not corrupt data: those are stations that appear in the feed but are not active (demonstrated in the \href{https://github.com/davide-dona/nyc-bike-data-visualization/blob/main/src/notebooks/analysis.ipynb}{\underline{Jupyter notebook}}).
 \begin{figure}[H]
     \centering
     \includegraphics[width=.8\textwidth]{../media/station_capacity.png}
@@ -54,32 +48,20 @@ The isolated bar at zero docks is discussed in the data quality section, as it c
 \end{figure}
 
 \paragraph{Live Availability}
-Live availability of bikes and docks highlights possible imbalances, such as empty or saturated stations.
-Figure~\ref{fig:station_availability} reports the system-wide totals against the network's overall size, distinguishing all docks whether occupied or not, the bikes that are rentable, the docks that are free to receive one, and the bikes that are docked but out of service.
-Available bikes usually outnumber free docks, which indicates that most docks are occupied rather than an inconsistency in the feed.
-The three detailed counters do not add up to the total number of docks, a shortfall discussed in the data quality section.
-Being a live snapshot, these totals differ at every fetch and describe the state of the system at that moment rather than a stable property of the dataset.
+Live bike and dock availability reflects the real-time state of the system.
+Because the feed is a dynamic snapshot, Figure~\ref{fig:station_availability} represents a single point in time rather than a strictly reproducible state.
+The chart decomposes total network capacity, classifying every dock into exactly one of six defined states.
+The same was done for active and inactive stations, for a more granular view.
 
 \begin{figure}[H]
     \centering
     \includegraphics[width=.8\textwidth]{../media/station_availability.png}
-    \caption{Live system-wide availability of bikes and docks at fetch time.}
+    \caption{System-wide capacity breakdown across all, active, and inactive stations. Total capacity is fully decomposed into six mutually exclusive states: rentable classic bikes, rentable e-bikes, free docks, out-of-service bikes, out-of-service docks, and unreported capacity.}
     \label{fig:station_availability}
 \end{figure}
 
-\paragraph{Station Status}
-Because the feed is a registry of known stations rather than a list of working ones, part of the network cannot be used at any given time.
-Figure~\ref{fig:station_status} breaks the stations down by operational status, separating those that are active from those that are not yet installed and those that are installed but suspended.
-Stations that are not installed are by far the larger group, and they coincide with the zero-capacity records visible in Figure~\ref{fig:station_capacity}.
-The three operational flags are almost never in disagreement, as virtually no station allows rentals while refusing returns, which is what justifies collapsing them into the single \texttt{active} indicator instead of modelling each flag separately.
-Unusable stations still hold a small but non-negligible share of the network's docks, so they must be excluded before computing capacity statistics, although they hold no bikes and therefore cannot distort availability figures.
+By capturing these dynamics, the breakdown demonstrates how the system can power user-facing tools with accurate, real-time availability insights.
 
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=.8\textwidth]{../media/station_status.png}
-    \caption{Stations by operational status, separating active stations from those not installed or suspended.}
-    \label{fig:station_status}
-\end{figure}
 
 \subsection{Data Quality}
 \begin{comment}
@@ -100,6 +82,8 @@ The main quality issues concern station status, the interpretation of zero capac
 \paragraph{Inactive Stations}
 The feed is a registry of known stations rather than a list of working ones, so entries remain while a station is being installed, is temporarily out of service, or is being removed.
 Such stations are present in the feed but not fully operational because one or more status flags are false, and they are excluded from live visualizations using the derived \texttt{active} feature.
+The three flags are almost never in disagreement, as virtually no station allows rentals while refusing returns, which is what justifies collapsing them into a single indicator instead of modelling each flag separately.
+These stations still hold a small but non-negligible share of the network's docks, so they must be excluded before computing capacity statistics, although they hold no rentable bikes and therefore cannot distort availability figures, the bikes left at them being all flagged out of service.
 
 \paragraph{Zero Capacity}
 A subset of stations reports a capacity of zero, which produces the isolated bar in Figure~\ref{fig:station_capacity}.
