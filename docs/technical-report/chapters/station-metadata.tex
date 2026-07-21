@@ -1,14 +1,16 @@
 \section{Station Metadata Dataset (GBFS)}
-
-Our fourth source of data is the Lyft General Bikeshare Feed Specification (GBFS) feed\footnote{\url{https://gbfs.lyft.com/gbfs/2.3/bkn/en/gbfs.json}}, which provides current station information and live availability. Two endpoints are merged: \texttt{station\_information} (static metadata) and \texttt{station\_status} (real-time availability).
+To enhance the station data provided by Citi Bike, we incorporate the real-time feed published in \href{https://gbfs.org/}{General Bikeshare Feed Specification} (GBFS) format and documented on the \href{https://citibikenyc.com/system-data}{Citi Bike System Data} page.
 
 \subsection{Dataset Structure}
-
-The station metadata dataset combines static station properties with live operational information. The static endpoint describes location and capacity, while the live endpoint reports availability and station status.
+Unlike historical trip records, station metadata is served via a public JSON API adhering to MobilityData's \href{https://gbfs.org/}{GBFS} standard.
+From this service, we query two key Citi Bike endpoints:
+\begin{itemize}
+    \item \texttt{station\_information.json}: Static properties like location and capacity, whose content changes only when the network itself changes.
+    \item \texttt{station\_status.json}: Live availability and operational state, which the specification classifies as near-realtime and requires to be no more than five minutes out of date.
+\end{itemize}
 
 \subsubsection{Original Structure}
-
-The merged dataset contains:
+The two endpoints share the numeric \texttt{station\_id} field, on which they are merged to produce a unified station record comprising:
 
 \begin{itemize}
     \item \textbf{From \texttt{station\_information} (static):}
@@ -23,40 +25,43 @@ The merged dataset contains:
     \item \textbf{From \texttt{station\_status} (live):}
     \begin{itemize}
         \item \textbf{Bikes available}: currently rentable bikes.
+        \item \textbf{Vehicle types available}: per-type counts of the bikes currently at the station.
         \item \textbf{Docks available}: currently available docks.
         \item \textbf{Operational flags}: \texttt{is\_installed}, \texttt{is\_renting}, and \texttt{is\_returning}.
     \end{itemize}
 \end{itemize}
 
-\subsubsection{Extracted Features}
+\subsubsection{Extracted Features} %#TODO: Not sure if those can be considered extracted features or more like a cleaning step
+Using the three operational flags (\texttt{is\_installed}, \texttt{is\_renting}, and \texttt{is\_returning}), we derive a boolean \texttt{active} indicator to filter out unavailable stations from live views.
 
-An \texttt{active} indicator is derived from the three operational flags and is used to filter unavailable stations from live views.
+The feed reports availability as a list of \texttt{(vehicle\_type\_id, count)} pairs, where a type may be missing.
+We index it by type to derive \texttt{num\_classic\_bikes\_available} and \texttt{num\_ebikes\_available}, counting absent types as zero.
 
 \subsection{Analysis and Insights}
-\begin{comment}
-    Follows notebook 4.1 "Capacity and Live Availability" and 4.2 "Station Map".
-    Per the exam requirements (Deliverable 2 - EDA criterion), the exploration below
-    expands on three complementary perspectives: provisioning (capacity), current
-    state (live bikes/docks), and spatial distribution (map). Each perspective
-    connects directly to visualization design decisions for the final dashboard.
-\end{comment}
-
 The analysis focuses on station capacity, live availability, and spatial distribution.
 
-Capacity distributions show how the network is provisioned, distinguishing small stations from larger hubs. Live availability of bikes and docks highlights possible imbalances, such as empty or saturated stations. The corresponding distributions are shown in Figure~\ref{fig:station_capacity}.
+\paragraph{Capacity Distribution}
+Capacity distributions show how the network is provisioned, distinguishing small stations from larger hubs.
+The corresponding distribution is shown in Figure~\ref{fig:station_capacity}.
 
-The station map provides a spatial overview of coverage and density, helping identify clusters, gaps, and possible coordinate issues. Capacity and availability values can also be used as visual encodings to improve the final dashboard, as shown in Figure~\ref{fig:station_map}.
+\paragraph{Live Availability}
+Live availability of bikes and docks highlights possible imbalances, such as empty or saturated stations.
+Both quantities are reported in Figure~\ref{fig:station_capacity} alongside capacity.
 
-\begin{figure}[ptb]
+\begin{figure}[H]
     \centering
-    \includegraphics[width=\textwidth]{../media/station_capacity.png}
+    \includegraphics[width=.8\textwidth]{../media/station_capacity.png}
     \caption{Distribution of station capacity (number of docks) and live availability (bikes and docks available).}
     \label{fig:station_capacity}
 \end{figure}
 
-\begin{figure}[ptb]
+\paragraph{Spatial Distribution}
+The station map provides a spatial overview of coverage and density, helping identify clusters, gaps, and possible coordinate issues.
+Capacity and availability values can also be used as visual encodings to improve the final dashboard, as shown in Figure~\ref{fig:station_map}.
+
+\begin{figure}[H]
     \centering
-    \includegraphics[width=.8\textwidth]{../media/station_map.png}
+    \includegraphics[width=.65\textwidth]{../media/station_map.png}
     \caption{Map of stations in New York City, colored by their active state.}
     \label{fig:station_map}
 \end{figure}
