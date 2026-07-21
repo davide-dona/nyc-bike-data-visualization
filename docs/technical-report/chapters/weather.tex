@@ -3,12 +3,12 @@ To enrich the dashboard with meteorological analysis, we incorporate hourly NYC 
 
 \subsection{Dataset Structure}
 Weather data are queried via the Open-Meteo JSON API by specifying coordinates, a date range, and variables.
-The API returns parallel hourly arrays derived from reanalysis models, that updates with a few days' lag, keeping the historical analysis stable.
+The API returns parallel hourly arrays derived from reanalysis models that update with a few days' lag, keeping the historical analysis stable.
 
 \subsubsection{Original Structure}
 The dataset includes several attributes, but we consider only the following main fields:
 \begin{itemize}
-  \item \textbf{Timestamp (time)}: hourly observation time, requested in the \texttt{America/New\_York} timezone so that it aligns with the trip timestamps.
+  \item \textbf{Timestamp (time)}: hourly observation time, requested in UTC and converted to \texttt{America/New\_York} on our side so that it aligns with the trip timestamps.
   \item \textbf{Temperature (temperature\_2m)}: air temperature in \si{\degreeCelsius}.
   \item \textbf{Precipitation}: hourly precipitation in millimetres.
   \item \textbf{Weather Code}: WMO weather condition code.
@@ -22,17 +22,18 @@ Rather than examining weather in isolation, the following section focuses direct
 \paragraph{Ridership vs. Weather}
 Figure~\ref{fig:rides_vs_weather} illustrates daily ridership alongside mean temperature and total precipitation.
 The data shows a clear inverse relationship between precipitation and usage: the month's peak precipitation directly coincides with its lowest ridership volume.
+Meanwhile for the temperature, it's possible to see also a positive correlation with ridership, although the effect is less pronounced than that of precipitation.
 This confirms that weather tracking provides valuable context for interpreting demand fluctuations and supporting operational planning.
 
 \begin{figure}[H]
     \centering
     \includegraphics[width=\textwidth]{../media/rides_vs_weather.png}
-    \caption{Daily ridership, mean temperature, and total precipitation over the reference month, plotted on aligned date axes with individual scales. The dashed guide highlights 16 February, which recorded the highest rainfall and the lowest ridership.}
+    \caption{Daily ridership, mean temperature, and total precipitation over the reference month, plotted on aligned date axes with individual scales. The dashed guide highlights 16 February, the month's wettest day and also its least ridden.}
     \label{fig:rides_vs_weather}
 \end{figure}
 
 \subsection{Data Quality}
-The archive is complete, with an hourly series covering the entire year and no missing values in any variable.
+The archive is complete, with an hourly series covering the entire reference year and no missing values in any variable.
 The issues we found therefore concern how the values are localised and what they represent, rather than gaps in the data.
 
 \paragraph{Spatial Coverage}
