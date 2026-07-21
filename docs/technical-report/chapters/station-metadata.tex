@@ -19,7 +19,7 @@ The two endpoints share the \texttt{station\_id} field, on which they are merged
         \item \textbf{Short Name}: public station identifier used for joins with Citi Bike trip data.
         \item \textbf{Name}: station name.
         \item \textbf{Latitude} and \textbf{Longitude}: station coordinates.
-        \item \textbf{Capacity}: number of available docks.
+        \item \textbf{Capacity}: total number of docks installed at the station.
     \end{itemize}
 
     \item \textbf{From \texttt{station\_status}:}
@@ -39,7 +39,7 @@ The analysis focuses on station capacity, live availability, and docks reconcili
 
 \paragraph{Capacity Distribution}
 Figure~\ref{fig:station_capacity} illustrates network capacity provisioning, which distinguishes smaller stations from major hubs.
-Most facilities cluster tightly around 20–30 docks, meanwhile the bar at 0 docks is not corrupt data: those are stations that appear in the feed but are not active (demonstrated in the \href{https://github.com/davide-dona/nyc-bike-data-visualization/blob/main/src/notebooks/analysis.ipynb}{\underline{Jupyter notebook}}).
+Nearly half of the stations fall between 20 and 30 docks, meanwhile the bar at 0 docks is not corrupt data: those 42 stations appear in the feed but are not active (demonstrated in the \href{https://github.com/davide-dona/nyc-bike-data-visualization/blob/main/src/notebooks/analysis.ipynb}{\underline{Jupyter notebook}}).
 \begin{figure}[H]
     \centering
     \includegraphics[width=.8\textwidth]{../media/station_capacity.png}
@@ -61,8 +61,6 @@ The same was done for active and inactive stations, for a more granular view.
     \label{fig:station_availability}
 \end{figure}
 
-By capturing these dynamics, the breakdown demonstrates how the system can power user-facing tools with accurate, real-time availability insights.
-
 \subsection{Data Quality}
 The main quality issues concern unreported capacity, the self-consistency of the feed, and identifier consistency.
 Ultimately, as demonstrated in the notebook, there are no missing values for stations in the feed.
@@ -70,20 +68,18 @@ Ultimately, as demonstrated in the notebook, there are no missing values for sta
 \paragraph{Inactive Stations}
 The feed includes stations being installed, repaired, or removed, all grouped under the \texttt{inactive} category.
 They make up 101 out of 2,462 stations (4.1\%) and 2,043 docks (2.8\% of capacity).
-
 Figure~\ref{fig:station_availability} shows why we remove them, since they report capacity but no live counts, and their bikes are out of service.
 Keeping them would show false empty stations on the map and distort capacity stats without adding real bike availability.
 
 \paragraph{Unreported Capacity}
-The missing values (Figure~\ref{fig:station_availability}) arises from using two different endpoints.
+The unreported capacity (Figure~\ref{fig:station_availability}) arises from using two different endpoints.
 Station capacity is a static property provided by \texttt{station\_information} and updated periodically, whereas live bike and dock counts are delivered continuously by \texttt{station\_status}. 
 Figure~\ref{fig:station_consistency} highlights this discrepancy, showing the per-station gap between declared capacity and the sum of live counters.
-
 Filtering out the inactive stations described above eliminates the main source of variance without altering real availability.
 For any remaining active stations that do not reconcile, dock states are read directly from live counters, treating capacity as a rough benchmark.
 \begin{figure}[H]
     \centering
-    \includegraphics[width=.8\textwidth]{../media/station_consistency.png}
+    \includegraphics[width=.7\textwidth]{../media/station_consistency.png}
     \caption{Per-station gap between the declared capacity and the docks accounted for by the live counters.}
     \label{fig:station_consistency}
 \end{figure}
@@ -94,7 +90,6 @@ Trip history files use only the latter: 93.8\% of station references in historic
 Therefore, all joins between live metadata and trip history should rely on the \texttt{short\_name} field.
 
 \paragraph{Live-Only Metadata}
-Citi Bike publishes station metadata only as a live feed, with no archive of past station states.
-Linking trips to it therefore describes a past month through the network as it stands today.
-Stations removed since then keep their trips but lose every feed attribute, while stations added since appear with no history, which is easily mistaken for disuse.
-The bias is confined to what the feed contributes, capacity and operational state, since each trip already carries its own station name and coordinates.
+Citi Bike provides station metadata only as a live feed, with no historical archives.
+Consequently, removed stations retain their past trip records but lose all feed attributes, while newly added stations lack historical data, making them appear prematurely inactive.
+This bias only affects feed-specific attributes like capacity and operational status, as each trip record independently contains its own station name and coordinates.

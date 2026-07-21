@@ -1,21 +1,4 @@
-# Technical Report — Consistency Review
 
-Review of `docs/technical-report/` against the code, the notebook (`src/notebooks/analysis.ipynb`),
-the figures in `docs/media/`, and the live database.
-
-**Nothing in the `.tex` files was changed.** This file only records what does not hold up.
-
-Evidence sources used:
-
-- Code as of branch `technical-report` (commit `d799c7c`).
-- Seeded database `citibike` on `localhost:5432`: 78 months, `2020-01-01` → `2026-06-30`, 220,941,537 trips.
-- Local parquet under `data/` (bike routes, stations, weather).
-- The PNG figures the report actually includes.
-
-Findings are grouped by how wrong they are. Section D lists claims that were checked and **are correct** —
-those should not be "fixed" by mistake.
-
----
 
 ## A. Claims contradicted by the code or the data
 
@@ -108,81 +91,6 @@ Nothing about an annual cycle or year-round variation can be read from it.
 
 The notebook *does* produce the monthly-mean temperature line plot that would support the claim, and it
 was exported — `docs/media/temperature_trend.png` exists — but no chapter includes it.
-
----
-
-### A11. `station_capacity.png` cannot show empty or saturated stations
-
-**Claim** — `chapters/station-metadata-dataset.tex:46`: *"Live availability of bikes and docks highlights
-possible imbalances, such as empty or saturated stations. The corresponding distributions are shown in
-Figure 8."*
-
-**Reality** — the right panel of that figure is **two bars**: system-wide totals (≈ 34,000 bikes
-available, ≈ 31,000 docks available), from notebook cell 57 (`stations[[...]].sum()`). A system-wide sum
-is exactly the aggregation that hides per-station imbalance. The word "distributions" is also wrong for
-the right panel — only the left panel (capacity) is a distribution.
-
-The notebook does compute empty stations elsewhere, and the backend exposes `/stations/empty`
-(`src/backend/routes/stations.py:24-42`), but neither is what this figure shows.
-
----
-
-### A12. `capacity` is total docks, not available docks
-
-**Claim** — `chapters/station-metadata-dataset.tex:20`: *"**Capacity**: number of available docks."*
-
-**Reality** — in GBFS, `capacity` is the number of docking points **installed** at the station. Available
-docks is a separate, live field, `num_docks_available`, which the report lists two items later at `:26`.
-As written, the two entries describe the same thing. The report's own figure caption (`:53`) gets it
-right — *"station capacity (number of docks)"* — and so does the figure's x-axis label ("Docks").
-
----
-
-### A13. There is no "normalized" short name
-
-**Claim** — `chapters/city-bike.tex:129`: *"stations are uniquely identified using the normalized short
-name."*
-
-**Reality** — no normalization step exists. `short_name` is used as a raw string everywhere:
-`distances.py:38` (`"id": s.get("short_name", "")`), `station_metadata.py` (`s["short_name"]` inserted
-as `station_id`), `gbfs.py:96` and `:130` (`str(station_data["short_name"])`). A grep for
-`normaliz|strip()|lower()` over `src/ingestion/` and `src/backend/` returns only unrelated hits (CORS
-parsing, WKT prefix matching, filename handling).
-
-The join is a plain string equality on the identifier as published. Either drop "normalized" or
-implement it.
-
----
-
-### A14. No duplicate-identifier handling exists
-
-**Claim** — `chapters/station-metadata-dataset.tex:86`: *"Additional issues, such as temporary feed
-outages or duplicate identifiers caused by station changes, are handled through preprocessing checks to
-maintain reliable visualizations."*
-
-**Reality** — half true, and the true half is not a "preprocessing check":
-
-- Feed outages: real, and handled — `fetch_station_data` falls back to the stale cache and otherwise
-  raises 503 (`src/backend/services/gbfs.py:74-84`). That is runtime error handling.
-- Duplicate identifiers: **nothing exists**. The only related line is
-  `ON CONFLICT (station_id) DO NOTHING` in `upsert_station_metadata`, which silently keeps whichever
-  row arrived first — that is not a check, and it detects nothing.
-
----
-
-### A15. No station is missing capacity or coordinates
-
-**Claim** — `chapters/station-metadata-dataset.tex:82`: *"A small number of records may have missing
-capacity or coordinates. Stations without coordinates cannot be displayed on maps, while missing
-capacity only affects analyses based on station size."*
-
-**Reality** — in `data/stations/station_metadata.parquet` (2,462 stations):
-`capacity` nulls = **0**, `lat`/`lon` nulls = **0**.
-
-There *is* a real finding here that the report misses: **42 stations report `capacity = 0`**. Those are
-not null, so no null check catches them, and they will silently distort any per-capacity computation
-(and any division by capacity). "May have missing values" is a hedge; "42 stations report zero capacity"
-is a fact.
 
 ---
 
