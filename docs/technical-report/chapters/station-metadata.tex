@@ -36,34 +36,49 @@ Using the three operational flags (\texttt{is\_installed}, \texttt{is\_renting},
 
 The feed reports availability as a list of \texttt{(vehicle\_type\_id, count)} pairs, where a type may be missing.
 We index it by type to derive \texttt{num\_classic\_bikes\_available} and \texttt{num\_ebikes\_available}, counting absent types as zero.
+The feed also publishes the electric count directly, in a dedicated field that does not always agree with the one derived from the vehicle-type list, as discussed in the data quality section.
 
 \subsection{Analysis and Insights}
 The analysis focuses on station capacity, live availability, and spatial distribution.
 
 \paragraph{Capacity Distribution}
-Capacity distributions show how the network is provisioned, distinguishing small stations from larger hubs.
-The corresponding distribution is shown in Figure~\ref{fig:station_capacity}.
-
-\paragraph{Live Availability}
-Live availability of bikes and docks highlights possible imbalances, such as empty or saturated stations.
-Both quantities are reported in Figure~\ref{fig:station_capacity} alongside capacity.
+Capacity distributions show how the network is provisioned, distinguishing small stations from larger hubs, as shown in Figure~\ref{fig:station_capacity}.
+Most stations fall in a narrow band of around twenty to thirty docks, with a thin tail of large hubs.
+The isolated bar at zero docks is discussed in the data quality section, as it corresponds to stations that are not installed rather than to missing values.
 
 \begin{figure}[H]
     \centering
     \includegraphics[width=.8\textwidth]{../media/station_capacity.png}
-    \caption{Distribution of station capacity (number of docks) and live availability (bikes and docks available).}
+    \caption{Distribution of station capacity, measured as the number of docks per station.}
     \label{fig:station_capacity}
 \end{figure}
 
-\paragraph{Spatial Distribution}
-The station map provides a spatial overview of coverage and density, helping identify clusters, gaps, and possible coordinate issues.
-Capacity and availability values can also be used as visual encodings to improve the final dashboard, as shown in Figure~\ref{fig:station_map}.
+\paragraph{Live Availability}
+Live availability of bikes and docks highlights possible imbalances, such as empty or saturated stations.
+Figure~\ref{fig:station_availability} reports the system-wide totals against the network's overall size, distinguishing all docks whether occupied or not, the bikes that are rentable, the docks that are free to receive one, and the bikes that are docked but out of service.
+Available bikes usually outnumber free docks, which indicates that most docks are occupied rather than an inconsistency in the feed.
+The three detailed counters do not add up to the total number of docks, a shortfall discussed in the data quality section.
+Being a live snapshot, these totals differ at every fetch and describe the state of the system at that moment rather than a stable property of the dataset.
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=.65\textwidth]{../media/station_map.png}
-    \caption{Map of stations in New York City, colored by their active state.}
-    \label{fig:station_map}
+    \includegraphics[width=.8\textwidth]{../media/station_availability.png}
+    \caption{Live system-wide availability of bikes and docks at fetch time.}
+    \label{fig:station_availability}
+\end{figure}
+
+\paragraph{Station Status}
+Because the feed is a registry of known stations rather than a list of working ones, part of the network cannot be used at any given time.
+Figure~\ref{fig:station_status} breaks the stations down by operational status, separating those that are active from those that are not yet installed and those that are installed but suspended.
+Stations that are not installed are by far the larger group, and they coincide with the zero-capacity records visible in Figure~\ref{fig:station_capacity}.
+The three operational flags are almost never in disagreement, as virtually no station allows rentals while refusing returns, which is what justifies collapsing them into the single \texttt{active} indicator instead of modelling each flag separately.
+Unusable stations still hold a small but non-negligible share of the network's docks, so they must be excluded before computing capacity statistics, although they hold no bikes and therefore cannot distort availability figures.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=.8\textwidth]{../media/station_status.png}
+    \caption{Stations by operational status, separating active stations from those not installed or suspended.}
+    \label{fig:station_status}
 \end{figure}
 
 \subsection{Data Quality}
@@ -80,12 +95,37 @@ Capacity and availability values can also be used as visual encodings to improve
         Inconsistencies" discussion in the City Bike chapter.
 \end{comment}
 
-The main quality issues concern station status, missing attributes, and identifier consistency.
+The main quality issues concern station status, the interpretation of zero capacity, and identifier consistency.
 
-Some stations are present in the feed but not fully operational because one or more status flags are false. These stations are excluded from live visualizations using the derived \texttt{active} feature.
+\paragraph{Inactive Stations}
+The feed is a registry of known stations rather than a list of working ones, so entries remain while a station is being installed, is temporarily out of service, or is being removed.
+Such stations are present in the feed but not fully operational because one or more status flags are false, and they are excluded from live visualizations using the derived \texttt{active} feature.
 
-A small number of records may have missing capacity or coordinates. Stations without coordinates cannot be displayed on maps, while missing capacity only affects analyses based on station size.
+\paragraph{Zero Capacity}
+A subset of stations reports a capacity of zero, which produces the isolated bar in Figure~\ref{fig:station_capacity}.
+These are not missing values: they are stations that are not installed, and they consistently report no docks and no bikes.
+Interpreting that zero as a real station size would understate the average capacity of the network, so these records are filtered through the \texttt{active} feature rather than through a capacity threshold.
 
+\paragraph{Feed Self-Consistency}
+The feed publishes the same quantities in more than one way, which allows checking it against itself.
+Two identities should hold at every station: the docks must add up, so that available bikes, free docks and out-of-service bikes and docks together match the station's capacity, and the per-type bike counts must add up to the reported bike total.
+Neither holds everywhere.
+Figure~\ref{fig:station_consistency} shows the distribution of the dock reconciliation gap: two thirds of the stations reconcile exactly and the vast majority fall within a couple of docks, but a tail remains in which a large portion of the capacity is reported by no counter at all.
+This is the same shortfall visible in Figure~\ref{fig:station_availability}, and it implies that any quantity derived from capacity should be treated as approximate.
+The bike-type identity fails at only a handful of stations, but it affects the features we derive: where the dedicated electric-bike field and the vehicle-type list disagree, it is the vehicle-type entry that fails to reconcile with the reported total, which makes the derived split marginally less reliable than the field published directly.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=.8\textwidth]{../media/station_consistency.png}
+    \caption{Per-station gap between the docks accounted for by the live counters and the declared capacity.}
+    \label{fig:station_consistency}
+\end{figure}
+
+\paragraph{Identifier Consistency}
 Cross-dataset joins require attention because GBFS provides both a numeric \texttt{station\_id} and a public \texttt{short\_name}. Historical trip data use \texttt{short\_name}, therefore all joins are performed using this field after validating its consistency.
+
+\paragraph{Missing Values and Cleaning}
+The fields consumed by the pipeline are fully populated in the feed, so no imputation is required, and the notebook reports the missing counts at every run.
+Consequently no cleaning is applied to station metadata: ingestion keeps every station returned by the feed and only casts types, the loader persists the identifier, name and coordinates while discarding duplicates on conflict, and inactive stations are filtered by the backend at request time instead of being removed from storage.
 
 Additional issues, such as temporary feed outages or duplicate identifiers caused by station changes, are handled through preprocessing checks to maintain reliable visualizations.
