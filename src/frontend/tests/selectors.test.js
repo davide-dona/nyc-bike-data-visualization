@@ -119,6 +119,26 @@ describe('selectStationAvailability', () => {
         }])
         expect(station.health_category).toBe(HEALTH_CATEGORY.EMPTY_RISK)
     })
+
+    it('derives effective capacity from the live counters, not from the declared capacity', () => {
+        // The feed's static capacity disagrees with the live counters at about a third of the
+        // stations, so scores must never be scaled by it.
+        const [station] = selectStationAvailability([{
+            id: 'S2',
+            name: 'Stale capacity',
+            lat: 40.75,
+            lon: -73.97,
+            capacity: 100,
+            num_bikes_available: 3,
+            num_classic_bikes_available: 2,
+            num_ebikes_available: 1,
+            num_docks_available: 2,
+            num_bikes_disabled: 4,
+        }])
+        expect(station.actual_capacity).toBe(5)
+        expect(station.availability_score).toBeCloseTo(3 / 5)
+        expect(station.dock_score).toBeCloseTo(2 / 5)
+    })
 })
 
 function hourSeriesWith(overrides) {

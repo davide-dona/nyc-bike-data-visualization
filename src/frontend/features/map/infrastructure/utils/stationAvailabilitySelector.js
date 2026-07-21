@@ -42,10 +42,16 @@ export function selectStationAvailability(stationData) {
     const stationRows = Array.isArray(stationData) ? stationData : []
 
     const processedStations = stationRows.map((station) => {
-        const actual_capacity = station.capacity - station.num_bikes_disabled
+        const bikes_available = station.num_classic_bikes_available + station.num_ebikes_available
+
+        // Effective docks read from the live counters only: rentable bikes occupy working
+        // docks, free docks are working and empty. Deriving this from `capacity` instead
+        // would mix a static field, revised only when the network changes, with live counts;
+        // the two disagree at about a third of the stations.
+        const actual_capacity = bikes_available + station.num_docks_available
 
         const availability_score = actual_capacity > 0
-            ? (station.num_classic_bikes_available + station.num_ebikes_available) / actual_capacity
+            ? bikes_available / actual_capacity
             : 0
 
         const dock_score = actual_capacity > 0
@@ -53,7 +59,7 @@ export function selectStationAvailability(stationData) {
             : 0
 
         const health_category = classifyStationHealth({
-            bikes: station.num_classic_bikes_available + station.num_ebikes_available,
+            bikes: bikes_available,
             docks: station.num_docks_available,
             actualCapacity: actual_capacity,
         })

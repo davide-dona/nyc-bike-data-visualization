@@ -10,12 +10,12 @@ From this service, we query two key Citi Bike endpoints:
 \end{itemize}
 
 \subsubsection{Original Structure}
-The two endpoints share the numeric \texttt{station\_id} field, on which they are merged to produce a unified station record comprising:
+The two endpoints share the \texttt{station\_id} field, on which they are merged to produce a unified station record comprising:
 
 \begin{itemize}
     \item \textbf{From \texttt{station\_information}:}
     \begin{itemize}
-        \item \textbf{Station ID}: numeric GBFS identifier.
+        \item \textbf{Station ID}: internal GBFS identifier, a UUID for most stations and a numeric string for the rest.
         \item \textbf{Short Name}: public station identifier used for joins with Citi Bike trip data.
         \item \textbf{Name}: station name.
         \item \textbf{Latitude} and \textbf{Longitude}: station coordinates.
@@ -53,6 +53,7 @@ Because the feed is a dynamic snapshot, Figure~\ref{fig:station_availability} re
 The chart decomposes total network capacity, classifying every dock into exactly one of six defined states.
 The same was done for active and inactive stations, for a more granular view.
 
+%#TODO: Maybe this plot is misleading but in my opinion could be fine
 \begin{figure}[H]
     \centering
     \includegraphics[width=.8\textwidth]{../media/station_availability.png}
@@ -62,54 +63,38 @@ The same was done for active and inactive stations, for a more granular view.
 
 By capturing these dynamics, the breakdown demonstrates how the system can power user-facing tools with accurate, real-time availability insights.
 
-
 \subsection{Data Quality}
-\begin{comment}
-    Follows notebook 4.3 "Data Quality". Per the exam requirements (Deliverable 2 -
-    data quality criterion), discuss:
-      - Count of inactive stations (not installed/renting/returning) that need to be
-        filtered out of live views.
-      - Stations missing capacity or coordinates.
-      - Cross-dataset consistency issue: the numeric station_id (GBFS) differs from
-        the public short_name used in the Citi Bike trip files, so joins between
-        live station data and historical trips must go through short_name rather
-        than station_id. This connects back to the "Missing Values and
-        Inconsistencies" discussion in the City Bike chapter.
-\end{comment}
-
-The main quality issues concern station status, the interpretation of zero capacity, and identifier consistency.
+The main quality issues concern unreported capacity, the self-consistency of the feed, and identifier consistency.
+Ultimately, as demonstrated in the notebook, there are no missing values for stations in the feed.
 
 \paragraph{Inactive Stations}
-The feed is a registry of known stations rather than a list of working ones, so entries remain while a station is being installed, is temporarily out of service, or is being removed.
-Such stations are present in the feed but not fully operational because one or more status flags are false, and they are excluded from live visualizations using the derived \texttt{active} feature.
-The three flags are almost never in disagreement, as virtually no station allows rentals while refusing returns, which is what justifies collapsing them into a single indicator instead of modelling each flag separately.
-These stations still hold a small but non-negligible share of the network's docks, so they must be excluded before computing capacity statistics, although they hold no rentable bikes and therefore cannot distort availability figures, the bikes left at them being all flagged out of service.
+The feed includes stations being installed, repaired, or removed, all grouped under the \texttt{inactive} category.
+They make up 101 out of 2,462 stations (4.1\%) and 2,043 docks (2.8\% of capacity).
 
-\paragraph{Zero Capacity}
-A subset of stations reports a capacity of zero, which produces the isolated bar in Figure~\ref{fig:station_capacity}.
-These are not missing values: they are stations that are not installed, and they consistently report no docks and no bikes.
-Interpreting that zero as a real station size would understate the average capacity of the network, so these records are filtered through the \texttt{active} feature rather than through a capacity threshold.
+Figure~\ref{fig:station_availability} shows why we remove them, since they report capacity but no live counts, and their bikes are out of service.
+Keeping them would show false empty stations on the map and distort capacity stats without adding real bike availability.
 
-\paragraph{Feed Self-Consistency}
-The feed publishes the same quantities in more than one way, which allows checking it against itself.
-Two identities should hold at every station: the docks must add up, so that available bikes, free docks and out-of-service bikes and docks together match the station's capacity, and the per-type bike counts must add up to the reported bike total.
-Neither holds everywhere.
-Figure~\ref{fig:station_consistency} shows the distribution of the dock reconciliation gap: two thirds of the stations reconcile exactly and the vast majority fall within a couple of docks, but a tail remains in which a large portion of the capacity is reported by no counter at all.
-This is the same shortfall visible in Figure~\ref{fig:station_availability}, and it implies that any quantity derived from capacity should be treated as approximate.
-The bike-type identity fails at only a handful of stations, but it affects the features we derive: where the dedicated electric-bike field and the vehicle-type list disagree, it is the vehicle-type entry that fails to reconcile with the reported total, which makes the derived split marginally less reliable than the field published directly.
+\paragraph{Unreported Capacity}
+The missing values (Figure~\ref{fig:station_availability}) arises from using two different endpoints.
+Station capacity is a static property provided by \texttt{station\_information} and updated periodically, whereas live bike and dock counts are delivered continuously by \texttt{station\_status}. 
+Figure~\ref{fig:station_consistency} highlights this discrepancy, showing the per-station gap between declared capacity and the sum of live counters.
 
+Filtering out the inactive stations described above eliminates the main source of variance without altering real availability.
+For any remaining active stations that do not reconcile, dock states are read directly from live counters, treating capacity as a rough benchmark.
 \begin{figure}[H]
     \centering
     \includegraphics[width=.8\textwidth]{../media/station_consistency.png}
-    \caption{Per-station gap between the docks accounted for by the live counters and the declared capacity.}
+    \caption{Per-station gap between the declared capacity and the docks accounted for by the live counters.}
     \label{fig:station_consistency}
 \end{figure}
 
 \paragraph{Identifier Consistency}
-Cross-dataset joins require attention because GBFS provides both a numeric \texttt{station\_id} and a public \texttt{short\_name}. Historical trip data use \texttt{short\_name}, therefore all joins are performed using this field after validating its consistency.
+GBFS identifies stations in two ways: an internal \texttt{station\_id} (either a UUID or a numeric string) and a public \texttt{short\_name}.
+Trip history files use only the latter: 93.8\% of station references in historical trips match a \texttt{short\_name}, whereas none match a \texttt{station\_id}.
+Therefore, all joins between live metadata and trip history should rely on the \texttt{short\_name} field.
 
-\paragraph{Missing Values and Cleaning}
-The fields consumed by the pipeline are fully populated in the feed, so no imputation is required, and the notebook reports the missing counts at every run.
-Consequently no cleaning is applied to station metadata: ingestion keeps every station returned by the feed and only casts types, the loader persists the identifier, name and coordinates while discarding duplicates on conflict, and inactive stations are filtered by the backend at request time instead of being removed from storage.
-
-Additional issues, such as temporary feed outages or duplicate identifiers caused by station changes, are handled through preprocessing checks to maintain reliable visualizations.
+\paragraph{Live-Only Metadata}
+Citi Bike publishes station metadata only as a live feed, with no archive of past station states.
+Linking trips to it therefore describes a past month through the network as it stands today.
+Stations removed since then keep their trips but lose every feed attribute, while stations added since appear with no history, which is easily mistaken for disuse.
+The bias is confined to what the feed contributes, capacity and operational state, since each trip already carries its own station name and coordinates.
