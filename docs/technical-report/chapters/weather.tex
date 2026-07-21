@@ -1,70 +1,40 @@
 \section{Weather Dataset}
-Our second data source is hourly NYC weather, retrieved from the Open-Meteo archive API\footnote{\url{https://open-meteo.com/}}.
+To enrich the dashboard with meteorological analysis, we incorporate hourly NYC weather data retrieved from the \href{https://open-meteo.com/}{Open-Meteo archive API}.
 
 \subsection{Dataset Structure}
-
-The dataset contains hourly weather observations for New York City, aligned to the \texttt{America/New\_York} timezone. It provides environmental variables used to explain changes in cycling demand.
+Weather data are queried via the Open-Meteo JSON API by specifying coordinates, a date range, and variables.
+The API returns parallel hourly arrays derived from reanalysis models, that updates with a few days' lag, keeping the historical analysis stable.
 
 \subsubsection{Original Structure}
-
-The dataset includes the following main fields:
+The dataset includes several attributes, but we consider only the following main fields:
 \begin{itemize}
-  \item \textbf{Timestamp}: hourly observation time.
+  \item \textbf{Timestamp (time)}: hourly observation time, requested in the \texttt{America/New\_York} timezone so that it aligns with the trip timestamps.
   \item \textbf{Temperature (temperature\_2m)}: air temperature in \si{\degreeCelsius}.
   \item \textbf{Precipitation}: hourly precipitation in millimetres.
   \item \textbf{Weather Code}: WMO weather condition code.
   \item \textbf{Wind Speed (wind\_speed\_10m)}: wind speed in km/h.
-  \item \textbf{Year}: derived field used to partition the dataset into annual Parquet files.
 \end{itemize}
 
-The dataset is used almost entirely in its original form, with only the \texttt{Year} column added during preprocessing. Weather data are retrieved from the Open-Meteo archive for the same period covered by the trip dataset.
-
 \subsection{Analysis and Insights}
-\begin{comment}
-    Follows notebook 2.2 "Distributions and Seasonality" and 2.3 "Ridership vs. Weather".
-    Per the exam requirements (Deliverable 2 - EDA criterion: "appropriate descriptive
-    statistics, visual summaries, and initial insights"), this section should show:
-      - Distribution/seasonality plots for temperature and precipitation. Note
-        precipitation is zero for most hours with occasional spikes (right-skewed),
-        so the histogram should focus on non-zero values.
-      - A plot relating ridership to temperature (and/or other weather variables),
-        with the insight that ridership rises with temperature up to a comfortable
-        range and drops off in the cold - the main justification for including this
-        dataset in the project.
-\end{comment}
+Weather conditions serve as a key driver of daily bike usage.
+Rather than examining weather in isolation, the following section focuses directly on its relationship with overall ridership patterns.
 
-The exploratory analysis focuses on weather distributions and their relationship with ridership.
+\paragraph{Ridership vs. Weather}
+Figure~\ref{fig:rides_vs_weather} illustrates daily ridership alongside mean temperature and total precipitation.
+The data shows a clear inverse relationship between precipitation and usage: the month's peak precipitation directly coincides with its lowest ridership volume.
+This confirms that weather tracking provides valuable context for interpreting demand fluctuations and supporting operational planning.
 
-Temperature follows a clear annual cycle, while precipitation is highly right-skewed: most hours record no rainfall, with occasional heavy events. Consequently, precipitation histograms focus on non-zero observations. Wind speed shows moderate variation throughout the year. Figure~\ref{fig:weather_trends} summarizes the main weather distributions and their seasonal behaviour.
-
-\begin{figure}[ptb]
-  \centering
-  \includegraphics[width=\textwidth]{../media/weather_trends.png}
-  \caption{Temperature, wind speed and precipitation distributions over time.}
-  \label{fig:weather_trends}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{../media/rides_vs_weather.png}
+    \caption{Daily ridership, mean temperature, and total precipitation over the reference month, plotted on aligned date axes with individual scales. The dashed guide highlights 16 February, which recorded the highest rainfall and the lowest ridership.}
+    \label{fig:rides_vs_weather}
 \end{figure}
-
-Hourly trip counts are joined with weather observations using their timestamps. The resulting analysis shows that ridership, as expected, is higher during warmer periods and lower during cold or inclement weather. Two plateaus are observed between \SI{15}{\degreeCelsius} and \SI{20}{\degreeCelsius}, and between \SI{25}{\degreeCelsius} and \SI{30}{\degreeCelsius}. With higher temperatures, ridership increases noticeably, as shown in Figure~\ref{fig:rides_vs_temp}.
-
-\begin{figure}[ptb]
-  \centering
-  \includegraphics[width=.95\textwidth]{../media/rides_vs_temp.png}
-  \caption{Ridership vs.\@ temperature.}
-  \label{fig:rides_vs_temp}
-\end{figure}
-
-These results justify including weather as an explanatory variable for temporal variations in bike usage.
 
 \subsection{Data Quality}
-\begin{comment}
-    TODO:
-    No missing data, seem to be good quality. Only potential bias is that we use a single 
-    weather station (Central Park) to represent all of NYC, but this is a common approach and
-    should be fine for our purposes.
-\end{comment}
+The archive is complete, with an hourly series covering the entire year and no missing values in any variable.
+The issues we found therefore concern how the values are localised and what they represent, rather than gaps in the data.
 
-The archived weather data are complete and consistently sampled at hourly intervals, with no significant missing values.
-
-The main limitation is spatial coverage: the dataset represents weather at a single observation location rather than capturing microclimate differences across the five boroughs. While this may introduce some bias, it is a common approximation for city-scale analyses.
-
-Precipitation is strongly skewed, so non-zero values are analysed separately from dry hours. The derived \texttt{Year} column is used only for data partitioning, while additional features such as temperature bins are created only when required for specific analyses.
+\paragraph{Spatial Coverage}
+Weather data is retrieved for a single point centered on Central Park and applied across the entire system.
+While this dataset misses microclimate variations across a more granular spatial scale, applying higher spatial granularity would introduce more modeling challenges than necessary for a city-scale analysis.

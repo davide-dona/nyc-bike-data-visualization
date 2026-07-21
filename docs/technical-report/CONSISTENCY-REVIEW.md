@@ -52,48 +52,6 @@ displayed and are filtered before mapping."*
 `upsert_bike_routes` (`src/ingestion/db/loaders/bike_routes.py`) inserts every row, and the backend
 selects every row. The schema declares `the_geom TEXT NOT NULL` (`postgres/schemas/006_bike_routes.sql`).
 
----
-
-### A7. The weather data are not observations, and not from Central Park
-
-**Claim** — `chapters/weather-dataset.tex:6` *"hourly weather observations"*; `:68` *"the dataset
-represents weather at a single observation location rather than capturing microclimate differences"*.
-The notebook is more specific and equally wrong: *"we use a single weather station (Central Park)"*.
-
-**Reality** — `https://archive-api.open-meteo.com/v1/archive` serves **ERA5 reanalysis**, a gridded
-model product. No weather station is involved. The API itself demonstrates this — requesting the
-configured coordinates returns a *different* point back:
-
-```
-requested : latitude 40.7823234, longitude -73.9654161   (Central Park, per config.yaml nyc_coords)
-returned  : latitude 40.808434,  longitude -74.0199      (elevation 39 m)
-```
-
-The response coordinates are the **centre of the grid cell**, roughly 4.5 km NNW of the requested point
-and on the Hudson / New Jersey side of Manhattan.
-
-**Why it matters** — the stated limitation is wrong in kind, not just in wording. The real limitation is
-grid resolution and model interpolation, not "one station cannot represent five boroughs". As written it
-also implies a precision (a named park) that the data does not have.
-
----
-
-### A8. `weather_trends.png` shows no time axis, so it cannot show seasonality
-
-**Claim** — `chapters/weather-dataset.tex:38`: *"Figure 5 summarizes the main weather distributions and
-their seasonal behaviour"*, supporting *"Temperature follows a clear annual cycle"* and *"Wind speed
-shows moderate variation throughout the year"*. Caption (`:43`): *"Temperature, wind speed and
-precipitation distributions **over time**."*
-
-**Reality** — the figure is three histograms (temperature, wind speed, precipitation > 0), produced by
-notebook cell 35. Counts on the y-axis, values on the x-axis. **There is no time dimension in it.**
-Nothing about an annual cycle or year-round variation can be read from it.
-
-The notebook *does* produce the monthly-mean temperature line plot that would support the claim, and it
-was exported — `docs/media/temperature_trend.png` exists — but no chapter includes it.
-
----
-
 ## B. Claims the data does not support as stated
 
 ### B1. Bike lanes are not concentrated in Manhattan and Brooklyn
@@ -138,33 +96,6 @@ between 25 °C and 30 °C. With higher temperatures, ridership increases noticea
 A plateau needs two adjacent bins at a similar level. Those are bins 15 and 20 (i.e. **15–25 °C**) and
 bins 25 and 30 (i.e. **25–35 °C**). As written, each stated interval names a *single* bin, inside which
 the figure shows nothing at all.
-
----
-
-### B3. Nothing in the analysis covers "inclement weather"
-
-**Claim** — `chapters/weather-dataset.tex:47`: *"ridership […] is higher during warmer periods and lower
-during cold or **inclement** weather."*
-
-**Reality** — the only ridership-vs-weather analysis performed is against **temperature** (cell 38).
-Precipitation and `weather_code` are downloaded, described, and plotted as standalone distributions, but
-never related to ridership. The claim about inclement weather has no supporting analysis in the notebook
-or the report.
-
-(The application *does* support precipitation and weather-code bucketing —
-`_WEATHER_EXPRS` in `src/backend/services/ride_stats.py:24-32` — so the analysis is feasible; it just
-was not done.)
-
----
-
-## C. Missing context that changes how the report should be read
-
-### C5. `temperature_trend.png` is exported but never used
-
-`docs/media/temperature_trend.png` is produced by the notebook and committed, but no chapter includes
-it. See A8 — it is the figure that would actually support the seasonality claim.
-
----
 
 ### C6. Forward-looking warning for the final report: D3 is not used
 
