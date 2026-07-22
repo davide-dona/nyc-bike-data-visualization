@@ -3,17 +3,21 @@ To enrich the dashboard with meteorological analysis, we incorporate hourly NYC 
 
 \subsection{Dataset Structure}
 Weather data are queried via the Open-Meteo JSON API by specifying coordinates, a date range, and variables.
-The API returns parallel hourly arrays derived from reanalysis models that update with a few days' lag, keeping the historical analysis stable.
+The API returns parallel hourly arrays derived from reanalysis models that update with a few days' delay, keeping the historical analysis stable in our case.
 
 \subsubsection{Original Structure}
 The dataset includes several attributes, but we consider only the following main fields:
 \begin{itemize}
-  \item \textbf{Timestamp (time)}: hourly observation time, requested in UTC and converted to \texttt{America/New\_York} on our side so that it aligns with the trip timestamps.
-  \item \textbf{Temperature (temperature\_2m)}: air temperature in \si{\degreeCelsius}.
+  \item \textbf{Timestamp}: hourly observation time.
+  \item \textbf{Temperature}: air temperature in \si{\degreeCelsius}.
   \item \textbf{Precipitation}: hourly precipitation in millimetres.
   \item \textbf{Weather Code}: WMO weather condition code.
-  \item \textbf{Wind Speed (wind\_speed\_10m)}: wind speed in km/h.
+  \item \textbf{Wind Speed}: wind speed in km/h.
 \end{itemize}
+
+Weather timestamps are downloaded in UTC and converted to local time (\texttt{America/New\_York}) so they match the Citi Bike trip data.
+This is done because requesting local time directly applies a single time offset to the whole period, which creates a one-hour error whenever daylight saving time changes.
+To prevent missing data after adjusting for local time, we add a one-day buffer to both ends of our search window and trim it back to the exact target dates after conversion.
 
 \subsection{Analysis and Insights}
 Weather conditions serve as a key driver of daily bike usage.
