@@ -1,5 +1,5 @@
 \section{Weather Dataset}
-To enrich the dashboard with meteorological analysis, we incorporate hourly NYC weather data retrieved from the \href{https://open-meteo.com/}{Open-Meteo archive API}.
+To enrich the dashboard with meteorological analysis, we incorporate hourly NYC weather data retrieved from the \href{https://open-meteo.com/}{\underline{Open-Meteo archive API}}.
 
 \subsection{Dataset Structure}
 Weather data are queried via the Open-Meteo JSON API by specifying coordinates, a date range, and variables.
@@ -8,11 +8,11 @@ The API returns parallel hourly arrays derived from reanalysis models that updat
 \subsubsection{Original Structure}
 The dataset includes several attributes, but we consider only the following main fields:
 \begin{itemize}
-  \item \textbf{Timestamp}: hourly observation time.
-  \item \textbf{Temperature}: air temperature in \si{\degreeCelsius}.
-  \item \textbf{Precipitation}: hourly precipitation in millimetres.
-  \item \textbf{Weather Code}: WMO weather condition code.
-  \item \textbf{Wind Speed}: wind speed in km/h.
+    \item \textbf{Timestamp}: Hourly observation time.
+    \item \textbf{Temperature}: Air temperature in \si{\degreeCelsius}.
+    \item \textbf{Precipitation}: Hourly precipitation in millimetres.
+    \item \textbf{Weather Code}: WMO weather condition code.
+    \item \textbf{Wind Speed}: Wind speed in km/h.
 \end{itemize}
 
 Weather timestamps are downloaded in UTC and converted to local time (\texttt{America/New\_York}) so they match the Citi Bike trip data.

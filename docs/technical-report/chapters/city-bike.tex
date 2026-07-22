@@ -1,5 +1,5 @@
 \section{City Bike Dataset}
-For this project, our main dataset is the \underline{\href{https://www.citibikenyc.com/system-data}{Citi Bike system dataset}}, a public repository tracking New York City bike trips since 2013.
+For this project, our main dataset is the \href{https://www.citibikenyc.com/system-data}{\underline{Citi Bike system dataset}}, a public repository tracking New York City bike trips since 2013.
 
 \subsection{Dataset Structure}
 Released monthly as open-data CSV files, these records log every completed ride, with high-volume months split across multiple files.
@@ -54,14 +54,15 @@ Station popularity and trip flows reveal that demand is concentrated around Manh
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=.8\textwidth]{../media/rides_stations.png}
+    \includegraphics[width=0.8\textwidth]{../media/rides_stations.png}
     \caption{Distribution of trips by station of origin, aggregated into $300$ m cells so that every colour class maps to an exact number of trips.}
     \label{fig:rides_stations}
 \end{figure}
 
 \paragraph{User/Bike Type Behaviour Analysis}
 As shown in Figure~\ref{fig:rides_type}, casual riders lean much more heavily on electric bikes than members do.
-Furthermore, casual riders take longer trips on both bike types, whereas members maintain a steady, short duration regardless of the bike they choose. 
+Furthermore, casual riders take longer trips on both bike types, whereas members maintain a steady, short duration regardless of the bike they choose.
+
 \begin{figure}[H]
     \centering
     \includegraphics[width=\textwidth]{../media/rides_type.png}
@@ -95,7 +96,7 @@ It's important to note that durations begin at one minute, as Citi Bike removes 
 To prevent misleading visual representations and maintain data integrity, we identified several data quality issues in the raw Citi Bike dataset prior to plotting.
 
 \paragraph{Different Legacy Structure}
-In 2020, Citi Bike updated its trip data schema, introducing column and formatting changes that differ from the 2013–2019 legacy format (detailed in our \href{https://github.com/davide-dona/nyc-bike-data-visualization/blob/main/src/notebooks/analysis.ipynb}{analysis notebook}).
+In 2020, Citi Bike updated its trip data schema, introducing column and formatting changes that differ from the 2013--2019 legacy format (detailed in our \href{https://github.com/davide-dona/nyc-bike-data-visualization/blob/main/src/notebooks/analysis.ipynb}{\underline{analysis notebook}}).
 Despite these structural discrepancies, the historical data remains invaluable.
 To integrate it seamlessly, our preprocessing pipeline standardizes all monthly files into a single, unified feature set.
 
@@ -108,7 +109,7 @@ Because spatial and distance metrics require complete origin-destination pairs, 
 \paragraph{Trip Outliers}
 Beyond missing values, a small number of trips are clear outliers.
 In a representative month, about $315$ trips ($0.02\%$) last up to $25$ hours, appearing in the final bin of the duration histogram (Figure~\ref{fig:rides_duration}).
-These likely reflect unreturned bikes rather than continuous rides, so trips exceeding a maximum-duration threshold are dropped. 
+These likely reflect unreturned bikes rather than continuous rides, so trips exceeding a maximum-duration threshold are dropped.
 Additionally, around $27{,}000$ trips ($1.4\%$) start and end at the same station, resulting in a zero straight-line distance (Figure~\ref{fig:rides_distance}); because distance metrics are meaningless for these round trips, they are removed.
 Finally, some trips report impossible distances ($11{,}000$~km as an example), due to corrupted station coordinates or maintenance trips, and are filtered out using a maximum-distance threshold.
 
