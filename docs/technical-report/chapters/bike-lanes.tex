@@ -1,78 +1,79 @@
 \section{Bike Lanes Dataset}
-Our third data source is NYC's bike-route network, published by NYC OpenData\footnote{\url{https://data.cityofnewyork.us/d/mzxg-pwib}} as dataset \texttt{mzxg-pwib}. It provides the city's cycling infrastructure and forms the infrastructure layer of the final visualization.
+To enrich our station and trip insights, we incorporate New York City's bike-route network, retrieved from the \href{https://data.cityofnewyork.us/dataset/New-York-City-Bike-Routes/}{NYC OpenData portal}.
 
 \subsection{Dataset Structure}
-
-The dataset describes New York City's bicycle infrastructure at the segment level. Each row represents a physical bike-lane segment, including its geometry, location, status, installation history, and facility type.
+Distributed as a single CSV file, the dataset provides a current snapshot of the bike network alongside a historical record, with the NYC Department of Transportation updating the file on an annual basis.
 
 \subsubsection{Original Structure}
-
-The original CSV contains one row per route segment and includes the following relevant attributes:
+Each record answers four questions about one piece of the network: where it runs, what kind of facility it is, when it existed, and which route it belongs to.
 \begin{itemize}
-  \item \textbf{Segment ID}: unique identifier of the route segment.
-  \item \textbf{Bike ID}: identifier used to track the segment across revisions.
-  \item \textbf{Status}: whether the segment is active or retired.
-  \item \textbf{Installation Date}: date the segment entered service.
-  \item \textbf{Retirement Date}: date the segment was removed, if applicable.
-  \item \textbf{the\_geom}: line geometry used for map rendering.
-  \item \textbf{Street}, \textbf{From Street}, \textbf{To Street}: street location.
-  \item \textbf{Facility Class}: type of cycling infrastructure.
-  \item \textbf{Borough}: borough containing the segment.
+    \item \textbf{Geometry}: the set of lines defined in coordinates tracing the bike route.
+    \item \textbf{Street}, \textbf{From Street}, \textbf{To Street}: the street the facility runs along.
+    \item \textbf{Borough}: which of the five boroughs the segment lies in.
+    \item \textbf{Facility Class}: the type of facility across four classes: \emph{Protected}, \emph{Conventional}, \emph{Shared Lane or Signed Route}, and \emph{Link}.
+    \item \textbf{Status}: whether the facility is still in service or has been retired.
+    \item \textbf{Installation Date} and \textbf{Retirement Date}: when the facility opened and, for facilities no longer in service, when it was removed.
+    \item \textbf{Route ID}: the named route the segment forms part of.
+    \item \textbf{Segment ID}: which piece of street the record covers. The numbering comes from LION (\emph{Linear Integrated Ordered Network}), the city's official street map, so every facility is pinned to a known piece of road.
 \end{itemize}
-
-The analysis derives summaries by borough, status, and facility class. Unused fields (\texttt{prevbikeid}, \texttt{gwsys2}, \texttt{spur}, \texttt{ft2facilit}, and \texttt{tf2facilit}) were removed during preprocessing.
+Although finer classifications are recorded for each facility, they are excluded during ingestion.
+Because these sub-types aggregate naturally into four primary classes, omitting them preserves structural simplicity without loss of informational value.
 
 \subsection{Analysis and Insights}
-\begin{comment}
-    Follows notebook 3.1 "Breakdowns", 3.2 "Installation Timeline", and 3.3 "Map of
-    the Network". Per the exam requirements (Deliverable 2 - EDA criterion), show:
-      - Breakdown of segments by borough and by status (current vs. retired):
-        segments concentrate in Manhattan and Brooklyn, and most are current.
-      - Breakdown by facility class, and why it matters for rendering the network.
-      - Installation timeline: how the network has grown year over year.
-      - A map of the network (using the_geom), which is the main visual asset this
-        dataset contributes to the final visualization.
-\end{comment}
+The analysis addresses the two questions the dashboard puts to this dataset: what the network looks like today, and how it got there.
 
-The analysis focuses on four aspects that directly support the final visualization.
+\paragraph{The Network Today}
+Figure~\ref{fig:bike_lanes_map} draws every segment in service, coloured by facility class.
+The lanes alone redraw the city, which is what makes this layer usable as a spatial backdrop, but the colour carries the actual finding: protection is not distributed evenly.
+Manhattan is the only borough where \emph{Protected} is the majority class, at $54\%$ of its segments, while Brooklyn sits at $26\%$ and leans on \emph{Conventional} striping instead.
+Brooklyn, Queens and Staten Island each leave roughly a quarter of their network as \emph{Shared Lane or Signed Route}, which amounts to a marking and a sign rather than a facility.
+A rider crossing a borough line can therefore drop a protection level without leaving the network, and surfacing that contrast is precisely why the map is coloured this way rather than uniformly.
 
-A breakdown by borough shows that bike-lane segments are concentrated in Manhattan and Brooklyn, while the remaining boroughs contain fewer segments. A second breakdown compares segment status, showing that most infrastructure is currently active. Figure~\ref{fig:segments_concentration} summarizes the distribution of segments by borough, facility class, and status.
-
-\begin{figure}[ptb]
-  \centering
-  \includegraphics[width=\textwidth]{../media/segments_concentration.png}
-  \caption{Breakdown of bike-lane segments by borough, facility class and status.}
-  \label{fig:segments_concentration}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=.86\textwidth]{../media/bike_lanes_map.png}
+    \caption{The bike-route network in service, coloured by facility class over the same palette and basemap the dashboard uses. Counts in the legend are segments, not kilometres.}
+    \label{fig:bike_lanes_map}
 \end{figure}
 
-The facility-class distribution distinguishes protected lanes from shared facilities and is used to style the network in the visualization.
+\paragraph{How the Network Grew}
+Because retired facilities are kept, the network can be replayed year by year.
+Figure~\ref{fig:bike_lanes_history} counts installations above the axis and retirements below it, the same form the dashboard uses to let the user step back through the network's history.
+The build-out is overwhelmingly recent: $21{,}207$ of the $28{,}983$ records date from 2007 onward, whereas the $2{,}893$ predating 1996 are mostly protected off-street infrastructure, greenways, park drives and bridge crossings absorbed into the network rather than built as bike lanes.
 
-The installation timeline illustrates the gradual expansion of the bike network over time, reflecting continued investment in cycling infrastructure. Figure~\ref{fig:installation_timeline} shows the number of installed segments over the years.
+The bars below the axis need to be read carefully, and this is the more interesting result.
+Two thirds of all retirements ($66.9\%$) are matched by a new record on the same stretch of street installed the very same day, and $71\%$ of those come back \emph{better} protected, most commonly a conventional lane rebuilt as a protected one.
+The red bars therefore measure churn from the upgrade programme far more than they measure lanes being taken away, a reading the data dictionary itself supports when it warns that ``retired bicycle facilities do not inherently indicate the removal of a bicycle facility''.
 
-\begin{figure}[ptb]
-  \centering
-  \includegraphics[width=\textwidth]{../media/installation_timeline.png}
-  \caption{Bike-lane installation timeline.}
-  \label{fig:installation_timeline}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{../media/bike_lanes_history.png}
+    \caption{Segments installed and removed per year. Bars below the axis are retirements, two thirds of which are same-day rebuilds of the same stretch of street rather than removals.}
+    \label{fig:bike_lanes_history}
 \end{figure}
 
 \subsection{Data Quality}
+Every column we consume is fully populated, every geometry parses, and none falls outside New York.
+The issues are therefore not gaps but mismatches between what fields are named and what they contain, all verified in the \href{https://github.com/davide-dona/nyc-bike-data-visualization/blob/main/src/notebooks/analysis.ipynb}{\underline{Jupyter notebook}} against the data dictionary.
 
-The dataset is generally clean but requires limited preprocessing.
+\paragraph{Identifier Semantics}
+Neither identifier is a row key, and treating either as one is the easiest mistake to make with this file.
+The Segment ID names a stretch of street rather than a record, so it repeats every time that stretch is rebuilt: $4{,}603$ values carry more than one record, covering $9{,}489$ of the $28{,}983$ rows.
+The Route ID names a route and is shared along its whole length, with a median of three segments and up to $158$, which is what lets the dashboard highlight an entire corridor from a single hovered segment.
+The attribute that does link a facility to the one it superseded is among those dropped during preprocessing, so that lineage is unavailable downstream.
+Our database keys rows on the segment, its installation date and its status together, a combination $155$ rows still collide on and which are discarded at load.
 
-Unused columns were removed to simplify the analysis without affecting the visualization.
+\paragraph{Sentinel Installation Dates}
+The installation date is never null, which makes the file look complete under a missing-value check, but unknown dates are encoded as the placeholder \texttt{01/01/1900} rather than left blank; $244$ segments ($0.8\%$) carry it, $196$ of them still in service.
+Because that sentinel is the earliest date in the file, and the year slider derives its lower bound from the earliest installation date, a single placeholder stretches the control across $126$ years of which only $67$ contain anything.
 
-Current and retired segments are treated separately so that obsolete infrastructure is not included in the active network layer.
+\paragraph{Status Contradicting the Dates}
+The data dictionary fixes the invariant tying the two together: a current facility carries no retirement date, and a retired one always does.
+Three records break it, all retired segments on 9th Avenue in Manhattan with no retirement date.
+As noted in the Dataset Structure section, status never leaves the database, so our year filter is written on the dates alone; these three therefore survive into the present-day network instead of being filtered out with the rest of the retired infrastructure.
+One further record, on Borinquen Place, is retired two years before its own installation date.
+The volumes are small enough not to distort the map, but they are the reason the filter cannot be tightened to treat status and the dates as interchangeable.
 
-Installation and retirement dates are occasionally missing, causing slight underestimation in historical summaries. When the installation date is unknown, NYC OpenData records the placeholder value \texttt{01/01/1900} instead of leaving it blank, so this sentinel year appears as the lower bound of the historical timeline.
-
-Records with missing or invalid geometries cannot be displayed and are filtered before mapping. For the interactive visualization, only a sample of segments is rendered to improve responsiveness while preserving the overall spatial pattern.
-
-\begin{comment}
-    Possible future improvement: group facility classes into a smaller set of categories to simplify
-    the legend and make the map easier to read.
-    Possible future improvement: compare current and retired segments in separate layers to show how
-    the network changed over time.
-    Possible future improvement: enrich the network with contextual layers such as station density,
-    trip hotspots, or transit corridors.
-\end{comment}
+\paragraph{Class Is a Maximum, Not a Description}
+Facility class reports ``the HIGHEST facility class found along a segment'', so a street with a protected lane on one side and a shared lane on the other is drawn purely as protected.
+This affects $720$ segments ($2.5\%$), which is small enough to leave the map's colouring unchanged but means it should be read as the best facility available on a segment rather than the facility on both sides of it.

@@ -4,21 +4,22 @@ import { GeoJsonLayer } from '@deck.gl/layers'
  * Color map for bike facility classes - editorial palette (forest = safe, accent = primary, amber = caution).
  */
 export const FACILITY_COLORS = {
-    I:   [ 47, 125,  79, 255],   // forest - off-street path
-    II:  [ 25,  83, 216, 255],   // accent - dedicated lane
-    III: [200, 138,  26, 255],   // amber  - signed shared
-    L:   [110, 106, 98, 255],    // ink-muted - sharrow, lowest protection
+    I:   [ 47, 125,  79, 255],   // forest - protected
+    II:  [ 25,  83, 216, 255],   // accent - conventional
+    III: [200, 138,  26, 255],   // amber  - shared lane / signed route
+    L:   [110, 106, 98, 255],    // ink-muted - link, lowest protection
     _default: [110, 106, 98, 255], // ink-muted - unknown
 }
 
 /**
- * Human-readable labels for each facility class.
+ * Facility-class labels, worded as NYC DOT defines them in the dataset's
+ * data dictionary (Data-Dictionary-BicycleRoutes.xlsx, facilitycl).
  */
 export const FACILITY_LABELS = {
-    I:   'Off-street Path',
-    II:  'Dedicated Lane',
-    III: 'Signed Shared Lane',
-    L:   'Shared Lane Marking',
+    I:   'Protected',
+    II:  'Conventional',
+    III: 'Shared Lane or Signed Route',
+    L:   'Link',
     _default: 'Unknown'
 }
 
@@ -98,6 +99,7 @@ export function bikeRoutesLegend() {
             { key: 'I',   swatch: FACILITY_CSS_COLORS.I,   label: FACILITY_LABELS.I },
             { key: 'II',  swatch: FACILITY_CSS_COLORS.II,  label: FACILITY_LABELS.II },
             { key: 'III', swatch: FACILITY_CSS_COLORS.III, label: FACILITY_LABELS.III },
+            { key: 'L',   swatch: FACILITY_CSS_COLORS.L,   label: FACILITY_LABELS.L },
         ],
     }
 }
