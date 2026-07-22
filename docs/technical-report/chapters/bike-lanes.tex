@@ -1,5 +1,5 @@
 \section{Bike Lanes Dataset}
-To enrich our station and trip insights, we incorporate New York City's bike-route network, retrieved from the \href{https://data.cityofnewyork.us/dataset/New-York-City-Bike-Routes/}{NYC OpenData portal}.
+To enrich our station and trip insights, we incorporate New York City's bike-route network, retrieved from the \href{https://data.cityofnewyork.us/Transportation/New-York-City-Bike-Routes/mzxg-pwib}{NYC OpenData portal}.
 
 \subsection{Dataset Structure}
 Distributed as a single CSV file, the dataset provides a current snapshot of the bike network alongside a historical record, with the NYC Department of Transportation updating the file on an annual basis.
@@ -12,12 +12,12 @@ Each record answers four questions about one piece of the network: where it runs
     \item \textbf{Borough}: which of the five boroughs the segment lies in.
     \item \textbf{Facility Class}: the type of facility across four classes: \emph{Protected}, \emph{Conventional}, \emph{Shared Lane or Signed Route}, and \emph{Link}.
     \item \textbf{Status}: whether the facility is still in service or has been retired/modified.
-    \item \textbf{Installation Date} and \textbf{Retirement Date}: when the facility opened and, for facilities no longer in service, when it was removed.
+    \item \textbf{Installation Date} and \textbf{Retirement Date}: when the facility opened and, for facilities no longer in service, when it was removed or superseded.
     \item \textbf{Route ID}: the named route the segment forms part of.
     \item \textbf{Segment ID}: which piece of street the record covers. The numbering comes from LION (\emph{Linear Integrated Ordered Network}), the city's official street map, so every facility is pinned to a known piece of road.
 \end{itemize}
 Although finer classifications are recorded for each facility, they are excluded during ingestion.
-Because these sub-types aggregate naturally into four primary classes, omitting them preserves structural simplicity without loss of informational value.
+Because these sub-types aggregate naturally into four primary classes, omitting them preserves structural simplicity without affecting anything the visualization shows.
 
 \subsection{Analysis and Insights}
 The analysis provides a spatial and temporal perspective on the bike lane network.
@@ -45,11 +45,10 @@ This view provides valuable historical context on how the city's infrastructure 
 \end{figure}
 
 \subsection{Data Quality}
-Every column we consume is fully populated, every geometry parses, and none falls outside New York, all verified in the \href{https://github.com/davide-dona/nyc-bike-data-visualization/blob/main/src/notebooks/analysis.ipynb}{\underline{Jupyter notebook}}.
+Apart from the retirement date, which is empty by design for facilities still in service, every column we consume is fully populated, every geometry parses, and none falls outside New York, all verified in the \href{https://github.com/davide-dona/nyc-bike-data-visualization/blob/main/src/notebooks/analysis.ipynb}{\underline{Jupyter notebook}}.
 
 \paragraph{Sentinel Installation Dates}
-Although the installation date field is never null, missing dates are encoded with the placeholder \texttt{01/01/1900} (Figure~\ref{fig:bike_lanes_history}) rather than left blank. This sentinel value appears in $244$ segments ($0.8\%$), $196$ of which remain active.
-According to the source documentation, this placeholder represents the earliest compressed entry date in the dataset.
+Although the installation date field is never null, \texttt{01/01/1900} acts as a floor for dates previous to the 1900s (Figure~\ref{fig:bike_lanes_history}). It appears in $244$ segments ($0.8\%$), $196$ of which remain active, concentrated on long-standing park and parkway paths such as Ocean Parkway and Eastern Parkway whose routes predate the city's record-keeping.
 
 \paragraph{Facility Classification Bias}
 Facility class reflects the highest class present along a segment, as reported in the documentation.

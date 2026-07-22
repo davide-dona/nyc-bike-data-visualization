@@ -2,7 +2,7 @@
 export const INFRASTRUCTURE_TEXT = {
     networkChanges: {
         title: 'Segments installed and removed per year',
-        note: 'Bars above the line count new segments, bars below count retired ones. Click a year to see the network as it stood then.',
+        note: 'Bars above the line count new segments, bars below count retired ones. Click a year to see the network as it stood then. Segments whose install date is not established are stamped 01/01/1900, so the earliest bar is a floor rather than a year of real construction.',
         xAxisTitle: 'Year',
         yAxisTitle: 'Segments',
         installedLabel: 'Installed',
@@ -17,7 +17,7 @@ export const INFRASTRUCTURE_TEXT = {
     facility: {
         title: 'Segments by facility class',
         noteLead: 'Shows how much of the network each protection level covers as of ',
-        noteTail: '.',
+        noteTail: '. A segment takes the highest class present on it, so a street with a protected lane on one side and a shared lane on the other counts as protected.',
         xAxisTitle: 'Segments',
     },
     yearScope: {
