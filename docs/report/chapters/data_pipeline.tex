@@ -1,14 +1,101 @@
 \section{Data Pipeline}\label{sec:data-pipeline}
-\begin{comment}
-The real implementation of the backend data pipeline in order to give through this subsection a high level overview of the data pipeline.
-Always referred to the limitations of the data, exposed in the technical report.
-There should be the following subsections:
-- Data Acquisition: how we download the data and how we store it in the local machine.
-- Data Cleaning: how we clean the data and what are the limitations of the data (a tikz graph for the pipeline).
-- Ingestion pipeline: how we ingest the data in the database
-- Database high level structure: how we store the data
-- Querying the data: how we query the data and how we precompute the statistics for enabling a fast and responsive web application.
-- How we expose the data:
-- Efficiency considerations: 
-- Monthly update through github action and how we deliver the application to the user.
-\end{comment}
+The value of the platform rests entirely on the pipeline that feeds it, because every visualization is only as trustworthy as the data behind it.
+Turning a decade of Citi Bike trips into an interactive dashboard raises three tensions that the pipeline must resolve.
+The first is volume against interactivity: the archive holds hundreds of millions of trips, yet the dashboard is exploratory and recomputes results whenever the user changes a filter, so queries must return within the span of a single interaction.
+The second is heterogeneity against a unified view: the source files span many years and several format changes, while the application expects one consistent schema.
+The third is completeness against honest representation, since the timeline must contain no hidden gaps and quiet periods with no activity must still be counted rather than silently disappear.
+This section describes the pipeline we converged on and then discusses, one challenge at a time, how each tension was addressed and why earlier attempts fell short.
+
+\subsection{Proposed Pipeline}
+The pipeline runs as a monthly batch organized in four stages.
+Acquisition collects the raw inputs from their providers: trips from the Citi Bike public archive, hourly weather from Open-Meteo, the cycling network from NYC OpenData, and live station coordinates from the GBFS feed.
+Cleaning and normalization use Polars to reconcile the heterogeneous files into a single feature set, discarding invalid records and enriching each trip with derived fields; the result is written as compressed Parquet, partitioned by year and month, a columnar layout that suits both the monthly cadence and the column-wise aggregations that follow, and whose partitions let each month be processed on its own.
+Precomputation then rolls the cleaned trips up into a small set of summary tables at hourly and monthly grain, which are stored in PostgreSQL.
+Serving is handled by a FastAPI backend that answers each request by reading these compact summaries rather than the raw trips.
+
+This precomputation layer is the main departure from our initial proposal, which foresaw Polars both processing the data and serving the API directly, without a database.
+That design was adequate for prototypes but could not sustain interactive latency once the full history was involved, because every request re-scanned large volumes of Parquet.
+Moving the heavy work to ingestion time, and letting the API read precomputed aggregates, resolved the problem at the cost of a more elaborate storage layer.
+
+\subsection{Challenges and Solutions}
+
+\paragraph{Serving Statistics at Interactive Latency}
+The dashboard lets users freely combine a date range, a user type, a bike type, and a grouping dimension, and it re-queries on every change.
+Computing these aggregates directly from the raw trips, as the proposal intended with Polars, meant scanning the full history on each request, so response time grew with the selected range and became unacceptable for exploration.
+We therefore precompute, at ingestion time, aggregate tables holding ride counts, durations, and distances per hour, together with per-station activity and station-to-station flows.
+Because the finest grain the interface needs is one hour, this preserves all information relevant to the views while reducing a query from hundreds of millions of trips to a few thousand summary rows.
+To keep even these summaries cheap for the most common groupings, the per-station table is additionally kept in several pre-collapsed variants, and each query is routed to the smallest one that can answer it, which trades a little extra storage for markedly smaller scans.
+
+\paragraph{Choosing a Serving Engine}
+Precomputation decides how much work a query avoids, but the store that holds the aggregates decides how quickly and concurrently they can be read.
+An appealing option was to keep the aggregates as Parquet and query them in place with an embedded analytical engine such as DuckDB, which runs inside the API process and reads Parquet directly with SQL, sparing us a separate database to operate.
+We nonetheless chose PostgreSQL, for three reasons.
+First, the backend answers many requests at once, and a client-server database is built for concurrent connections, whereas an embedded engine is designed for a single analytical process at a time.
+Second, precomputation has already removed the large analytical scan that would have favoured a columnar engine, so the residual workload is many small filtered lookups, which are served best by indexing the aggregate tables on the columns the dashboard filters and groups by.
+Third, a persistent shared store that the API simply connects to fits the deployment better than a library embedded in the request path.
+DuckDB would still suit the ingestion side, where a single process transforms Parquet in bulk, but Polars already covers that role, so introducing it there was not justified.
+
+\paragraph{Assembling Queries Dynamically}
+Because the dashboard is exploratory, the backend cannot rely on one fixed query per view, since the grouping dimension, the optional weather variable, and the active filters combine into a large space of query shapes.
+Writing and maintaining a separate hand-tuned statement for each shape would be impractical, yet assembling SQL by naive string concatenation risks misaligning parameters with their placeholders and opens the door to injection.
+We answer every statistics request through a small query builder that composes the shared spine pattern from fragments, keeping each fragment paired with the parameters it consumes so their order stays in lock-step, and passing all user values as query parameters rather than interpolating them.
+A single safe assembly path therefore serves the whole family of grouping and filtering shapes, which keeps the query logic both correct and maintainable.
+
+\paragraph{Caching Responses in the Frontend}
+Precomputation makes the first query for a given view fast, but exploration constantly revisits the same selections, for instance switching between pages or stepping back to an earlier date range, and re-fetching identical results each time wastes a round trip and makes the interface feel sluggish.
+The frontend therefore caches every response keyed by the exact filter set that produced it, so a revisited view renders immediately from memory rather than querying again; the cached copy can be treated as fresh for a generous window because the underlying data changes only once a month.
+Refetching on window focus and on remount is disabled for the same reason, and each query is issued only once its filters form a valid request, which avoids firing incomplete or redundant calls.
+Together with backend precomputation this gives the read path its responsiveness, because the first request is cheap and every repeat is free.
+
+\paragraph{Representing Time Without Bias}
+Several views express usage as a rate per hour or correlate it with weather, which requires knowing how many hours each bucket actually spans.
+Our earlier approach derived the set of time buckets from the trips themselves, so an hour with no rides simply did not exist; this inflated per-hour averages and erased quiet periods such as nights and storms, precisely the moments an analyst may wish to inspect.
+We replaced it with a calendar-generated spine, a synthetic series of every hour in the selected range produced independently of any data table, onto which the ride aggregates are joined so that empty hours are retained with a count of zero.
+Because the denominators now reflect elapsed time rather than only active time, rates and their standard deviations are computed honestly, and weather buckets include the clear, dry hours that would otherwise be underrepresented.
+
+\paragraph{Reconciling a Decade of Heterogeneous Files}
+The trip archive begins in 2013 and has repeatedly changed shape: the 2020 schema revision altered columns and formats, early years are shipped as a single yearly bundle of nested monthly archives while recent ones arrive as individual monthly files, and station identifiers appear inconsistently as integers or as strings.
+A naive load that assumes one schema fails as soon as two files disagree on columns or types.
+The ingestion step instead normalizes every file into one feature set: identifiers are read as text so that mixed-type files concatenate cleanly, a relaxed diagonal concatenation aligns differing column sets by filling absent columns with nulls, and both archive layouts are detected and unpacked.
+This lets the entire history contribute to the analysis despite its inconsistencies.
+
+\paragraph{Ingesting Data Larger Than Memory}
+Some yearly bundles are large enough that loading one whole would strain memory, and the machine running the pipeline is not assumed to be generously provisioned.
+The ingestion therefore never holds a full download in memory: each archive is streamed to a temporary file in fixed-size chunks, its inner months are read one at a time, and each month is written to Parquet and released before the next is handled.
+Once a month has been aggregated into the database, its intermediate trip Parquet is deleted, so peak disk use stays bounded as well.
+Keeping the footprint small matters because the pipeline is meant to run unattended each month on ordinary hardware.
+
+\paragraph{Parallelizing a Long-Running Load}
+Processing a decade of trips one month after another is slow, because each month first downloads and then aggregates, two phases that stress different resources.
+We overlap them, so that while one month is being loaded into the database the next is already downloading, and the independent per-month aggregate tables are computed on several worker threads at once.
+Because a failure partway through such a long run is costly to diagnose, the loader is fail-fast: if any month raises an error, the remaining work is cancelled and the error surfaces immediately rather than being buried under later output.
+This shortens a full historical load appreciably while keeping any failure easy to locate.
+
+\paragraph{Incremental and Gap-Free Updates}
+New trip data is published monthly, so reprocessing the whole archive on each run would be wasteful, yet a careless partial load could leave holes in the timeline that would distort every trend.
+A coverage record stores the span of months already loaded; months present in it are skipped, and the requested range is automatically widened so that a new load never leaves a gap against existing coverage.
+Writes are idempotent upserts, an insert that updates the row on a key conflict, which makes re-runs safe, and a final check refuses to complete if any month between the earliest and latest is missing.
+Together these guarantee the contiguous timeline the temporal views assume, while keeping each update proportional to the new data alone.
+This realizes the monthly refresh promised in the proposal, but with the consistency guarantees that promise had left implicit.
+
+\paragraph{Aligning Weather with Ridership}
+Relating weather to demand requires the two sources to share the same hourly grain and the same clock.
+Weather is stored per hour on the same spine as the trips, which turns the correlation into a direct join.
+Two subtleties needed care.
+First, the archive returns timestamps under a single fixed offset per request, so asking it for local time would mislabel every hour on the far side of a daylight-saving change; we therefore fetch in UTC and convert to local time ourselves.
+Second, continuous variables are grouped with non-uniform bins, for instance precipitation into dry, light, moderate, and heavy, because uniform bins would place almost all hours in a single bucket and conceal the very relationship we want to show.
+
+\paragraph{Resolving Station Identity}
+Trips name their start and end stations, but reliable coordinates for those stations come from a separate live station feed rather than from the trip files, whose own coordinates are occasionally corrupt.
+We treat that feed as the source of truth for location: the station metadata shown on the map and the pairwise distances used for enrichment are both derived from it, keyed on a stable station identifier.
+Resolving identity once, at ingestion, ensures the map and distance views draw on one consistent set of coordinates, so a station does not drift between positions depending on which trip referenced it.
+
+\paragraph{Estimating Trip Distance}
+Trips record their start and end points but not the distance travelled, which the speed and carbon-footprint views require.
+Computing a great-circle distance for every trip at query time would repeat the same calculation across hundreds of millions of rows.
+We instead compute the distance between each pair of stations once, from the feed's station coordinates, and join it onto the trips during loading; the straight-line distance is scaled by a circuity factor of $1.3$ to approximate real street routing.
+Round trips that start and end at the same station are dropped, because their straight-line distance is zero and would understate the movement actually performed.
+
+\paragraph{Data Cleaning}
+Beyond reconciling formats, records with missing station fields, non-positive or implausibly long durations, and physically impossible distances are removed during ingestion so that they cannot distort the aggregates.
+Because these issues, their prevalence, and the thresholds chosen are examined in detail in our technical report, we do not repeat that analysis here.
