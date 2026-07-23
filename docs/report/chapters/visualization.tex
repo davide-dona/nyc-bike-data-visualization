@@ -1,15 +1,227 @@
 \section{Visualization}\label{sec:visualization}
-\begin{comment}
-The following chapter will describe how the data is visualized in the web application. 
-It should have the following subsections:
-- Overview of the web page
-- General implementation details like tailwind, react external libraries, etc.
-- Choice of hierarchy of the page, and why we choose to have the map page at top and how each page is connected to each other. High level overview of the pages and general design
-- For each of the following components, describe what plot was used, why those, what statistics were precomputed, what assumptions does if any, how it interacts, and how an user can understand the plot and the meaning, each plot helped by a figure/screenshot, each should be paired with its own challenges throughout the development of the project and how we solved them:
-    - Header filters (this is particular, its maing purpose is to enforce the exploratory nature of the web application, and to allow the user to filter the data and see how the plots change accordingly)
-    - Temporal page
-    - Each map layer has its own subsection
-    - Footprint page
-    - Weather page
-- User experience trhough explanatiory hints and why we did that, and how we aim to interact to the target user
-\end{comment}
+
+% Visible stand-in for screenshots to be added later. Swap each \figplaceholder
+% for an \includegraphics once the figures are captured.
+\providecommand{\figplaceholder}{\fbox{\parbox[c][3cm][c]{0.8\textwidth}{\centering\itshape Image placeholder}}}
+
+The pipeline of Section~\ref{sec:data-pipeline} exposes clean, precomputed statistics through a REST API.
+This section describes the web application that turns those statistics into an interactive dashboard.
+We first outline the interface, its implementation, and its navigation.
+We then describe each view: the plot we chose, why we chose it, the statistics behind it, how the user reads and interacts with it, and the main challenge it posed.
+We close with the design of the reading guides that support exploration.
+
+\subsection{Overview}
+The application is a single-page dashboard organized into four coordinated views: Map, Temporal, Weather, and Footprint.
+A persistent header holds the title, the navigation, and the global filters.
+Each view occupies one page and shares the same filter state, so an exploration started in one view carries into the others.
+
+The visual language stays deliberately restrained.
+A paper background, near-black ink, and a single blue accent keep attention on the data.
+Color is reserved for meaning, such as direction, deviation, or category.
+This follows the design philosophy stated in our proposal: clarity and analytical depth over decoration.
+
+\begin{figure}[H]
+    \centering
+    \figplaceholder
+    \caption{The web application on the Map view, with the shared header and global filters above.}
+    \label{fig:viz-overview}
+\end{figure}
+
+\subsection{Implementation}
+The frontend is a \emph{React} single-page application built with \emph{Vite} and routed by \emph{React Router}.
+Layout and design tokens come from \emph{Tailwind CSS}, with every color and font derived from one shared token module.
+This keeps the interface, the charts, and the map on a single palette.
+
+We render each view with the library best suited to its data.
+\emph{deck.gl} draws the map layers on a \emph{WebGL} canvas, which sustains smooth interaction over thousands of stations and arcs.
+\emph{Plotly} renders the three-dimensional surface and the filled bands.
+\emph{Chart.js} and lightweight canvas drawing handle the two-dimensional categorical charts.
+
+This mix is itself a change from the proposal, where we had planned \emph{D3.js} for every non-map chart.
+In practice, \emph{D3.js} alone would have meant rebuilding a three-dimensional camera and standard chart scaffolding by hand.
+Delegating those to \emph{Plotly} and \emph{Chart.js} let us spend effort on the encodings specific to our data instead.
+
+Data fetching runs through \emph{TanStack Query}, which caches every response by its exact filter set (Section~\ref{sec:data-pipeline}).
+Revisiting a view with the same filters is instant.
+Each page is a thin component that wires state hooks to presentational charts, which keeps view logic isolated and testable.
+
+\subsection{Page Hierarchy and Navigation}
+The map is the landing route: opening the application redirects to it.
+Spatial data gives the most immediate reading of the city, so it serves as the entry point, with the other views in supporting roles.
+This mirrors the focus stated in the proposal.
+
+The four views sit behind a fixed header, one click apart.
+Because the filters live in that header, they persist across navigation and apply everywhere.
+We deliberately avoided a single cross-filtered canvas.
+The proposal favored cross-filtering between charts, but a global filter set paired with coordinated interactions inside each view proved easier to read and kept every page self-contained.
+
+Every page follows the same skeleton: a heading with a short subtitle, a primary plot, secondary plots that refine it, and a collapsible reading guide.
+This repetition makes each new view familiar on arrival.
+
+\subsection{Global Filters}
+The header filters are the core of the exploratory design.
+A single control sets the date-time range, the user type, and the bike type.
+Committing a change refetches and redraws every plot on the current page, and the same filters persist as the user moves between views.
+The dashboard thus behaves as one instrument: the user poses a question by narrowing the data and reads the answer across all four views.
+Because the filters map directly onto the precomputed summary tables (Section~\ref{sec:data-pipeline}), even wide ranges resolve quickly.
+
+\paragraph{Challenge: consistent filter locking.}
+A filter must be disabled while its data loads, or the user could act on stale numbers.
+Two cases made this subtle.
+On the map, every layer prefetches its data, so a naive global loading flag would lock the date filter even for layers that are off screen; we instead lock it only while the layer in view is loading.
+On the temporal view, pinned comparison surfaces already fix the user and bike type, so we lock those filters and show a hint explaining why, rather than letting a new selection silently contradict the pinned surfaces.
+
+\begin{figure}[H]
+    \centering
+    \figplaceholder
+    \caption{The global filters: the date-time range picker and the user and bike type controls.}
+    \label{fig:viz-filters}
+\end{figure}
+
+\subsection{Map}
+The map is a full-bleed \emph{deck.gl} canvas with a layer selector, a legend, contextual controls, an insights panel below, and the reading guide.
+Three layers share the same station geometry, taken from the live feed, and each answers a different spatial question.
+
+\subsubsection{Station Usage}
+This layer is a three-dimensional heatmap of extruded hexagons.
+Height encodes absolute usage, while color encodes each station's deviation from its own mean.
+The two encodings separate a busy station from an unusually busy one, which a single measure would blur.
+The layer reads from the precomputed hourly per-station ride counts, split into incoming and outgoing (Section~\ref{sec:data-pipeline}).
+
+A circular time wheel scrubs the hour, a play control animates a full day, and a mode selector switches between all, incoming, and outgoing trips.
+The insight panel below shows the peak-hour distribution, synced to the wheel, and the busiest stations for the current filters.
+A tall orange column marks a hotspot busier than its own average; a tall blue one marks a major station running below its norm.
+
+\paragraph{Challenge: reading anomalies, not just size.}
+Absolute counts alone made every central station look uniformly busy.
+We encode each station's deviation from its mean on a diverging blue-to-orange scale, with grey at the mean, while height still shows raw volume.
+The user can then tell where demand is high from where it is atypical.
+
+\begin{figure}[H]
+    \centering
+    \figplaceholder
+    \caption{Station usage: extruded hexagons with the time wheel and mode selector.}
+    \label{fig:viz-station-usage}
+\end{figure}
+
+\subsubsection{Trip Flow}
+This layer draws origin-destination arcs, which read naturally as movement.
+It opens on a citywide overview of the strongest corridors and narrows to a focus view for a single station.
+Both states read from the precomputed station-to-station daily flow counts (Section~\ref{sec:data-pipeline}).
+
+Clicking a station focuses its links, and a ranked corridor list sits beside the map; hovering or clicking a row highlights the matching arc.
+In focus, color splits the arcs into outbound and inbound, so the station reads as a net source or a net destination.
+
+\paragraph{Challenge: keeping mid-tier corridors visible.}
+A few dominant corridors crushed the rest into invisibility under a linear width scale.
+We map volume to width with a square-root ramp and give the ranked corridors an opacity floor, so mid-tier flows stay legible while the busiest still stand out.
+Consistency also required the live-versus-historical station join of Section~\ref{sec:data-pipeline}: arcs are drawn only between stations present in the live feed.
+
+\begin{figure}[H]
+    \centering
+    \figplaceholder
+    \caption{Trip flow: the citywide corridor overview and a single-station focus view.}
+    \label{fig:viz-trip-flow}
+\end{figure}
+
+\subsubsection{Infrastructure}
+This layer maps station dots colored by live status alongside bike routes colored by facility class.
+It shows how the network is structured and how it grew.
+Station status is fetched live (Section~\ref{sec:data-pipeline}), while route geometry is stored as text and parsed in the backend, avoiding a spatial database (Section~\ref{sec:data-pipeline}).
+
+Clicking a station opens a sidebar with live docks, recent history, and demand; a toggle shows or hides the routes; a year slider filters the network to a chosen year.
+Alongside, diverging bars report the segments installed and removed each year, with borough and facility-class breakdowns.
+Each segment is labeled by its best available facility class, a simplification inherited from the source data.
+
+Our proposal deferred the NYC bike-lane data unless it proved necessary.
+In development, the spatial view gained the most context from it, so we promoted infrastructure to a full layer.
+
+\paragraph{Challenge: reconstructing the network's history.}
+Segments carry an install date and, where present, a retirement date.
+We use these to filter the routes by year and to compute the per-year additions and removals shown in the bars, turning a static map into a timeline of the city's cycling infrastructure.
+
+\begin{figure}[H]
+    \centering
+    \figplaceholder
+    \caption{Infrastructure: station status, bike routes, and the year slider with per-year network changes.}
+    \label{fig:viz-infrastructure}
+\end{figure}
+
+\subsection{Temporal}
+The temporal view centers on a three-dimensional surface over the $7 \times 24$ grid of weekday and hour, flanked by two marginal histograms, one by day and one by hour, and a line chart over the selected date range.
+A metric selector switches what the surface encodes: ride count, average duration, distance, or speed.
+The week has two periodic axes, so a surface shows their joint pattern, such as weekday commute ridges, that separate small multiples would fragment.
+The histograms give the exact marginal for each axis, and the line chart shows the trend over calendar time.
+
+The view reads from the hourly aggregates rolled up to day-hour cells (Section~\ref{sec:data-pipeline}).
+The time spine matters here: zero-activity hours are retained, so averages are not inflated by silently dropping quiet periods.
+Hovering a cell highlights the matching bars in both histograms, and clicking a bar pins that day or hour and overlays its profile on the other chart.
+A compare mode stacks several user and bike combinations as separate surfaces.
+This view stayed close to the proposal, which already sketched a surface paired with aligned charts.
+
+\paragraph{Challenge: keeping three linked charts consistent.}
+The surface, the two histograms, and any pinned slice must always agree.
+We hold the hovered cell and the pinned day or hour in shared state, so a hover lights the correct bars while a pinned slice draws both on the opposite histogram and as a guide line on the surface.
+This lets the user confirm a peak seen on the surface against its exact marginal value.
+
+\begin{figure}[H]
+    \centering
+    \figplaceholder
+    \caption{Temporal view: the day-hour surface with its day and hour histograms and the date line chart.}
+    \label{fig:viz-temporal}
+\end{figure}
+
+\subsection{Weather}
+The weather view combines four charts that together answer whether, when, and for whom weather changes behavior.
+A scatter plot places each weather condition by typical speed and trip frequency, colored by condition.
+A ridgeline chart traces the rides-per-hour distribution under each condition, toggling between hour of day and weekday.
+A temperature-response line chart draws one curve per user type across temperature bins.
+A rain-impact bar chart compares ridership at each rain intensity to the dry-weather baseline.
+
+All four read from trips joined to hourly weather on a complete grid (Section~\ref{sec:data-pipeline}); each trip is attributed the weather observed in its start hour.
+Hovering a scatter point reveals its exact conditions, the ridgeline switches its axis on demand, and the global filters recolor the temperature curves to contrast members and casual riders.
+Tight scatter clusters signal stable behavior, while a gap between clusters signals habits that shift sharply when conditions change.
+
+\paragraph{Challenge: making rare conditions comparable.}
+A heavy storm produces few hours, so its distribution is sparse and easily misread.
+The weather grid fills missing cells with zero (Section~\ref{sec:data-pipeline}), and each ridge is normalized to its own peak, so a rare storm and a common clear hour become visually comparable rather than dwarfed.
+
+\begin{figure}[H]
+    \centering
+    \figplaceholder
+    \caption{Weather view: the condition scatter, the ridgeline distributions, and the temperature and rain charts.}
+    \label{fig:viz-weather}
+\end{figure}
+
+\subsection{Footprint}
+The footprint view translates ridden kilometers into environmental terms.
+Three headline tiles report distance ridden, avoided CO\textsubscript{2}, and car trips replaced.
+A horizontal bar chart re-expresses the same distance as emissions per transport mode, a cumulative band shows avoided CO\textsubscript{2} over time, and a pictogram renders everyday equivalents.
+A slider sets the car-substitution rate.
+
+The view reads from the precomputed daily distance and ride totals (Section~\ref{sec:data-pipeline}); the environmental figures are simple arithmetic on top, recomputed live as the slider moves.
+Every factor is stated on the page: standard per-mode emission rates, an uncertain car-substitution rate, and explicit exclusions such as manufacturing and rebalancing.
+Moving the slider shifts a dotted line inside the shaded band, and the equivalent icons rescale with it and with the selected date range.
+
+\paragraph{Challenge: honesty about uncertainty.}
+The proposal described a single figure for CO\textsubscript{2} saved.
+A point estimate would overstate a number that rests on an unknown, namely how many rides truly replace a car trip.
+We therefore present avoided CO\textsubscript{2} as a range bounded by low and high substitution rates, with the chosen rate marked inside it and every assumption listed openly.
+The design challenge was to make this uncertainty visible without burying the headline message.
+
+\begin{figure}[H]
+    \centering
+    \figplaceholder
+    \caption{Footprint view: the headline tiles, the mode-comparison bars, the avoided-CO\textsubscript{2} band, and the equivalents.}
+    \label{fig:viz-footprint}
+\end{figure}
+
+\subsection{Reading Guides and User Experience}
+Every view carries a collapsible ``How To Read It'' guide: a one-line summary of the plot and two or three concrete hints.
+The tool is exploratory and general-purpose, aimed at operators, city planners, and curious citizens alike.
+The guide lowers the entry cost for a first-time reader without forcing a narrative, preserving the exploratory intent stated in the proposal.
+
+Smaller cues serve the same goal.
+Tooltips reveal exact values on hover, help icons explain each filter, and a hint appears whenever a control is disabled, so the interface never blocks the user silently.
+Default views are chosen to give an immediate reading, while the filters, toggles, and linked selections reward deeper inspection.
+This dual level, immediate insight over optional depth, is the interaction model we set out to build.
