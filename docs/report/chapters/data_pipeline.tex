@@ -19,7 +19,6 @@ The output is written as compressed \emph{Parquet} files partitioned by year and
 A precomputation step then rolls the cleaned trips up into compact hourly and monthly summary tables stored in \emph{PostgreSQL}.
 Finally, a \emph{FastAPI} backend serves incoming requests directly from these summary tables rather than scanning raw trip records.
 
-
 \subsection{Challenges and Solutions}
 For each processing challenge, we describe the problem, the solution we implemented, and the rationale behind our design choices.
 All the main steps regarding the data cleaning are already covered in our technical report, and mainly ignored in this discussion.
@@ -66,3 +65,18 @@ This artificially inflated averages and erased quiet periods like storms.
 
 We resolved this by building an independent, continuous hourly calendar spine and joining trip data onto it.
 This ensures zero-activity hours are retained, giving an honest baseline for rates, standard deviations, and weather comparisons.
+
+\paragraph{Weather Grid}
+While the time spine guarantees a complete timeline, plotting ridership against weather requires a two-dimensional grid.
+Sparse or rare weather events still leave empty cells, so we enumerate all expected grid cells and fill missing combinations with zero-valued rows.
+This produces a complete, rectangular dataset that renders predictably without needing custom visualization hacks.
+
+\paragraph{Live vs. Historical Stations}
+Station coordinates come from the live feed, while trip records span a decade of network changes.
+To ensure consistency, spatial layers join activity onto the live feed and drop unmatched stations.
+Unmatched retired stations are retained for city-wide temporal and aggregate stats, which do not require map locations.
+
+\paragraph{Geometry Without PostGIS}
+Bike lane shapes are geographic data, which would normally call for a spatial database extension such as \emph{PostGIS}.
+Because we only ever read these shapes and never query them spatially, we store each one as plain text and parse it into coordinates in the backend before serving.
+This keeps the storage layer simple and free of heavy dependencies, at the negligible cost of a lightweight parsing step.
