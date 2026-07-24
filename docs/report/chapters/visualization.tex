@@ -4,22 +4,21 @@
 % for an \includegraphics once the figures are captured.
 \providecommand{\figplaceholder}{\fbox{\parbox[c][3cm][c]{0.8\textwidth}{\centering\itshape Image placeholder}}}
 
-The pipeline of Section~\ref{sec:data-pipeline} exposes clean, precomputed statistics through a REST API.
-This section describes the web application that turns those statistics into an interactive dashboard.
-We first outline the interface, its implementation, and its navigation.
-We then describe each view: the plot we chose, why we chose it, the statistics behind it, how the user reads and interacts with it, and the main challenge it posed.
-We close with the design of the reading guides that support exploration.
+Having processed and indexed the raw Citi Bike dataset into queryable API endpoints, the final step is presentation.
+This section details the frontend web application designed to translate these underlying data pipelines into an intuitive, interactive dashboard.
 
 \subsection{Overview}
-The application is a single-page dashboard organized into four coordinated views: Map, Temporal, Weather, and Footprint.
-A persistent header holds the title, the navigation, and the global filters.
-Each view occupies one page and shares the same filter state, so an exploration started in one view carries into the others.
+The application is structured as a single-page dashboard featuring four coordinated views, as introduced in Section~\ref{sec:introduction}. 
+The global header integrates these views by hosting the primary exploratory controls, centralizing the user's ability to navigate and interact with the data. 
+Each view operates as a self-contained module equipped with dedicated visual representations, control mechanisms, and explanatory guides, allowing users to focus on specific analytical tasks.
 
-The visual language stays deliberately restrained.
-A paper background, near-black ink, and a single blue accent keep attention on the data.
-Color is reserved for meaning, such as direction, deviation, or category.
-This follows the design philosophy stated in our proposal: clarity and analytical depth over decoration.
-
+To preserve analytical clarity, the visual design employs a restrained palette:
+\begin{itemize}
+    \item Neutral tones are used for structural interface elements, reserving prominent color encoding strictly for semantic data attributes.
+    \item Typography is selected for readability, omitting visual flourishes. 
+    \item Animations and interface transitions are strictly not overwhelming, maintaining a professional environment tailored for deep visual analysis. 
+\end{itemize}
+This minimalist design directly reflects our core philosophy: prioritizing data legibility and depth over decorative ornamentation.
 \begin{figure}[H]
     \centering
     \figplaceholder
@@ -27,36 +26,30 @@ This follows the design philosophy stated in our proposal: clarity and analytica
     \label{fig:viz-overview}
 \end{figure}
 
-\subsection{Implementation}
-The frontend is a \emph{React} single-page application built with \emph{Vite} and routed by \emph{React Router}.
-Layout and design tokens come from \emph{Tailwind CSS}, with every color and font derived from one shared token module.
-This keeps the interface, the charts, and the map on a single palette.
+\subsubsection{Implementation}
+The frontend is built as a \emph{React} single-page application using \emph{Vite} and routed with \emph{React Router}. 
+Layout and visual design tokens are managed via \emph{Tailwind CSS}, where a unified token module defines all colors and typography. 
+This ensures visual consistency across the interface components, charts, and map elements.
 
-We render each view with the library best suited to its data.
-\emph{deck.gl} draws the map layers on a \emph{WebGL} canvas, which sustains smooth interaction over thousands of stations and arcs.
-\emph{Plotly} renders the three-dimensional surface and the filled bands.
-\emph{Chart.js} and lightweight canvas drawing handle the two-dimensional categorical charts.
+Each view leverages a specialized rendering library optimized for its specific data structures:
+\begin{itemize}
+    \item \emph{deck.gl} renders the map layers on a \emph{WebGL} canvas, maintaining interactive performance over thousands of stations and arcs.
+    \item \emph{Plotly} generates three-dimensional surfaces and filled bands.
+    \item \emph{Chart.js} and custom canvas routines handle two-dimensional categorical charts.
+\end{itemize}
 
-This mix is itself a change from the proposal, where we had planned \emph{D3.js} for every non-map chart.
-In practice, \emph{D3.js} alone would have meant rebuilding a three-dimensional camera and standard chart scaffolding by hand.
-Delegating those to \emph{Plotly} and \emph{Chart.js} let us spend effort on the encodings specific to our data instead.
+This implementation updates our original proposal, which specified \emph{D3.js} for all non-map visualizations. 
+Because relying solely on \emph{D3.js} would have required custom development of 3D camera controls and standard chart scaffolding, delegating these responsibilities to \emph{Plotly} and \emph{Chart.js} allowed us to focus effort on domain-specific visual encodings.
 
-Data fetching runs through \emph{TanStack Query}, which caches every response by its exact filter set (Section~\ref{sec:data-pipeline}).
-Revisiting a view with the same filters is instant.
-Each page is a thin component that wires state hooks to presentational charts, which keeps view logic isolated and testable.
+\subsubsection{Page Hierarchy}
+The spatial map serves as the default landing view, providing an immediate geographic overview of the city, while the remaining views act in supporting roles. 
+This spatial-first entry point aligns directly with the core focus outlined in our proposal, without overwhelming the user with excessive initial complexity.
 
-\subsection{Page Hierarchy and Navigation}
-The map is the landing route: opening the application redirects to it.
-Spatial data gives the most immediate reading of the city, so it serves as the entry point, with the other views in supporting roles.
-This mirrors the focus stated in the proposal.
+All four views are accessible via a fixed global header, enabling single-click navigation and filter persistence. 
+This decision (following the proposal) allows straightforward comparisons across views under a uniform filter set while mitigating the cognitive load of a densely packed interface.
 
-The four views sit behind a fixed header, one click apart.
-Because the filters live in that header, they persist across navigation and apply everywhere.
-We deliberately avoided a single cross-filtered canvas.
-The proposal favored cross-filtering between charts, but a global filter set paired with coordinated interactions inside each view proved easier to read and kept every page self-contained.
-
-Every page follows the same skeleton: a heading with a short subtitle, a primary plot, secondary plots that refine it, and a collapsible reading guide.
-This repetition makes each new view familiar on arrival.
+Ultimately, to establish structural consistency, every view adopts a uniform layout skeleton: a section header with a concise descriptive subtitle, a primary visual display, complementary secondary plots, and a collapsible reading guide. 
+This structural repetition minimizes provides a predictable experience as users navigate between views.
 
 \subsection{Global Filters}
 The header filters are the core of the exploratory design.
