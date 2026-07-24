@@ -45,31 +45,49 @@ Because relying solely on \emph{D3.js} would have required custom development of
 The spatial map serves as the default landing view, providing an immediate geographic overview of the city, while the remaining views act in supporting roles. 
 This spatial-first entry point aligns directly with the core focus outlined in our proposal, without overwhelming the user with excessive initial complexity.
 
-All four views are accessible via a fixed global header, enabling single-click navigation and filter persistence. 
-This decision (following the proposal) allows straightforward comparisons across views under a uniform filter set while mitigating the cognitive load of a densely packed interface.
+ Ultimately, to establish structural consistency, every view adopts a uniform layout skeleton: a section header with a concise descriptive subtitle, a primary visual display, complementary secondary plots, and a collapsible reading guide. 
+This structural repetition minimizes the cognitive load on users as they navigate between views.
+    
+\subsection{Header}
+All four views are accessible via a fixed global header, enabling single-click navigation and persistent filtering. 
+In alignment with our proposal, this architecture facilitates direct comparisons across views under a uniform filter set while mitigating the cognitive load associated with a single, densely packed interface. 
+Modifying a filter triggers a data refetch and redraws all plots on the active view, with the updated filter state persisting seamlessly during route transitions.
 
-Ultimately, to establish structural consistency, every view adopts a uniform layout skeleton: a section header with a concise descriptive subtitle, a primary visual display, complementary secondary plots, and a collapsible reading guide. 
-This structural repetition minimizes provides a predictable experience as users navigate between views.
-
-\subsection{Global Filters}
-The header filters are the core of the exploratory design.
-A single control sets the date-time range, the user type, and the bike type.
-Committing a change refetches and redraws every plot on the current page, and the same filters persist as the user moves between views.
-The dashboard thus behaves as one instrument: the user poses a question by narrowing the data and reads the answer across all four views.
-Because the filters map directly onto the precomputed summary tables (Section~\ref{sec:data-pipeline}), even wide ranges resolve quickly.
-
-\paragraph{Challenge: consistent filter locking.}
-A filter must be disabled while its data loads, or the user could act on stale numbers.
-Two cases made this subtle.
-On the map, every layer prefetches its data, so a naive global loading flag would lock the date filter even for layers that are off screen; we instead lock it only while the layer in view is loading.
-On the temporal view, pinned comparison surfaces already fix the user and bike type, so we lock those filters and show a hint explaining why, rather than letting a new selection silently contradict the pinned surfaces.
+The header incorporates two primary filter controls (Figure~\ref{fig:viz-filters}):
+\begin{itemize}
+    \item \textbf{Date Range Picker:} A calendar selector defining the temporal analysis window. Operating at a monthly granularity, it enforces a 12-month maximum range to prevent excessive backend query latency.
+    \item \textbf{User and Bike Type Selectors:} A pair of selectors filtering data by membership status (member or casual) and bike type (classic, electric, or both).
+\end{itemize}
 
 \begin{figure}[H]
     \centering
-    \figplaceholder
-    \caption{The global filters: the date-time range picker and the user and bike type controls.}
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \figplaceholder
+        \caption{Date-range picker.}
+        \label{fig:viz-filter-date}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \figplaceholder
+        \caption{User and bike type selectors.}
+        \label{fig:viz-filter-types}
+    \end{subfigure}
+    \caption{Global filter components in the header interface.}
     \label{fig:viz-filters}
 \end{figure}
+
+\paragraph{Challenges}
+Managing global filter states introduced notable engineering trade-offs. 
+Synchronizing parameters across views required a centralized state architecture, though minimizing response latency initially proved challenging.
+
+Our initial strategy relied on prefetching query data upon application load. 
+However, this approach created heavy memory footprints and network bottlenecks. 
+We resolved this by optimizing the backend data pipeline, eliminating the need for client-side prefetching, having a completely responsive dashboard. 
+
+Beyond backend performance, this global constraint demanded resilient design. 
+Each view was engineered to remain expressive under any valid filter combination, preventing sparse queries from yielding empty or misleading visualizations.
 
 \subsection{Map}
 The map is a full-bleed \emph{deck.gl} canvas with a layer selector, a legend, contextual controls, an insights panel below, and the reading guide.
