@@ -1,4 +1,18 @@
 \section{City Bike Dataset}
+\begin{comment}
+    1) Is public repository the right term? Maybe "open data repository" or "publicly available dataset" is better.
+    2) tracking New York City bike trips since 2013. -> Quite missleading, as the dataset don't track all bike trips in NYC, but only the ones made with Citi Bike.
+    3) open-data CSV files -> can be simplified to "CSV files" since the open-data aspect is already mentioned in the previous sentence.
+    4) Station Popularity and Trips Flow -> Already commented before, still not considered. The first sentence introduce them as
+    "additional per-trip features", but they are not per-trip features, but rather aggregated features!!! Should be moved from that list / rephrased to avoid confusion.
+    5) Figure should probably be inserted without the [H] option, to allow LaTeX to place it in a more appropriate position.
+    6) If space frees up with 5) or 7), we should expand the analysis and insights section, as it is currently very short and doesn't provide much insight into the dataset.
+    7) The intro of data quality issues makes no sense. What does it mean to find data quality issues "prior to plotting"?
+    I think we can remove the "prior to plotting" part, and just say "we identified several data quality issues in the raw Citi Bike dataset."
+    Also, i think that all the references to preprocessing / filtering should be removed, as they are not relevant to the technical report. It should only highlight the data quality issues, not how we fixed them.
+    8) Invaluable is a bit of a strong word, maybe we can use "still useful" or "still valuable" instead.
+    9) What do you mean with maintenance trips? All staff trips should be removed from the uploaded dataset, by reading the documentation.
+\end{comment}
 For this project, our main dataset is the \href{https://www.citibikenyc.com/system-data}{\underline{Citi Bike system dataset}}, a public repository tracking New York City bike trips since 2013.
 
 \subsection{Dataset Structure}

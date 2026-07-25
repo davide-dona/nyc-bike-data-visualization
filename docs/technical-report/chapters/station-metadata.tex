@@ -1,4 +1,17 @@
 \section{Station Metadata Dataset (GBFS)}
+\begin{comment}
+    1) "when the network itself changes" -> "when the infrastructure is modified"
+    2) The from station\_information and from station\_status can be merged into a single list as the introduction refers to a "unified station record".
+    3) Why operational flags (is\_installed, is\_renting, is\_returning) use a different style than the other fields?
+    The style should be consistent along all the report, either all in \texttt{code} or all in \textbf{bold}. (I think the first option is better)
+    4) Watch out for the captions!!! Taking for example the caption of figure 7, it repeats many of the information already present in the text.
+    Either shorten the caption or the text, but avoid repeating the same information in both places. Make sure that also all the other captions are not redundant with the text.
+    5) In the unreported capacity paragraph ->  It is not clear to me what is the unreported capacity. Is it the difference between the capacity reported by station\_information and the sum of bikes available and docks available? 
+    If yes, maybe we can clarify this in the text.
+    Also, you are re-explaining that the station_capacity is a static property provided by station\_information, but this is already explained in the previous paragraph.
+    The last sentences about the filtering of inactive stations and the treatment of remaining active stations are not clear to me. But we can simply remove them, 
+    as they again are not relevant to the technical report.
+ \end{comment}
 To enrich the static station data provided by Citi Bike, we incorporate their real-time feed, available on the \href{https://www.citibikenyc.com/system-data}{\underline{Citi Bike System Data}} portal.
 This live feed offers direct insight into the current capacity, operational status, and physical infrastructure of individual stations.
 

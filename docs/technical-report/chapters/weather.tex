@@ -1,4 +1,22 @@
 \section{Weather Dataset}
+\begin{comment}
+    1) I don't think there should be references to a dashboard in the technical report
+    2) What are the variables? If we don't use them, we should not mention them.
+    3) The sentence about the API returning parallel hourly arrays is a bit confusing. 
+    Parallel is not a very clear term; keeping the historical analysis stable -> what does that mean? Does the use of reanalysis models
+    imply that the data has better quality than real-time data / prevision? We should clarify this.
+    4) We should better explain the attributes we use, and why we use them. I would have written it as:
+    "The dataset includes several attributes. We focused on the following fields, as they are the one that most directly affect ridership". 
+    5) Weather timestamps are not downloaded! We request them from the API. 
+    The whole paragraph could be written cleaner and moved to the data quality section.
+    6) I like the introduction to the analysis and insights section and also figure 8!
+    7) Can we report some statistics about the correlation between weather and ridership? 
+    E.g., correlation coefficient? This would make the analysis more quantitative and less descriptive.
+    8) The data quality section can easily be shortened up, going straight to the point (no missing values, but a big bias)
+    It also lack any observation to the found issues. E.g., when computing statisctics for a certian weather condition,
+    we might also consider rides that happened in a different weather condition, but were reported as the same due to the bias.
+
+\end{comment}
 To enrich the dashboard with meteorological analysis, we incorporate hourly NYC weather data retrieved from the \href{https://open-meteo.com/}{\underline{Open-Meteo archive API}}.
 
 \subsection{Dataset Structure}

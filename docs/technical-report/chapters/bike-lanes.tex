@@ -1,4 +1,10 @@
 \section{Bike Lanes Dataset}
+\begin{comment}
+    1) From street. to street; installation date and retirement date -> two different ways (',' vs. 'and') to write the same thing. We should unify.
+    2) In the spatial overview, i would underline the fact that almost the whole city is covered.
+    In the zones that maps to the highest demand, the streets are "dense" and also look like they are mostly protected.
+    
+\end{comment}
 To enrich our station and trip insights, we incorporate New York City's bike-route network, retrieved from the \href{https://data.cityofnewyork.us/Transportation/New-York-City-Bike-Routes/mzxg-pwib}{\underline{NYC OpenData portal}}.
 
 \subsection{Dataset Structure}
@@ -7,7 +13,7 @@ Distributed as a single CSV file, the dataset provides a current snapshot of the
 \subsubsection{Original Structure}
 Each record represents a single segment of a bike facility, with the following fields:
 \begin{itemize}
-    \item \textbf{Geometry}: The set of lines defined in coordinates tracing the bike route.
+    \item \textbf{Geometry}: The set of lines tracing the bike route segment, defined by their coordinates.
     \item \textbf{Street}: The street the facility runs along.
     \item \textbf{From Street}, \textbf{To Street}: The cross streets that define the segment's endpoints.
     \item \textbf{Borough}: Which of the five boroughs the segment lies in.
