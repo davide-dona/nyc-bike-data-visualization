@@ -35,7 +35,7 @@ Because the feed is a dynamic snapshot, this analysis represents a single point 
 \paragraph{Capacity Distribution}
 Figure~\ref{fig:station_capacity} highlights the contrast between standard neighborhood stations and high-capacity transit hubs. 
 The distribution peaks sharply between $18$ and $28$ docks, representing the typical capacity for residential and local commercial stations. 
-Conversely, a extended right tail stretches beyond $50$ docks (reaching up to $100$ docks at major hubs) to accommodate heavy commuter turnover and intermodal connections. 
+Conversely, a extended right tail stretches beyond $50$ docks (reaching up to $80$ docks at major hubs) to accommodate heavy commuter turnover and intermodal connections. 
 Notably, the count at $0$ docks does not indicate corrupted data; rather, it represents $42$ inactive stations currently present in the feed (as detailed in our \href{https://github.com/davide-dona/nyc-bike-data-visualization/blob/main/src/notebooks/analysis.ipynb}{\underline{analysis notebook}}).
 \begin{figure}[ptb]
     \centering
@@ -47,7 +47,7 @@ Notably, the count at $0$ docks does not indicate corrupted data; rather, it rep
 \paragraph{Live Availability}
 Figure~\ref{fig:station_availability} evaluates real-time operational capacity across the network.
 Unreported capacity represents the discrepancy when a station's static capacity exceeds the sum of its live bike and dock counts. 
-It's instantly noticeable that a significant portion of the system's inconsistencies (out-of-service or unreported) is concentrated in the inactive stations, which represents only $4.0\%$ of the total station count.
+It's instantly noticeable that a significant portion of the system's inconsistencies (out-of-service or unreported) is concentrated in the inactive stations, which represents only $4.1\%$ of the total station count.
 Exposing supply-demand imbalances, bottlenecks, and maintenance backlogs would allow operators to quickly target areas for improvement.
 
 \begin{figure}[ptb]
@@ -62,13 +62,14 @@ To maintain data integrity and prevent visual distortion, our initial validation
 Ultimately, as confirmed in our \href{https://github.com/davide-dona/nyc-bike-data-visualization/blob/main/src/notebooks/analysis.ipynb}{\underline{analysis notebook}}, the live feed contains no missing station values.
 
 \paragraph{Inactive Stations}
-Stations undergoing installation, repair, or decommission are grouped under the \texttt{inactive} category, representing $99$ out of $2{,}462$ stations ($4.0\%$) and $1{,}950$ docks ($2.6\%$ of total capacity).
+Stations undergoing installation, repair, or decommission are grouped under the \texttt{inactive} category, representing $100$ out of $2{,}462$ stations ($4.1\%$) and $1{,}976$ docks ($2.7\%$ of total capacity).
 As illustrated in Figure~\ref{fig:station_availability}, these stations declare capacity while broadcasting almost no live counts, and the few bikes assigned to them are nearly all out of service.
 Retaining them would distort overall capacity metrics and render ghost (false empty) stations without contributing usable availability.
 
 \paragraph{Unreported Capacity}
 Unreported capacity (Figure~\ref{fig:station_availability}) arises from inconsistencies between the two endpoints, which are not guaranteed to be synchronized in the updates.
-This discrepancy is particularly evident in inactive stations, but it also affects a small number of active stations, which may report fewer bikes and docks than their static capacity.
+In the analyzed snapshot, the notebook records $2{,}809$ unreported docks: $1{,}693$ at inactive stations and $1{,}116$ at active stations.
+It's possible to observe that this issue is particularly evident in inactive stations, but it also affects a small number of active stations, which may report fewer bikes and docks than their static capacity.
 
 \paragraph{Identifier Consistency}
 GBFS identifies stations in two ways: an internal \texttt{station\_id} (either a UUID or a numeric string) and a public \texttt{short\_name}.
