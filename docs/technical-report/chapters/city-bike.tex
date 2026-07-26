@@ -1,22 +1,13 @@
 \section{City Bike Dataset}
 \begin{comment}
-    1) Is public repository the right term? Maybe "open data repository" or "publicly available dataset" is better.
-    2) tracking New York City bike trips since 2013. -> Quite missleading, as the dataset don't track all bike trips in NYC, but only the ones made with Citi Bike.
-    3) open-data CSV files -> can be simplified to "CSV files" since the open-data aspect is already mentioned in the previous sentence.
-    4) Station Popularity and Trips Flow -> Already commented before, still not considered. The first sentence introduce them as
-    "additional per-trip features", but they are not per-trip features, but rather aggregated features!!! Should be moved from that list / rephrased to avoid confusion.
-    5) Figure should probably be inserted without the [H] option, to allow LaTeX to place it in a more appropriate position.
     6) If space frees up with 5) or 7), we should expand the analysis and insights section, as it is currently very short and doesn't provide much insight into the dataset.
-    7) The intro of data quality issues makes no sense. What does it mean to find data quality issues "prior to plotting"?
-    I think we can remove the "prior to plotting" part, and just say "we identified several data quality issues in the raw Citi Bike dataset."
-    Also, i think that all the references to preprocessing / filtering should be removed, as they are not relevant to the technical report. It should only highlight the data quality issues, not how we fixed them.
-    8) Invaluable is a bit of a strong word, maybe we can use "still useful" or "still valuable" instead.
+    7) Also, i think that all the references to preprocessing / filtering should be removed, as they are not relevant to the technical report. It should only highlight the data quality issues, not how we fixed them.
     9) What do you mean with maintenance trips? All staff trips should be removed from the uploaded dataset, by reading the documentation.
 \end{comment}
-For this project, our main dataset is the \href{https://www.citibikenyc.com/system-data}{\underline{Citi Bike system dataset}}, a public repository tracking New York City bike trips since 2013.
+For this project, our main dataset is the \href{https://www.citibikenyc.com/system-data}{\underline{Citi Bike system dataset}}, a publicly available dataset tracking trips made through New York City's Citi Bike share network since 2013.
 
 \subsection{Dataset Structure}
-Released monthly as open-data CSV files, these records log every completed ride, with high-volume months split across multiple files.
+Released monthly as CSV files, these records log every completed ride, with high-volume months split across multiple files.
 Each row represents a single trip, offering detailed attributes that characterize the journey.
 
 \subsubsection{Original Structure}
@@ -41,9 +32,13 @@ The original dataset includes the following columns:
 Additional per-trip features were derived to support the analysis:
 \begin{itemize}
     \item \textbf{Trip Duration}: The duration of the trip in seconds, calculated as $\text{Ended At} - \text{Started At}$.
-    \item \textbf{Trip Distance}: The distance between the start and end stations, computed using the Haversine formula and multiplied by a circuity factor of $1.3$ to better approximate real routes.
-    \item \textbf{Station Popularity}: For each station and time period, the number of trips starting and ending at that station, obtained by grouping trips by station.
-    \item \textbf{Trips Flow}: For each pair of stations and time period, the number of trips travelling between them, obtained by grouping trips by station pair.
+    \item \textbf{Trip Distance}: The straight-line distance between the start and end stations, computed using the Haversine formula and scaled by a circuity factor of $1.3$ to approximate actual street routes.
+\end{itemize}
+
+Then, these individual trips were then aggregated to derive:
+\begin{itemize} 
+    \item \textbf{Station Activity}: The total number of trips starting and ending at each station during a given time period, calculated by grouping trips by station.
+    \item \textbf{Origin-Destination Flow}: The total number of trips made between each pair of stations within a given time period, calculated by grouping trips by station pair.
 \end{itemize}
 
 \subsection{Analysis and Insights}
@@ -55,7 +50,7 @@ Rather than offering a comprehensive study of the Citi Bike system, this prior a
 Figure~\ref{fig:rides_time} illustrates distinct variations in demand across different hours and days of the week.
 Weekday trips peak during standard commuting hours, whereas weekend usage shifts toward leisure-oriented patterns.
 
-\begin{figure}[H]
+\begin{figure}[ptb]
     \centering
     \includegraphics[width=\textwidth]{../media/technical/rides_time.png}
     \caption{Distribution of trips by hour of the day and weekday/weekend.}
@@ -66,7 +61,7 @@ Weekday trips peak during standard commuting hours, whereas weekend usage shifts
 Figure~\ref{fig:rides_stations} highlights the distribution of station origins across the city.
 Station popularity and trip flows reveal that demand is concentrated around Manhattan and other high-density areas, with some stations acting as important origins.
 
-\begin{figure}[H]
+\begin{figure}[ptb]
     \centering
     \includegraphics[width=0.8\textwidth]{../media/technical/rides_stations.png}
     \caption{Distribution of trips by station of origin, aggregated into $300$ m cells so that every colour class maps to an exact number of trips.}
@@ -77,7 +72,7 @@ Station popularity and trip flows reveal that demand is concentrated around Manh
 As shown in Figure~\ref{fig:rides_type}, casual riders lean much more heavily on electric bikes than members do.
 Furthermore, casual riders take longer trips on both bike types, whereas members maintain a steady, short duration regardless of the bike they choose.
 
-\begin{figure}[H]
+\begin{figure}[ptb]
     \centering
     \includegraphics[width=\textwidth]{../media/technical/rides_type.png}
     \caption{Distribution of trips by user/ride type based on rides and trip length.}
@@ -85,11 +80,11 @@ Furthermore, casual riders take longer trips on both bike types, whereas members
 \end{figure}
 
 \paragraph{Trip Duration and Distance}
-Trip duration and distance distributions provide additional insight into mobility behaviour.
+Figures~\ref{fig:rides_duration} and~\ref{fig:rides_distance} provide additional insight into mobility behaviour.
 Most trips are relatively short, while longer rides are less frequent and often correspond to recreational usage.
 It's important to note that durations begin at one minute, as Citi Bike removes trips shorter than 60 seconds at the source.
 
-\begin{figure}[H]
+\begin{figure}[ptb]
     \centering
     \begin{minipage}[t]{0.49\textwidth}
         \centering
@@ -107,11 +102,11 @@ It's important to note that durations begin at one minute, as Citi Bike removes 
 \end{figure}
 
 \subsection{Data Quality}
-To prevent misleading visual representations and maintain data integrity, we identified several data quality issues in the raw Citi Bike dataset prior to plotting.
+To prevent misleading visual representations and maintain data integrity, we identified several data quality issues in the raw Citi Bike dataset.
 
 \paragraph{Different Legacy Structure}
 In 2020, Citi Bike updated its trip data schema, introducing column and formatting changes that differ from the 2013--2019 legacy format (detailed in our \href{https://github.com/davide-dona/nyc-bike-data-visualization/blob/main/src/notebooks/analysis.ipynb}{\underline{analysis notebook}}).
-Despite these structural discrepancies, the historical data remains invaluable.
+Despite these structural discrepancies, the historical data remains still valuable.
 To integrate it seamlessly, our preprocessing pipeline standardizes all monthly files into a single, unified feature set.
 
 \paragraph{Missing Station Values}
@@ -125,7 +120,7 @@ Beyond missing values, a small number of trips are clear outliers.
 In a representative month, about $315$ trips ($0.02\%$) last up to $25$ hours, appearing in the final bin of the duration histogram (Figure~\ref{fig:rides_duration}).
 These likely reflect unreturned bikes rather than continuous rides, so trips exceeding a maximum-duration threshold are dropped.
 Additionally, around $27{,}000$ trips ($1.4\%$) start and end at the same station, resulting in a zero straight-line distance (Figure~\ref{fig:rides_distance}); because distance metrics are meaningless for these round trips, they are removed.
-Finally, some trips report impossible distances ($11{,}000$~km as an example), due to corrupted station coordinates or maintenance trips, and are filtered out using a maximum-distance threshold.
+Finally, some trips report impossible distances ($11{,}000$~km as an example), due to corrupted station coordinates, and are filtered out using a maximum-distance threshold.
 
 \paragraph{Biases}
 This dataset carries certain inherent limitations.

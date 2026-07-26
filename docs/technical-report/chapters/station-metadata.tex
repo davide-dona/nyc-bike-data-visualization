@@ -1,15 +1,13 @@
 \section{Station Metadata Dataset (GBFS)}
 \begin{comment}
-    1) "when the network itself changes" -> "when the infrastructure is modified"
-    2) The from station\_information and from station\_status can be merged into a single list as the introduction refers to a "unified station record".
+    2) The from station\_information and from station\_status can be merged into a single list as the introduction refers to a "unified station record". 
+    -> I would keep them separate to say who is from who
+
     3) Why operational flags (is\_installed, is\_renting, is\_returning) use a different style than the other fields?
     The style should be consistent along all the report, either all in \texttt{code} or all in \textbf{bold}. (I think the first option is better)
-    4) Watch out for the captions!!! Taking for example the caption of figure 7, it repeats many of the information already present in the text.
-    Either shorten the caption or the text, but avoid repeating the same information in both places. Make sure that also all the other captions are not redundant with the text.
-    5) In the unreported capacity paragraph ->  It is not clear to me what is the unreported capacity. Is it the difference between the capacity reported by station\_information and the sum of bikes available and docks available? 
-    If yes, maybe we can clarify this in the text.
-    Also, you are re-explaining that the station_capacity is a static property provided by station\_information, but this is already explained in the previous paragraph.
-    The last sentences about the filtering of inactive stations and the treatment of remaining active stations are not clear to me. But we can simply remove them, 
+    -> Since referring to the actual field names, I would keep them in \texttt{code} style. Meanwhile Operational Flags is a list entry, so I would keep it in \textbf{bold} style. 
+
+    5) The last sentences about the filtering of inactive stations and the treatment of remaining active stations are not clear to me. But we can simply remove them, 
     as they again are not relevant to the technical report.
  \end{comment}
 To enrich the static station data provided by Citi Bike, we incorporate their real-time feed, available on the \href{https://www.citibikenyc.com/system-data}{\underline{Citi Bike System Data}} portal.
@@ -19,7 +17,7 @@ This live feed offers direct insight into the current capacity, operational stat
 Unlike historical trip records, station metadata is served via a public JSON API adhering to MobilityData's \href{https://gbfs.org/}{\underline{GBFS}} standard.
 From this service, we query two key Citi Bike endpoints:
 \begin{itemize}
-    \item \texttt{station\_information.json}: Static properties like location and capacity, whose content changes only when the network itself changes.
+    \item \texttt{station\_information.json}: Static properties like location and capacity, whose content changes only when the infrastructure is modified.
     \item \texttt{station\_status.json}: Live availability and operational state.
 \end{itemize}
 
@@ -55,23 +53,21 @@ This section examines the structural and operational characteristics of the Citi
 Because the feed is a dynamic snapshot, this analysis represents a single point in time rather than a strictly reproducible state.
 
 \paragraph{Capacity Distribution}
-Figure~\ref{fig:station_capacity} illustrates network capacity distribution, highlighting the contrast between smaller local stations and major transit hubs.
+Figure~\ref{fig:station_capacity} highlights the contrast between smaller local stations and major transit hubs.
 Notably, the count at $0$ docks does not indicate corrupted data; rather, it represents $42$ inactive stations currently present in the feed (as detailed in our \href{https://github.com/davide-dona/nyc-bike-data-visualization/blob/main/src/notebooks/analysis.ipynb}{\underline{Jupyter notebook}}).
 
-\begin{figure}[H]
+\begin{figure}[ptb]
     \centering
     \includegraphics[width=\textwidth]{../media/technical/station_capacity.png}
     \caption{Distribution of station capacity, measured as the number of docks per station.}
     \label{fig:station_capacity}
 \end{figure}
 
-\paragraph{Live Availability}
-Live bike and dock availability reflects the real-time operational state of the system.
-Figure~\ref{fig:station_availability} decomposes total network capacity by classifying every dock into one of six mutually exclusive states, with separate breakdowns for active and inactive stations to provide a more granular view.
-Since those breakdowns are shares computed within each group, the left panel first sizes the groups themselves, in stations and in docks, so that the inactive share is not read as larger than it is.
+\paragraph{Live Availability} %#TODO: FIX
+Figure~\ref{fig:station_availability} provides a comprehensive breakdown of the real-time operational state of the system.
 Delivering these status classifications dynamically at the station level is precisely what makes this live feed a valuable component of the interactive dashboard.
 
-\begin{figure}[H]
+\begin{figure}[ptb]
     \centering
     \includegraphics[width=\textwidth]{../media/technical/station_availability.png}
     \caption{System-wide capacity breakdown across all, active, and inactive stations. The left panel gives the size of each group, in stations and in docks. In the right panel, total capacity is fully decomposed into six mutually exclusive states: rentable classic bikes, rentable e-bikes, free docks, out-of-service bikes, out-of-service docks, and unreported capacity.}
@@ -88,10 +84,10 @@ As illustrated in Figure~\ref{fig:station_availability}, these stations declare 
 Retaining them would distort overall capacity metrics and render ghost (false empty) stations on the interactive map without contributing usable availability.
 
 \paragraph{Unreported Capacity}
-The unreported capacity (Figure~\ref{fig:station_availability}) arises from using two different endpoints.
-Station capacity is a static property provided by \texttt{station\_information} and updated periodically, whereas live bike and dock counts are delivered continuously by \texttt{station\_status}.
-Filtering out the inactive stations described above eliminates the main source of variance without altering real availability.
-For any remaining active stations that do not reconcile, dock states are read directly from live counters, treating capacity as a rough benchmark.
+Unreported capacity (Figure~\ref{fig:station_availability}) represents the discrepancy when a station's static capacity exceeds the sum of its live bike and dock counts. 
+This arises from inconsistencies between the two endpoints, which are not guaranteed to be synchronized in the updates.
+Filtering out inactive stations resolves the vast majority of these mismatches without altering real-time availability. 
+For any remaining discrepancies at active stations, live bike and dock counts are prioritized, treating static capacity as a baseline.
 
 \paragraph{Identifier Consistency}
 GBFS identifies stations in two ways: an internal \texttt{station\_id} (either a UUID or a numeric string) and a public \texttt{short\_name}.

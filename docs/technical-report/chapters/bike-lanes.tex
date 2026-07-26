@@ -1,10 +1,4 @@
 \section{Bike Lanes Dataset}
-\begin{comment}
-    1) From street. to street; installation date and retirement date -> two different ways (',' vs. 'and') to write the same thing. We should unify.
-    2) In the spatial overview, i would underline the fact that almost the whole city is covered.
-    In the zones that maps to the highest demand, the streets are "dense" and also look like they are mostly protected.
-    
-\end{comment}
 To enrich our station and trip insights, we incorporate New York City's bike-route network, retrieved from the \href{https://data.cityofnewyork.us/Transportation/New-York-City-Bike-Routes/mzxg-pwib}{\underline{NYC OpenData portal}}.
 
 \subsection{Dataset Structure}
@@ -15,7 +9,7 @@ Each record represents a single segment of a bike facility, with the following f
 \begin{itemize}
     \item \textbf{Geometry}: The set of lines tracing the bike route segment, defined by their coordinates.
     \item \textbf{Street}: The street the facility runs along.
-    \item \textbf{From Street}, \textbf{To Street}: The cross streets that define the segment's endpoints.
+    \item \textbf{From Street} and \textbf{To Street}: The cross streets that define the segment's endpoints.
     \item \textbf{Borough}: Which of the five boroughs the segment lies in.
     \item \textbf{Facility Class}: The type of facility across four classes:
     \begin{itemize}
@@ -36,22 +30,22 @@ Because these sub-types aggregate naturally into four primary classes, omitting 
 The analysis provides a spatial and temporal perspective on the bike lane network.
 
 \paragraph{Spatial Overview}
-Figure~\ref{fig:bike_lanes_map} maps the active network by facility class.
-Its spatial distribution closely mirrors the high-demand trip areas shown in Figure~\ref{fig:rides_stations}.
+Figure~\ref{fig:bike_lanes_map} shows that the network covers almost the entire city, matching the distribution of demand trip areas shown in Figure~\ref{fig:rides_stations}).
+Comparing the two maps, we see that the densest and most popular areas are also the ones with the highest concentration of protected facilities, while shared and conventional lanes dominate in lower-demand areas.
 This alignment confirms the facility data's reliability, laying a solid foundation for integration with complementary datasets.
 
-\begin{figure}[H]
+\begin{figure}[ptb]
     \centering
     \includegraphics[width=0.6\textwidth]{../media/technical/bike_lanes_map.png}
     \caption{The bike-route network in service, colouring segments by facility class.}
     \label{fig:bike_lanes_map}
 \end{figure}
 
-\paragraph{Temporal Overview}
+\paragraph{Temporal Overview} %#TODO: FIX
 Retaining retired facilities allows us to reconstruct the network's evolution year by year.
-Figure~\ref{fig:bike_lanes_history} displays annual installations above the horizontal axis and retirements below it, highlighting rapid network growth in recent years.
+Figure~\ref{fig:bike_lanes_history} illustrates rapid network growth in recent years.
 
-\begin{figure}[H]
+\begin{figure}[ptb]
     \centering
     \includegraphics[width=0.8\textwidth]{../media/technical/bike_lanes_history.png}
     \caption{Segments installed and removed per year.}
