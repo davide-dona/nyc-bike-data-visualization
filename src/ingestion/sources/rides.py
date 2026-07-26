@@ -31,6 +31,10 @@ _REQUIRED_RIDE_COLS = [
     "rideable_type",
 ]
 
+# One-sided 95% normal cutoff. Duration and distance are assessed independently
+# within each processed source frame after the basic validity checks have run.
+_UPPER_OUTLIER_Z_SCORE = 1.645
+
 def _get_response(url: str, stream: bool = False) -> requests.Response:
     """GET `url` and raise for non-2xx responses."""
     response = requests.get(url, stream=stream)
@@ -237,9 +241,21 @@ def _haversine_km_expr() -> pl.Expr:
     a = ((lat2 - lat1) / 2).sin() ** 2 + lat1.cos() * lat2.cos() * ((lon2 - lon1) / 2).sin() ** 2
     return settings.earth_radius_km * 2 * a.sqrt().arcsin() * settings.street_circuity_factor
 
+
+def _upper_outlier_cutoff(df: pl.DataFrame, column: str) -> float | None:
+    """Return the upper 95% z-score cutoff, or None when variation is unavailable."""
+    stats = df.select(
+        pl.col(column).mean().alias("mean"),
+        pl.col(column).std(ddof=1).alias("std"),
+    ).row(0, named=True)
+    mean, std = stats["mean"], stats["std"]
+    if mean is None or std is None or std <= 0:
+        return None
+    return float(mean + _UPPER_OUTLIER_Z_SCORE * std)
+
 def _clean_rides_data(df: pl.DataFrame) -> pl.DataFrame:
-    """Drop rows missing required fields, parse timestamps, and drop interval/distance outliers."""
-    return (
+    """Clean rides and exclude independent upper-tail duration/distance outliers."""
+    valid = (
         df.drop_nulls(subset=_REQUIRED_RIDE_COLS)
         .with_columns(
             pl.col("started_at").str.to_datetime(format="%Y-%m-%d %H:%M:%S%.f", strict=True),
@@ -247,16 +263,26 @@ def _clean_rides_data(df: pl.DataFrame) -> pl.DataFrame:
         )
         .drop_nulls(subset=["started_at", "ended_at"])
         .filter(pl.col("ended_at") >= pl.col("started_at"))
-        # Drop implausibly long trips (a bike that was never returned, not a real ride).
-        .filter(
-            (pl.col("ended_at") - pl.col("started_at")).dt.total_seconds()
-            <= settings.max_trip_duration_hours * 3600
-        )
         # Drop round trips (same start and end station): their straight-line distance is 0.
         .filter(pl.col("start_station_id") != pl.col("end_station_id"))
-        # Drop trips with an impossible straight-line distance (bad station coordinates).
-        .filter(_haversine_km_expr() <= settings.max_trip_distance_km)
+        .with_columns(
+            (pl.col("ended_at") - pl.col("started_at"))
+            .dt.total_seconds()
+            .alias("_trip_duration_seconds"),
+            _haversine_km_expr().alias("_distance_km"),
+        )
     )
+
+    duration_cutoff = _upper_outlier_cutoff(valid, "_trip_duration_seconds")
+    distance_cutoff = _upper_outlier_cutoff(valid, "_distance_km")
+    filters = []
+    if duration_cutoff is not None:
+        filters.append(pl.col("_trip_duration_seconds") <= duration_cutoff)
+    if distance_cutoff is not None:
+        filters.append(pl.col("_distance_km") <= distance_cutoff)
+    if filters:
+        valid = valid.filter(pl.all_horizontal(filters))
+    return valid.drop(["_trip_duration_seconds", "_distance_km"])
 
 def _add_partition_columns(df: pl.DataFrame) -> pl.DataFrame:
     """Add date/year/month/hour/day_of_week/duration columns derived from ended_at.
