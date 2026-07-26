@@ -36,7 +36,7 @@ This alignment confirms the facility data's reliability, laying a solid foundati
 
 \begin{figure}[ptb]
     \centering
-    \includegraphics[width=0.6\textwidth]{../media/technical/bike_lanes_map.png}
+    \includegraphics[width=0.5\textwidth]{../media/technical/bike_lanes_map.png}
     \caption{The bike-route network in service, colouring segments by facility class.}
     \label{fig:bike_lanes_map}
 \end{figure}
@@ -47,13 +47,13 @@ Tracking annual installations and retirements reveals a sharp surge in infrastru
 Documenting both spatial and temporal dynamics provides key context for how past planning decisions continue to shape modern mobility.
 \begin{figure}[ptb]
     \centering
-    \includegraphics[width=\textwidth]{../media/technical/bike_lanes_history.png}
+    \includegraphics[width=0.8\textwidth]{../media/technical/bike_lanes_history.png}
     \caption{Segments installed and removed per year.}
     \label{fig:bike_lanes_history}
 \end{figure}
 
 \subsection{Data Quality}
-Apart from the retirement date, which is empty by design for facilities still in service, every column we consume is fully populated, every geometry parses, and none falls outside New York, all verified in the \href{https://github.com/davide-dona/nyc-bike-data-visualization/blob/main/src/notebooks/analysis.ipynb}{\underline{analysis notebook}}.
+With the exception of the retirement date (which is intentionally left blank for active facilities), all consumed attributes are fully populated, as verified in our \href{https://github.com/davide-dona/nyc-bike-data-visualization/blob/main/src/notebooks/analysis.ipynb}{\underline{analysis notebook}}.
 
 \paragraph{Sentinel Installation Dates}
 Although the installation date field is never null, \texttt{01/01/1900} acts as a floor for dates previous to the 1900s (Figure~\ref{fig:bike_lanes_history}).

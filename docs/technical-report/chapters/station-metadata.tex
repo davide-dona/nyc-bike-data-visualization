@@ -1,6 +1,5 @@
 \section{Station Metadata Dataset (GBFS)}
 To enrich the static station data provided by Citi Bike, we incorporate their real-time feed, available on the \href{https://www.citibikenyc.com/system-data}{\underline{Citi Bike System Data}}.
-This live feed offers direct insight into the current capacity, operational status, and physical infrastructure of individual stations.
 
 \subsection{Dataset Structure}
 Unlike historical trip records, station metadata is served via a public JSON API adhering to MobilityData's \href{https://gbfs.org/}{\underline{GBFS}} standard.
@@ -34,9 +33,10 @@ This section examines the structural and operational characteristics of the Citi
 Because the feed is a dynamic snapshot, this analysis represents a single point in time rather than a strictly reproducible state.
 
 \paragraph{Capacity Distribution}
-Figure~\ref{fig:station_capacity} highlights the contrast between smaller local stations and major transit hubs.
+Figure~\ref{fig:station_capacity} highlights the contrast between standard neighborhood stations and high-capacity transit hubs. 
+The distribution peaks sharply between $18$ and $28$ docks, representing the typical capacity for residential and local commercial stations. 
+Conversely, a extended right tail stretches beyond $50$ docks (reaching up to $100$ docks at major hubs) to accommodate heavy commuter turnover and intermodal connections. 
 Notably, the count at $0$ docks does not indicate corrupted data; rather, it represents $42$ inactive stations currently present in the feed (as detailed in our \href{https://github.com/davide-dona/nyc-bike-data-visualization/blob/main/src/notebooks/analysis.ipynb}{\underline{analysis notebook}}).
-
 \begin{figure}[ptb]
     \centering
     \includegraphics[width=0.8\textwidth]{../media/technical/station_capacity.png}
