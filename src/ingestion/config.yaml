@@ -36,6 +36,7 @@ yearly_cutoff: 2023         # Files with only a year <= this are assumed to cove
 parquet_compression: zstd
 street_circuity_factor: 1.3
 earth_radius_km: 6371
+upper_outlier_z_score: 1.645  # One-sided 95% z-score cutoff for duration and distance outliers
 
 # Weather retrieval settings
 nyc_coords: [40.7823234, -73.9654161]

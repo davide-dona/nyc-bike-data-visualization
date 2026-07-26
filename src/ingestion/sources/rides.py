@@ -31,10 +31,6 @@ _REQUIRED_RIDE_COLS = [
     "rideable_type",
 ]
 
-# One-sided 95% normal cutoff. Duration and distance are assessed independently
-# within each processed source frame after the basic validity checks have run.
-_UPPER_OUTLIER_Z_SCORE = 1.645
-
 def _get_response(url: str, stream: bool = False) -> requests.Response:
     """GET `url` and raise for non-2xx responses."""
     response = requests.get(url, stream=stream)
@@ -251,7 +247,7 @@ def _upper_outlier_cutoff(df: pl.DataFrame, column: str) -> float | None:
     mean, std = stats["mean"], stats["std"]
     if mean is None or std is None or std <= 0:
         return None
-    return float(mean + _UPPER_OUTLIER_Z_SCORE * std)
+    return float(mean + settings.upper_outlier_z_score * std)
 
 def _clean_rides_data(df: pl.DataFrame) -> pl.DataFrame:
     """Clean rides and exclude independent upper-tail duration/distance outliers."""
