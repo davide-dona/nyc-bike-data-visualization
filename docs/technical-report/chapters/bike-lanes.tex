@@ -30,7 +30,7 @@ Because these sub-types aggregate naturally into four primary classes, omitting 
 The analysis provides a spatial and temporal perspective on the bike lane network.
 
 \paragraph{Spatial Overview}
-Figure~\ref{fig:bike_lanes_map} shows that the network covers almost the entire city, matching the distribution of demand trip areas shown in Figure~\ref{fig:rides_stations}).
+Figure~\ref{fig:bike_lanes_map} shows that the network covers almost the entire city, matching the distribution of demand trip areas shown in Figure~\ref{fig:rides_stations}.
 Comparing the two maps, we see that the densest and most popular areas are also the ones with the highest concentration of protected facilities, while shared and conventional lanes dominate in lower-demand areas.
 This alignment confirms the facility data's reliability, laying a solid foundation for integration with complementary datasets.
 
@@ -41,19 +41,19 @@ This alignment confirms the facility data's reliability, laying a solid foundati
     \label{fig:bike_lanes_map}
 \end{figure}
 
-\paragraph{Temporal Overview} %#TODO: FIX
-Retaining retired facilities allows us to reconstruct the network's evolution year by year.
-Figure~\ref{fig:bike_lanes_history} illustrates rapid network growth in recent years.
-
+\paragraph{Temporal Overview}
+Figure~\ref{fig:bike_lanes_history} illustrates the step-by-step expansion of the cycling network over time.
+Tracking annual installations and retirements reveals a sharp surge in infrastructure over the past decade, capturing a pivotal era in the city's urban transformation.
+Documenting both spatial and temporal dynamics provides key context for how past planning decisions continue to shape modern mobility.
 \begin{figure}[ptb]
     \centering
-    \includegraphics[width=0.8\textwidth]{../media/technical/bike_lanes_history.png}
+    \includegraphics[width=\textwidth]{../media/technical/bike_lanes_history.png}
     \caption{Segments installed and removed per year.}
     \label{fig:bike_lanes_history}
 \end{figure}
 
 \subsection{Data Quality}
-Apart from the retirement date, which is empty by design for facilities still in service, every column we consume is fully populated, every geometry parses, and none falls outside New York, all verified in the \href{https://github.com/davide-dona/nyc-bike-data-visualization/blob/main/src/notebooks/analysis.ipynb}{\underline{Jupyter notebook}}.
+Apart from the retirement date, which is empty by design for facilities still in service, every column we consume is fully populated, every geometry parses, and none falls outside New York, all verified in the \href{https://github.com/davide-dona/nyc-bike-data-visualization/blob/main/src/notebooks/analysis.ipynb}{\underline{analysis notebook}}.
 
 \paragraph{Sentinel Installation Dates}
 Although the installation date field is never null, \texttt{01/01/1900} acts as a floor for dates previous to the 1900s (Figure~\ref{fig:bike_lanes_history}).

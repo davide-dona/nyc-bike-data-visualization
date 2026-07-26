@@ -1,24 +1,9 @@
 \section{Weather Dataset}
 \begin{comment}
-    2) What are the variables? If we don't use them, we should not mention them.
-    -> They are things like what data we want to download, the time zone, the units, etc. Can be removed in my opinion
-
-    4) We should better explain the attributes we use, and why we use them. I would have written it as:
-    "The dataset includes several attributes. We focused on the following fields, as they are the one that most directly affect ridership". 
-    -> Enhacing an explaining why temperature affects ridership is a bit trivial in my opinion
-
-    5) Weather timestamps are not downloaded! We request them from the API. 
-    The whole paragraph could be written cleaner and moved to the data quality section.
-
     7) Can we report some statistics about the correlation between weather and ridership? 
     E.g., correlation coefficient? This would make the analysis more quantitative and less descriptive.
     -> Since even if descriptive, the correlation is very clear, I would not add a correlation coefficient as a differnt plot.
     If you mean a number inside the text, i can do it 
-
-    8) The data quality section can easily be shortened up, going straight to the point (no missing values, but a big bias)
-    It also lack any observation to the found issues. E.g., when computing statisctics for a certian weather condition,
-    we might also consider rides that happened in a different weather condition, but were reported as the same due to the bias.
-
 \end{comment}
 To enrich the analysis with meteorological data, we incorporate hourly NYC weather data retrieved from the \href{https://open-meteo.com/}{\underline{Open-Meteo archive API}}.
 
@@ -36,10 +21,6 @@ The dataset includes several attributes. We focused on the following fields, as 
     \item \textbf{Wind Speed}: Wind speed in km/h.
 \end{itemize}
 
-Weather timestamps are downloaded in UTC and converted to local time (\texttt{America/New\_York}) so they match the Citi Bike trip data.
-This is done because requesting local time directly applies a single time offset to the whole period, which creates a one-hour error whenever daylight saving time changes.
-To prevent missing data after adjusting for local time, we add a one-day buffer to both ends of our search window and trim it back to the exact target dates after conversion.
-
 \subsection{Analysis and Insights}
 Weather conditions serve as a key driver of daily bike usage.
 Rather than examining weather in isolation, the following section focuses directly on its relationship with overall ridership patterns.
@@ -51,15 +32,19 @@ This confirms that weather tracking provides valuable context for interpreting d
 
 \begin{figure}[ptb]
     \centering
-    \includegraphics[width=\textwidth]{../media/technical/rides_vs_weather.png}
+    \includegraphics[width=0.8\textwidth]{../media/technical/rides_vs_weather.png}
     \caption{Daily ridership, mean temperature, and total precipitation over the reference month, plotted on aligned date axes with individual scales. The dashed guide highlights 16 February, the month's wettest day and also its least ridden.}
     \label{fig:rides_vs_weather}
 \end{figure}
 
 \subsection{Data Quality}
-The archive is complete, with an hourly series covering the entire reference year and no missing values in any variable.
-The issues we found therefore concern how the values are localised and what they represent, rather than gaps in the data.
+While the dataset is complete with no missing values across the timeframe, these inherent limitations are still important to note.
 
 \paragraph{Spatial Coverage}
 Weather data is retrieved for a single point centered on Central Park and applied across the entire system.
-While this dataset misses microclimate variations across a more granular spatial scale, applying higher spatial granularity would introduce more modeling challenges than necessary for a city-scale analysis.
+If it rains only in Central Park, but not elsewhere, the data will falsely show rain for the entire city, providing misleading information about the ridership patterns.
+While this approach misses localized microclimates, introducing higher spatial granularity would add unnecessary modeling complexity for a city-scale analysis.
+
+\paragraph{Timestamp inconsistencies}
+Using local time to align with Citi Bike trip data introduces a one-hour error during Daylight Saving Time transitions (when clocks shift forward or backward by an hour).
+This discrepancy misaligns weather records with ride timestamps, skewing the correlation between weather and trip activity.
