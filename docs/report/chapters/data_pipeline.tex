@@ -1,24 +1,50 @@
 \section{Data Pipeline}\label{sec:data-pipeline}
 Aggregating and visualizing a decade of Citi Bike trip data within an interactive dashboard introduces several significant engineering and integration challenges:
 \begin{itemize}
-    \item \textbf{Scale}: The system must efficiently process and filter hundreds of millions of individual trip records with low latency to ensure a seamless user experience.
-    \item \textbf{Format Shifts}: Raw data spanning multiple years exhibits shifting structural conventions, requiring robust normalization to consolidate into a unified, clean schema.
-    \item \textbf{Data Quality}: Standardizing disparate sources into a unified pipeline to eliminate data gaps and resolve inconsistencies.
+    \item \textbf{Scale}: Hundreds of millions of trip records must be filtered and aggregated fast enough to keep the dashboard interactive.
+    \item \textbf{Format Shifts}: Archives released over several years follow different packaging and column conventions, which have to be reconciled into a single schema.
+    \item \textbf{Data Quality}: Four independent sources carry missing values, outliers, and coverage gaps that would otherwise surface as misleading visuals.
 \end{itemize}
 
 \subsection{Data Cleaning}
-To address the data quality issues found during our technical analysis, we proposed several solutions to the data pipeline to guarantee reliable dashboard reporting.
+Our technical report documents the quality issues carried by each source.
+This section covers how the pipeline resolves them, so that the dashboard only ever reports figures we can defend.
 
 \paragraph{Missing Values}
-%How generally we handled missing values, not something specific.
+Each source is consumed only through the fields the dashboard needs, and a record missing any of them is dropped rather than imputed.
+A trip without its stations, its timestamps, or its user and bike type cannot be placed on any view, and imputing one would invent the very patterns users are asked to read.
+The affected share is negligible, so discarding these rows costs no visible detail.
 
 \paragraph{Legacy Schema Reformatting}
+Trip archives ship under two packaging conventions: yearly bundles nesting one archive per month, and flat monthly archives.
+The pipeline detects which one it is reading and emits one frame per month in both cases.
+
+Within a month, the individual files are merged column-wise, so that files declaring different column sets still align.
+From that union, only the fields shared across releases are retained, while era-specific attributes such as the physical bike identifier are discarded, as no view consumes them.
+Station identifiers are forced to text at parse time, since some files encode them as integers and others as strings.
 
 \paragraph{Trip Outliers}
+Three filters remove the trips that would distort duration and distance metrics.
+Records whose end precedes their start are discarded outright.
+Round trips are dropped as well: sharing origin and destination, their straight-line distance is zero and would deflate every distance average.
+The remaining upper tail is cut at a one-sided $95\%$ z-score threshold, computed independently for duration and distance on each month.
+A relative threshold follows seasonal variation on its own, whereas a fixed limit would need retuning as the network grows.
 
 \paragraph{Station Metadata Reconciliation}
+The live feed identifies stations by an internal identifier, while trip files use the public one.
+Every record is therefore re-keyed to the public identifier, the only one the two sources share.
+
+Live views keep a station only when it reports as installed, renting, and returning, so that stations awaiting installation or repair never render as genuinely empty docks.
+Their static attributes remain stored, so historical lookups on those stations still resolve.
+Where the feed leaves capacity unaccounted for, effective capacity is derived from the live counters rather than from the declared one, keeping availability ratios consistent with what the feed actually reports.
+
+Feed coordinates are equally authoritative for distances: each trip reads its own from a station pair table computed once from them, so a corrupted coordinate on a single trip cannot produce an impossible distance.
 
 \paragraph{Weather Timezone Alignment}
+Weather is requested in UTC rather than in local time.
+The archive applies a single fixed offset to an entire request, which mislabels by an hour every date lying on the other side of a daylight saving boundary.
+The pipeline converts each timestamp individually instead, resolving the offset per observation.
+The requested window is padded by one day on each side and trimmed after conversion, so that shifting the clock never truncates the endpoints.
 
 \paragraph{Time and Weather Spine}
 To accurately calculate hourly utilization rates, the total number of elapsed hours within a given timeframe must be established.
@@ -38,28 +64,22 @@ Station coordinates come from the live feed, while trip records span a decade of
 To ensure consistency, spatial layers join activity onto the live feed and drop unmatched stations.
 Unmatched retired stations are retained for city-wide temporal and aggregate stats, which do not require map locations.
 
-\paragraph{Geometry Without PostGIS}
-Bike lane shapes are geographic data, which would normally call for a spatial database extension such as \emph{PostGIS}.
-Because we only ever read these shapes and never query them spatially, we store each one as plain text and parse it into coordinates in the backend before serving.
-This keeps the storage layer simple and free of heavy dependencies, at the negligible cost of a lightweight parsing step.
-
 \subsection{Computational Efficiency}
-High data volumes can quickly degrade dashboard responsiveness.
-To prevent performance bottlenecks, we optimized the data pipeline to handle large datasets seamlessly.
+Volume constrains the pipeline at both ends: ingestion has to fit on ordinary hardware, and queries have to return within an interactive budget.
 
 \paragraph{Ingesting High-Volume Data}
-Some yearly archives are too large to fit into memory on standard hardware. 
-To preserve resources, the pipeline streams each archive to a temporary file in small chunks, converts it to a \emph{Parquet} file one month at a time, and deletes each intermediate file immediately after loading. 
-To accelerate this process, downloads overlap with database ingestion while worker threads compute aggregates in parallel. 
+Some yearly archives are too large to fit into memory on standard hardware.
+To preserve resources, the pipeline streams each archive to a temporary file in small chunks, converts it to a \emph{Parquet} file one month at a time, and deletes each intermediate file immediately after loading.
+To accelerate this process, downloads overlap with database ingestion while worker threads compute aggregates in parallel.
 
-Ultimately, to handle monthly releases efficiently without reprocessing the entire archive, the system tracks existing coverage and automatically expands requested ranges to prevent timeline gaps. 
+Ultimately, to handle monthly releases efficiently without reprocessing the entire archive, the system tracks existing coverage and automatically expands requested ranges to prevent timeline gaps.
 This guarantees a contiguous timeline while keeping each update proportional to the new data alone.
 
 \paragraph{Precomputing Statistics}
-Our initial design relied on \texttt{Polars} to directly query raw \texttt{Parquet} files without a database layer.
+Our initial design relied on \emph{Polars} to directly query raw \emph{Parquet} files without a database layer.
 However, every user interaction triggered expensive full-table scans across hundreds of millions of raw rows, leading to unacceptable latency.
 
-To achieve fast response times, we shifted the heavy computational load to the ingestion pipeline by precomputing data at a one-hour granularity—the finest grain required by the dashboard.
+To achieve fast response times, we shifted the heavy computational load to the ingestion pipeline by precomputing data at a one-hour granularity, the finest grain the dashboard requires.
 Since all metrics are pre-aggregated into hourly summary tables, we avoid on-the-fly full-table scans at query time, condensing millions of raw trips into a few thousand rows without losing relevant detail.
 
 To optimize queries further, we maintain pre-collapsed table variants and route each request to the smallest viable one.
@@ -69,28 +89,40 @@ Trading a little extra storage for significantly smaller scans eliminated our pe
 While an embedded storage engine like \emph{DuckDB} could handle raw queries on-the-fly and eliminate the need for precomputation altogether, \emph{PostgreSQL} proved to be the better fit for our serving layer for three main reasons:
 \begin{itemize}
     \item \emph{PostgreSQL} natively manages concurrent user requests, whereas embedded engines are single-process and risk bottlenecks under load.
-    \item Paired with our precomputed aggregates, query workloads consist of small, filtered lookups—an access pattern where indexed \emph{PostgreSQL} tables outperform columnar file scans.
+    \item Paired with our precomputed aggregates, query workloads consist of small, filtered lookups, an access pattern where indexed \emph{PostgreSQL} tables outperform columnar file scans.
     \item A persistent, shared database aligns better with our deployment architecture than running an embedded query engine directly inside the app process.
 \end{itemize}
 While \emph{DuckDB} excels at analytical execution, \emph{Polars} already powers our ingestion pipeline, rendering an additional analytical engine redundant.
+
+\paragraph{Geometry Without PostGIS}
+Bike lane shapes are geographic data, which would normally call for a spatial database extension such as \emph{PostGIS}.
+Because we only ever read these shapes and never query them spatially, we store each one as plain text and parse it into coordinates in the backend before serving.
+This keeps the storage layer simple and free of heavy dependencies, at the negligible cost of a lightweight parsing step.
 
 \paragraph{Caching Responses}
 To maximize responsiveness on the client side, the frontend caches (\emph{TanStack Query}) responses keyed by their exact filter set, allowing revisited views to render instantly.
 This, combined with our backend precomputation, ensures that initial requests are cheap and repeated visits are entirely free.
 
-\subsection{Pipeline}
-\begin{comment}
-    Again, as i said before, I would move the pipeline description after the challenges section.
-    Take for example the precomputation step: it is clearly a solution to the challenge of ingesting high-volume data, but it is not clear why it is needed until the challenge is described!!!
-    Also, i would make clearer what are the pypeline steps, (e.g., first, a \emph{data acquisition} step ...)
-\end{comment}
-In accordance with the update schedule outlined in our project proposal, the data pipeline is automatically executed on a monthly basis via a \emph{GitHub Action}, ensuring the dataset remains continuously up to date.
+\subsection{Overview}
+Taken together, the measures described above compose a pipeline of four sequential steps.
 
-Data acquisition collects the static inputs evaluated in our technical report: the Citi Bike trip archives, local weather records, and bike lane datasets.
-Live station metadata, by contrast, is fetched on demand via API to ensure real-time accuracy.
+First, a \textbf{data acquisition} step collects the static inputs evaluated in our technical report: the Citi Bike trip archives, the hourly weather records, and the bike lane network.
+Station metadata is instead fetched on demand from the live feed, which publishes only its current state.
+Each static source is cached on disk under an expiry window, so that a new run refetches only what has actually aged.
+The three lightweight sources are acquired first, letting an upstream outage abort the run in seconds instead of after hours of trip processing.
 
-Cleaning and normalization use \emph{Polars} to reconcile heterogeneous source files into a single schema, discarding invalid records and enriching each trip with derived fields.
+Second, a \textbf{cleaning and normalization} step uses \emph{Polars} to reconcile the heterogeneous source files into a single schema, discarding invalid records and enriching each trip with derived fields.
+Alongside its duration, every trip receives the calendar attributes the dashboard filters on: date, hour, and day of the week.
+These are derived from the arrival timestamp, since the upstream archives group trips by the month in which they ended.
 The output is written as compressed \emph{Parquet} files partitioned by year and month.
 
-A precomputation step then rolls the cleaned trips up into compact hourly and monthly summary tables stored in \emph{PostgreSQL}.
-Finally, a \emph{FastAPI} backend serves incoming requests directly from these summary tables rather than scanning raw trip records.
+Third, a \textbf{precomputation} step rolls the cleaned trips up into compact hourly and monthly summary tables, stored in \emph{PostgreSQL}.
+One family of tables counts rides, duration, and distance per hour; a second counts departures and arrivals per station; a third counts trips between station pairs.
+Weather is loaded beside them at the same hourly grain, so that any ridership figure can be read against the conditions under which it was recorded.
+Every table is written through an upsert keyed on its own dimensions, which makes reloading a month idempotent and the run as a whole safe to retry.
+
+Finally, a \textbf{serving} step exposes those tables through a \emph{FastAPI} backend, so that no user request ever scans raw trip records.
+The intermediate \emph{Parquet} files are discarded once loaded, as the database alone backs every endpoint.
+A coverage table records the months actually ingested and is published as an endpoint of its own, bounding the date pickers so that the interface can only ask for a range the database is able to answer.
+
+In accordance with the update schedule outlined in our project proposal, the whole sequence is executed monthly via a \emph{GitHub Action}, keeping the dataset continuously up to date.

@@ -76,9 +76,9 @@ Modifying any selection in the global header triggers a background data refetch 
 Managing global filter states introduced notable engineering trade-offs. 
 Synchronizing parameters across views required a centralized state architecture, though minimizing response latency initially proved challenging.
 
-Our initial strategy relied on prefetching query data upon application load. 
-However, this approach created heavy memory footprints and network bottlenecks. 
-We resolved this by optimizing the backend data pipeline, eliminating the need for client-side prefetching, having a completely responsive dashboard. 
+Our initial strategy relied on prefetching query data upon application load.
+However, this approach created heavy memory footprints and network bottlenecks.
+The precomputed summary tables of Section~\ref{sec:data-pipeline} removed the need for client-side prefetching altogether.
 
 Beyond backend performance, this global constraint demanded resilient design. 
 Each view was engineered to remain expressive under any valid filter combination, preventing sparse queries from yielding empty or misleading visualizations.
@@ -132,7 +132,7 @@ Consistency also required the live-versus-historical station join of Section~\re
 \subsubsection{Infrastructure}
 This layer maps station dots colored by live status alongside bike routes colored by facility class.
 It shows how the network is structured and how it grew.
-Station status is fetched live (Section~\ref{sec:data-pipeline}), while route geometry is stored as text and parsed in the backend, avoiding a spatial database (Section~\ref{sec:data-pipeline}).
+Station status is fetched live, while route geometry is parsed in the backend from its stored text form (Section~\ref{sec:data-pipeline}).
 
 Clicking a station opens a sidebar with live docks, recent history, and demand; a toggle shows or hides the routes; a year slider filters the network to a chosen year.
 Alongside, diverging bars report the segments installed and removed each year, with borough and facility-class breakdowns.
