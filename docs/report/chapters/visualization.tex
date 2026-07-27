@@ -4,11 +4,10 @@
 % for an \includegraphics once the figures are captured.
 \providecommand{\figplaceholder}{\fbox{\parbox[c][3cm][c]{0.8\textwidth}{\centering\itshape Image placeholder}}}
 
-Having processed and indexed the raw Citi Bike dataset into queryable API endpoints, the final step is presentation.
-This section details the frontend web application designed to translate these underlying data pipelines into an intuitive, interactive dashboard.
+Having processed and indexed the raw Citi Bike dataset into queryable API endpoints, the final step is visualization.
 
 \subsection{Overview}
-The application is structured as a single-page dashboard featuring four coordinated views, as introduced in Section~\ref{sec:introduction}. 
+The application is structured as a multi-view dashboard, as introduced in Section~\ref{sec:introduction}. 
 The global header integrates these views by hosting the primary exploratory controls, centralizing the user's ability to navigate and interact with the data. 
 Each view operates as a self-contained module equipped with dedicated visual representations, control mechanisms, and explanatory guides, allowing users to focus on specific analytical tasks.
 
@@ -18,11 +17,11 @@ To preserve analytical clarity, the visual design employs a restrained palette:
     \item Typography is selected for readability, omitting visual flourishes. 
     \item Animations and interface transitions are strictly not overwhelming, maintaining a professional environment tailored for deep visual analysis. 
 \end{itemize}
-This minimalist design directly reflects our core philosophy: prioritizing data legibility and depth over decorative ornamentation.
+This minimalist design directly reflects our proposal philosophy: prioritizing data legibility and depth over decorative ornamentation.
 \begin{figure}[H]
     \centering
     \figplaceholder
-    \caption{The web application on the Map view, with the shared header and global filters above.}
+    \caption{Starting view of the visualization dashboard.}
     \label{fig:viz-overview}
 \end{figure}
 
@@ -38,26 +37,21 @@ Each view leverages a specialized rendering library optimized for its specific d
     \item \emph{Chart.js} and custom canvas routines handle two-dimensional categorical charts.
 \end{itemize}
 
-This implementation updates our original proposal, which specified \emph{D3.js} for all non-map visualizations. 
-Because relying solely on \emph{D3.js} would have required custom development of 3D camera controls and standard chart scaffolding, delegating these responsibilities to \emph{Plotly} and \emph{Chart.js} allowed us to focus effort on domain-specific visual encodings.
+While our original proposal specified \emph{D3.js} for all non-map charts, adopting \emph{Plotly} and \emph{Chart.js} for standard visualizations and 3D controls freed us to focus on domain-specific encodings.
 
 \subsubsection{Page Hierarchy}
-The spatial map serves as the default landing view, providing an immediate geographic overview of the city, while the remaining views act in supporting roles. 
-This spatial-first entry point aligns directly with the core focus outlined in our proposal, without overwhelming the user with excessive initial complexity.
+The spatial map serves as the default view, offering an immediate geographic overview without overwhelming the user with initial complexity. 
+To maintain consistency across the dashboard, every view shares the same layout skeleton: a descriptive header, a primary display, secondary plots, and a collapsible reading guide.
+This structural choices minimizes cognitive load as they avoid a single, densely packed interface.
 
- Ultimately, to establish structural consistency, every view adopts a uniform layout skeleton: a section header with a concise descriptive subtitle, a primary visual display, complementary secondary plots, and a collapsible reading guide. 
-This structural repetition minimizes the cognitive load on users as they navigate between views.
-    
 \subsection{Header}
-All four views are accessible via a fixed global header, enabling single-click navigation and persistent filtering. 
-In alignment with our proposal, this architecture facilitates direct comparisons across views under a uniform filter set while mitigating the cognitive load associated with a single, densely packed interface. 
-Modifying a filter triggers a data refetch and redraws all plots on the active view, with the updated filter state persisting seamlessly during route transitions.
-
-The header incorporates two primary filter controls (Figure~\ref{fig:viz-filters}):
+The global header incorporates two primary filter controls (Figure~\ref{fig:viz-filters}):
 \begin{itemize}
     \item \textbf{Date Range Picker:} A calendar selector defining the temporal analysis window. Operating at a monthly granularity, it enforces a 12-month maximum range to prevent excessive backend query latency.
     \item \textbf{User and Bike Type Selectors:} A pair of selectors filtering data by membership status (member or casual) and bike type (classic, electric, or both).
 \end{itemize}
+
+Modifying any selection in the global header triggers a background data refetch to update the active plots, while preserving the filter state seamlessly across route transitions.
 
 \begin{figure}[H]
     \centering
