@@ -3,8 +3,80 @@ Aggregating and visualizing a decade of Citi Bike trip data within an interactiv
 \begin{itemize}
     \item \textbf{Scale}: The system must efficiently process and filter hundreds of millions of individual trip records with low latency to ensure a seamless user experience.
     \item \textbf{Format Shifts}: Raw data spanning multiple years exhibits shifting structural conventions, requiring robust normalization to consolidate into a unified, clean schema.
-    \item \textbf{Completeness}: Disparate data sources must be meticulously reconciled to mitigate data gaps, spatial misalignments, and temporal inconsistencies.
+    \item \textbf{Data Quality}: Standardizing disparate sources into a unified pipeline to eliminate data gaps and resolve inconsistencies.
 \end{itemize}
+
+\subsection{Data Cleaning}
+To address the data quality issues found during our technical analysis, we proposed several solutions to the data pipeline to guarantee reliable dashboard reporting.
+
+\paragraph{Missing Values}
+%How generally we handled missing values, not something specific.
+
+\paragraph{Legacy Schema Reformatting}
+
+\paragraph{Trip Outliers}
+
+\paragraph{Station Metadata Reconciliation}
+
+\paragraph{Weather Timezone Alignment}
+
+\paragraph{Time and Weather Spine}
+To accurately calculate hourly utilization rates, the total number of elapsed hours within a given timeframe must be established.
+Our initial design derived time buckets directly from the trip logs, operating on the assumption that at least one ride occurred per hour.
+However, this approach proved flawed: hours with zero activity, frequently corresponding with adverse weather conditions, were inadvertently omitted.
+This exclusion artificially inflated averages and obscured quiet periods such as severe weather alerts.
+
+To resolve this, we generated an independent, continuous hourly calendar spine and joined the trip data to it.
+This methodology ensures zero-activity hours are explicitly retained, providing an accurate baseline for calculating rates, standard deviations, and weather correlations.
+
+While the time spine guarantees temporal completeness, visualizing ridership against weather conditions necessitates a two-dimensional grid.
+Because sparse or rare weather events can leave empty cells, we enumerate all possible grid combinations and populate missing instances with zero-valued rows.
+This yields a complete, rectangular dataset that renders reliably without requiring complex visualization workarounds.
+
+\paragraph{Live vs. Historical Stations}
+Station coordinates come from the live feed, while trip records span a decade of network changes.
+To ensure consistency, spatial layers join activity onto the live feed and drop unmatched stations.
+Unmatched retired stations are retained for city-wide temporal and aggregate stats, which do not require map locations.
+
+\paragraph{Geometry Without PostGIS}
+Bike lane shapes are geographic data, which would normally call for a spatial database extension such as \emph{PostGIS}.
+Because we only ever read these shapes and never query them spatially, we store each one as plain text and parse it into coordinates in the backend before serving.
+This keeps the storage layer simple and free of heavy dependencies, at the negligible cost of a lightweight parsing step.
+
+\subsection{Computational Efficiency}
+High data volumes can quickly degrade dashboard responsiveness.
+To prevent performance bottlenecks, we optimized the data pipeline to handle large datasets seamlessly.
+
+\paragraph{Ingesting High-Volume Data}
+Some yearly archives are too large to fit into memory on standard hardware. 
+To preserve resources, the pipeline streams each archive to a temporary file in small chunks, converts it to a \emph{Parquet} file one month at a time, and deletes each intermediate file immediately after loading. 
+To accelerate this process, downloads overlap with database ingestion while worker threads compute aggregates in parallel. 
+
+Ultimately, to handle monthly releases efficiently without reprocessing the entire archive, the system tracks existing coverage and automatically expands requested ranges to prevent timeline gaps. 
+This guarantees a contiguous timeline while keeping each update proportional to the new data alone.
+
+\paragraph{Precomputing Statistics}
+Our initial design relied on \texttt{Polars} to directly query raw \texttt{Parquet} files without a database layer.
+However, every user interaction triggered expensive full-table scans across hundreds of millions of raw rows, leading to unacceptable latency.
+
+To achieve fast response times, we shifted the heavy computational load to the ingestion pipeline by precomputing data at a one-hour granularity—the finest grain required by the dashboard.
+Since all metrics are pre-aggregated into hourly summary tables, we avoid on-the-fly full-table scans at query time, condensing millions of raw trips into a few thousand rows without losing relevant detail.
+
+To optimize queries further, we maintain pre-collapsed table variants and route each request to the smallest viable one.
+Trading a little extra storage for significantly smaller scans eliminated our performance bottlenecks.
+
+\paragraph{Storage Engine}
+While an embedded storage engine like \emph{DuckDB} could handle raw queries on-the-fly and eliminate the need for precomputation altogether, \emph{PostgreSQL} proved to be the better fit for our serving layer for three main reasons:
+\begin{itemize}
+    \item \emph{PostgreSQL} natively manages concurrent user requests, whereas embedded engines are single-process and risk bottlenecks under load.
+    \item Paired with our precomputed aggregates, query workloads consist of small, filtered lookups—an access pattern where indexed \emph{PostgreSQL} tables outperform columnar file scans.
+    \item A persistent, shared database aligns better with our deployment architecture than running an embedded query engine directly inside the app process.
+\end{itemize}
+While \emph{DuckDB} excels at analytical execution, \emph{Polars} already powers our ingestion pipeline, rendering an additional analytical engine redundant.
+
+\paragraph{Caching Responses}
+To maximize responsiveness on the client side, the frontend caches (\emph{TanStack Query}) responses keyed by their exact filter set, allowing revisited views to render instantly.
+This, combined with our backend precomputation, ensures that initial requests are cheap and repeated visits are entirely free.
 
 \subsection{Pipeline}
 \begin{comment}
@@ -22,71 +94,3 @@ The output is written as compressed \emph{Parquet} files partitioned by year and
 
 A precomputation step then rolls the cleaned trips up into compact hourly and monthly summary tables stored in \emph{PostgreSQL}.
 Finally, a \emph{FastAPI} backend serves incoming requests directly from these summary tables rather than scanning raw trip records.
-
-\subsection{Challenges and Solutions}
-For each processing challenge, we describe the problem, the solution we implemented, and the rationale behind our design choices.
-All the main steps regarding the data cleaning are already covered in our technical report, and ignored in this discussion.
-
-\paragraph{Ingesting High-Volume Data}
-Some yearly archives are too large to fit into memory on standard hardware. 
-To preserve resources, the pipeline streams each archive to a temporary file in small chunks, converts it to a \emph{Parquet} file one month at a time, and deletes each intermediate file immediately after loading. 
-To accelerate this process, downloads overlap with database ingestion while worker threads compute aggregates in parallel. 
-
-Ultimately, to handle monthly releases efficiently without reprocessing the entire archive, the system tracks existing coverage and automatically expands requested ranges to prevent timeline gaps. 
-This guarantees a contiguous timeline while keeping each update proportional to the new data alone.
-
-\paragraph{Precomputing Statistics}
-\begin{comment}
-    1) Note that the the fact that the dashboard allow user to filter by date range, user type, bike type was already mentioned in the introduction!!!
-    Watch out for redundancy!
-    2) "During ingestion, we calculate missing trip ..." -> This shouldn't be the opening line, i would argue
-    that we can also remove it! I would lead with the fact that the dashbord serves data / stats with a granularity of one hour.
-    By precomputing them at the ingestion stage, we avoid expensive full-table scans on the raw data at query time, which allowed us to achieve low latency and a smooth user experience.
-\end{comment}
-Our initial design relied on \emph{Polars} to directly query raw \emph{Parquet} files without a database layer.
-Because the dashboard lets users dynamically filter by date range, user type, bike type, and grouping dimensions, every interaction triggered an expensive full-table scan across hundreds of millions of raw rows, leading to unacceptable latency.
-
-To achieve fast response times, we shifted the heavy computational load to the ingestion pipeline.
-During ingestion, we calculate missing trip distances by computing pairwise straight-line distances between stations, avoiding on-the-fly calculations.
-Additionally, we precompute hourly aggregate tables capturing ride counts, durations, total distances, station activity, and station-to-station flows.
-Since the dashboard requires no finer grain than one hour, this condenses millions of raw trips into a few thousand summary rows without losing relevant detail. 
-
-To optimize queries further, we maintain pre-collapsed table variants and route each request to the smallest viable one.
-Trading a little extra storage for significantly smaller scans eliminated our performance bottlenecks.
-
-\paragraph{Storage Engine}
-\begin{comment}
-    Note that the DuckDB would have eliminated the need of precomputation.
-    We should avoid opening the paragraph with a sentence about precomputation.
-    This whole paragraph need to be rethinked / removed
-\end{comment}
-While precomputation minimizes query workload, the underlying storage determines how fast and reliably those aggregates are served under load.
-We initially considered querying \emph{Parquet} files directly using an embedded engine like \emph{DuckDB} to avoid managing a separate database.
-However, \emph{PostgreSQL} proved to be the better fit for our serving layer for three reasons:
-\begin{itemize}
-    \item \emph{PostgreSQL} natively handles concurrent requests, while embedded engines are single-process and struggle under load.
-    \item Precomputation reduces the workload to small, filtered lookups, which indexed tables in \emph{PostgreSQL} handle more efficiently than columnar stores.
-    \item A persistent shared database aligns better with our deployment setup than embedding an engine into the request path.
-\end{itemize}
-While \emph{DuckDB} excels at bulk data transformation, \emph{Polars} already handles our ingestion pipeline, making an additional engine redundant.
-
-\paragraph{Time and Weather Spine}
-To accurately calculate hourly utilization rates, the total number of elapsed hours within a given timeframe must be established. Our initial design derived time buckets directly from the trip logs, operating on the assumption that at least one ride occurred per hour. However, this approach proved flawed: hours with zero activity—frequently corresponding with adverse weather conditions—were inadvertently omitted. This exclusion artificially inflated averages and obscured quiet periods such as severe weather alerts.
-
-To resolve this, we generated an independent, continuous hourly calendar spine and joined the trip data to it. This methodology ensures zero-activity hours are explicitly retained, providing an accurate baseline for calculating rates, standard deviations, and weather correlations.
-
-While the time spine guarantees temporal completeness, visualizing ridership against weather conditions necessitates a two-dimensional grid. Because sparse or rare weather events can leave empty cells, we enumerate all possible grid combinations and populate missing instances with zero-valued rows. This yields a complete, rectangular dataset that renders reliably without requiring complex visualization workarounds.
-
-\paragraph{Live vs. Historical Stations}
-Station coordinates come from the live feed, while trip records span a decade of network changes.
-To ensure consistency, spatial layers join activity onto the live feed and drop unmatched stations.
-Unmatched retired stations are retained for city-wide temporal and aggregate stats, which do not require map locations.
-
-\paragraph{Geometry Without PostGIS}
-Bike lane shapes are geographic data, which would normally call for a spatial database extension such as \emph{PostGIS}.
-Because we only ever read these shapes and never query them spatially, we store each one as plain text and parse it into coordinates in the backend before serving.
-This keeps the storage layer simple and free of heavy dependencies, at the negligible cost of a lightweight parsing step.
-
-\paragraph{Caching Responses}
-To maximize responsiveness on the client side, the frontend caches (\emph{TanStack Query}) responses keyed by their exact filter set, allowing revisited views to render instantly.
-This, combined with our backend precomputation, ensures that initial requests are cheap and repeated visits are entirely free.
