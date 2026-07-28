@@ -20,7 +20,7 @@ To preserve analytical clarity, the visual design employs a restrained palette:
 This minimalist design directly reflects our proposal philosophy: prioritizing data legibility and depth over decorative ornamentation.
 \begin{figure}[ptb]
     \centering
-    \includegraphics[width=\textwidth]{../media/report/starting_page.png}
+    \includegraphics[width=0.8\textwidth]{../media/report/starting_page.png}
     \caption{Starting view of the visualization dashboard.}
     \label{fig:viz-overview}
 \end{figure}
@@ -55,7 +55,7 @@ Modifying any selection in the global header triggers a background data refetch 
 
 \begin{figure}[ptb]
     \centering
-    \includegraphics[width=\textwidth]{../media/report/header.png}
+    \includegraphics[width=0.8\textwidth]{../media/report/header.png}
     \caption{Global filter components in the header interface.}
     \label{fig:viz-filters}
 \end{figure}
@@ -84,6 +84,13 @@ Driven by precomputed hourly trip counts (Section~\ref{sec:data-pipeline}), the 
 Temporal navigation is controlled via an interactive time wheel and play controls (equipped with speed and pause settings) to animate the daily average and reveal temporal usage patterns.
 Map navigation is fully interactive, allowing users to pan and zoom across the city thanks to \texttt{deck.gl}.
 
+\begin{figure}[ptb]
+    \centering
+    \includegraphics[width=0.8\textwidth]{../media/report/primary_station_usage.png}
+    \caption{Station usage primary view: a 3D heatmap of station activity.}
+    \label{fig:viz-station-usage}
+\end{figure}
+
 To complement the spatial view, two auxiliary plots provide targeted insights (Figure~\ref{fig:viz-secondary-station-usage}):
 \begin{itemize}
 \item \textbf{Station Usage by Peak Hour}: A bar chart showing the number of stations reaching peak volume at each hour. By abstracting fine-grained spatial details, it immediately highlights the network's peak stress hours.
@@ -92,14 +99,7 @@ To complement the spatial view, two auxiliary plots provide targeted insights (F
 
 \begin{figure}[ptb]
     \centering
-    \includegraphics[width=\textwidth]{../media/report/primary_station_usage.png}
-    \caption{Station usage primary view: a 3D heatmap of station activity.}
-    \label{fig:viz-station-usage}
-\end{figure}
-
-\begin{figure}[ptb]
-    \centering
-    \includegraphics[width=\textwidth]{../media/report/secondary_station_usage.png}
+    \includegraphics[width=0.8\textwidth]{../media/report/secondary_station_usage.png}
     \caption{Station usage supplemental plots.}
     \label{fig:viz-secondary-station-usage}
 \end{figure}
@@ -113,24 +113,55 @@ To enable smooth temporal navigation, the time wheel interpolates linearly betwe
 This trade-off yields a continuous, fluid animation at the expense of rendering synthesized intermediate values rather than raw measurements.
 
 \subsubsection{Trip Flow}
-This layer draws origin-destination arcs, which read naturally as movement.
-It opens on a citywide overview of the strongest corridors and narrows to a focus view for a single station.
-Both states read from the precomputed station-to-station daily flow counts (Section~\ref{sec:data-pipeline}).
+This layer renders origin-destination arcs representing trips between stations, directly mitigating the straight-line bias discussed in \href{../../technical-report/technical-report.pdf}{\underline{technical report}}.
+Arc width encodes trip volume, dynamically scaled against the busiest corridor in the current view.
+Arc height and curvature carry no quantitative data, as they serve exclusively to disentangle overlapping paths and maintain visual readability across dense networks.
+Stations are rendered as background points that recede behind the primary flow network until explicitly selected.
+All flow metrics are derived from the precomputed station-pair aggregations (Section~\ref{sec:data-pipeline}) and normalized to daily ride averages to ensure comparability across varying observation periods.
 
-Clicking a station focuses its links, and a ranked corridor list sits beside the map; hovering or clicking a row highlights the matching arc.
-In focus, color splits the arcs into outbound and inbound, so the station reads as a net source or a net destination.
+Initial loading presents a citywide overview of the primary transit corridors (Figure~\ref{fig:viz-trip-flow-overview}), providing an immediate macroscopic view of high-volume routes prior to user interaction.
+To maximize visual reinforcement, a single-hue color ramp mirrors arc width, encoding volume across two perceptual channels.
 
-\paragraph{Challenge: keeping mid-tier corridors visible.}
+Selecting an individual station isolates its connected corridors and automatically re-frames the camera view around its dominant links (Figure~\ref{fig:viz-trip-flow-single-station}).
+Upon selection, color semantics shift from absolute volume to directional flow asymmetry, categorizing linked stations as predominantly inbound, outbound, or balanced.
+This state enables a directional filter to isolate one-way traffic flows, while re-selecting the origin station or executing a reset command restores the global overview.
+
+\begin{figure}[ptb]
+    \centering
+    \begin{minipage}[t]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../media/report/primary_trip_flow_1.png}
+        \caption{Trip flow: the citywide corridor overview }
+        \label{fig:viz-trip-flow-overview}
+    \end{minipage}
+    \hfill
+    \begin{minipage}[t]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../media/report/primary_trip_flow_2.png}
+        \caption{Trip flow: a single-station focus view.}
+        \label{fig:viz-trip-flow-single-station}
+    \end{minipage}
+\end{figure}
+
+Two secondary analytical panels complement the spatial view (Figure~\ref{fig:viz-secondary-trip-flow}):
+\begin{itemize}
+    \item \textbf{Summary Cards}: Display high-level aggregates for the active context, including total daily rides, active corridor counts, flow-weighted median trip distance, and net directional shares for selected stations.
+    \item \textbf{Ranked Corridor List}: A bar chart illustrating the top twelve corridors of the relative view. Interactive hovering highlights the corresponding spatial arc, while clicking a bar isolates that specific corridor by hiding all remaining network links.
+\end{itemize}
+
+\begin{figure}[ptb]   
+    \centering
+    \includegraphics[width=0.8\textwidth]{../media/report/secondary_trip_flow.png}
+    \caption{Trip flow supplemental plots.}
+    \label{fig:viz-secondary-trip-flow}
+\end{figure}
+
+\paragraph{Challenges}
 A few dominant corridors crushed the rest into invisibility under a linear width scale.
 We map volume to width with a square-root ramp and give the ranked corridors an opacity floor, so mid-tier flows stay legible while the busiest still stand out.
 Consistency also required the live-versus-historical station join of Section~\ref{sec:data-pipeline}: arcs are drawn only between stations present in the live feed.
 
-\begin{figure}[H]
-    \centering
-    \figplaceholder
-    \caption{Trip flow: the citywide corridor overview and a single-station focus view.}
-    \label{fig:viz-trip-flow}
-\end{figure}
+
 
 \subsubsection{Infrastructure}
 This layer maps station dots colored by live status alongside bike routes colored by facility class.
