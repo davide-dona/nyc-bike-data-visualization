@@ -10,6 +10,7 @@ Having processed and indexed the raw Citi Bike dataset into queryable API endpoi
 The application is structured as a multi-view dashboard, as introduced in Section~\ref{sec:introduction}. 
 The global header integrates these views by hosting the primary exploratory controls, centralizing the user's ability to navigate and interact with the data. 
 Each view operates as a self-contained module equipped with dedicated visual representations, control mechanisms, and explanatory guides, allowing users to focus on specific analytical tasks.
+We expanded the proposed visualizations with secondary plots to provide richer analytical context and different perspectives.
 
 To preserve analytical clarity, the visual design employs a restrained palette:
 \begin{itemize}
@@ -18,7 +19,7 @@ To preserve analytical clarity, the visual design employs a restrained palette:
     \item Animations and interface transitions are strictly not overwhelming, maintaining a professional environment tailored for deep visual analysis. 
 \end{itemize}
 This minimalist design directly reflects our proposal philosophy: prioritizing data legibility and depth over decorative ornamentation.
-\begin{figure}[ptb]
+\begin{figure}[htbp]
     \centering
     \includegraphics[width=0.8\textwidth]{../media/report/starting_page.png}
     \caption{Starting view of the visualization dashboard.}
@@ -53,7 +54,7 @@ The global header incorporates two primary filter controls (Figure~\ref{fig:viz-
 
 Modifying any selection in the global header triggers a background data refetch to update the active plots, while preserving the filter state seamlessly across route transitions.
 
-\begin{figure}[ptb]
+\begin{figure}[htbp]
     \centering
     \includegraphics[width=0.8\textwidth]{../media/report/header.png}
     \caption{Global filter components in the header interface.}
@@ -84,7 +85,7 @@ Driven by precomputed hourly trip counts (Section~\ref{sec:data-pipeline}), the 
 Temporal navigation is controlled via an interactive time wheel and play controls (equipped with speed and pause settings) to animate the daily average and reveal temporal usage patterns.
 Map navigation is fully interactive, allowing users to pan and zoom across the city thanks to \texttt{deck.gl}.
 
-\begin{figure}[ptb]
+\begin{figure}[htbp]
     \centering
     \includegraphics[width=0.8\textwidth]{../media/report/primary_station_usage.png}
     \caption{Station usage primary view: a 3D heatmap of station activity.}
@@ -97,7 +98,7 @@ To complement the spatial view, two auxiliary plots provide targeted insights (F
 \item \textbf{Busiest Stations}: A ranked bar chart of the top stations by average daily trip volume. This addresses spatial occlusion and crowding in the main map, making top-performing stations easy to identify individually.
 \end{itemize}
 
-\begin{figure}[ptb]
+\begin{figure}[htbp]
     \centering
     \includegraphics[width=0.8\textwidth]{../media/report/secondary_station_usage.png}
     \caption{Station usage supplemental plots.}
@@ -112,7 +113,7 @@ Conversely, time granularity presented a lower-bound constraint, as the precompu
 To enable smooth temporal navigation, the time wheel interpolates linearly between adjacent hourly averages. 
 This trade-off yields a continuous, fluid animation at the expense of rendering synthesized intermediate values rather than raw measurements.
 
-\subsubsection{Trip Flow}
+\subsubsection{Trip Flow}\label{sec:viz-trip-flow}
 This layer renders origin-destination arcs representing trips between stations, directly mitigating the straight-line bias discussed in \href{../../technical-report/technical-report.pdf}{\underline{technical report}}.
 Arc width encodes trip volume, dynamically scaled against the busiest corridor in the current view.
 Arc height and curvature carry no quantitative data, as they serve exclusively to disentangle overlapping paths and maintain visual readability across dense networks.
@@ -126,7 +127,7 @@ Selecting an individual station isolates its connected corridors and automatical
 Upon selection, color semantics shift from absolute volume to directional flow asymmetry, categorizing linked stations as predominantly inbound, outbound, or balanced.
 This state enables a directional filter to isolate one-way traffic flows, while re-selecting the origin station or executing a reset command restores the global overview.
 
-\begin{figure}[ptb]
+\begin{figure}[htbp]
     \centering
     \begin{minipage}[t]{0.45\textwidth}
         \centering
@@ -149,7 +150,7 @@ Two secondary analytical panels complement the spatial view (Figure~\ref{fig:viz
     \item \textbf{Ranked Corridor List}: A bar chart illustrating the top twelve corridors of the relative view. Interactive hovering highlights the corresponding spatial arc, while clicking a bar isolates that specific corridor by hiding all remaining network links.
 \end{itemize}
 
-\begin{figure}[ptb]   
+\begin{figure}[htbp]   
     \centering
     \includegraphics[width=0.8\textwidth]{../media/report/secondary_trip_flow.png}
     \caption{Trip flow supplemental plots.}
@@ -170,29 +171,62 @@ Furthermore, corridors are classified as directional only when traffic strongly 
 Otherwise, they are categorized as balanced to prevent minor fluctuations from mischaracterizing symmetric routes.
 
 \subsubsection{Infrastructure}
-This layer maps station dots colored by live status alongside bike routes colored by facility class.
-It shows how the network is structured and how it grew.
-Station status is fetched live, while route geometry is parsed in the backend from its stored text form (Section~\ref{sec:data-pipeline}).
+Although bike-lane data was initially deferred in our project proposal, preliminary visual analysis revealed that infrastructure provides critical context for bike-share usage, leading us to promote it to a dedicated map layer.
 
-Clicking a station opens a sidebar with live docks, recent history, and demand; a toggle shows or hides the routes; a year slider filters the network to a chosen year.
-Alongside, diverging bars report the segments installed and removed each year, with borough and facility-class breakdowns.
-Each segment is labeled by its best available facility class, a simplification inherited from the source data.
+The default view renders station locations colored by real-time operational status (Figure~\ref{fig:viz-infrastructure}), while an interactive toggle overlays NYC bike routes categorized by facility class (Figure~\ref{fig:viz-infrastructure-bike-routes}). 
+Station color scales reflect operational pressure (highlighting stations that are nearly empty or full) allowing users to assess system capacity risks without inspecting individual nodes.
 
-Our proposal deferred the NYC bike-lane data unless it proved necessary.
-In development, the spatial view gained the most context from it, so we promoted infrastructure to a full layer.
+Selecting a station opens a contextual sidebar uniting real-time and historical metrics:
+\begin{itemize}
+    \item \textbf{Live Availability}: Reports effective capacity, open docks, and rentable bikes (disaggregated by classic and electric models), alongside out-of-service counts.
+    \item \textbf{Historical Profile}: Displays hourly and daily ride distributions, identifying peak usage hours, busiest days, and overall arrival-departure balance.
+    \item \textbf{Top Connected Stations}: Ranks the station's five strongest corridors. Selecting a corridor re-centers the interface on the partner station, allowing sequential exploration across connected routes.
+\end{itemize}
 
-\paragraph{Challenge: reconstructing the network's history.}
-Segments carry an install date and, where present, a retirement date.
-We use these to filter the routes by year and to compute the per-year additions and removals shown in the bars, turning a static map into a timeline of the city's cycling infrastructure.
+A temporal slider completes the infrastructure layer, allowing users to filter bike lanes by installation year.
+By rendering only segments active in a selected year, the layer transforms from a static overview into a historical view of NYC's evolving cycling network.
 
-\begin{figure}[H]
+\begin{figure}[htbp]
     \centering
-    \figplaceholder
-    \caption{Infrastructure: station status, bike routes, and the year slider with per-year network changes.}
-    \label{fig:viz-infrastructure}
+    \begin{minipage}[t]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../media/report/primary_infrastructure_1.png}
+        \caption{Infrastructure: the network's spatial station distribution.}
+        \label{fig:viz-infrastructure}
+    \end{minipage}
+    \hfill
+    \begin{minipage}[t]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../media/report/primary_infrastructure_2.png}
+        \caption{Infrastructure: the network's spatial station distribution paired with bike routes.}
+        \label{fig:viz-infrastructure-bike-routes}
+    \end{minipage}
 \end{figure}
 
-\subsection{Temporal}
+Three supplementary plots extend the bike lanes infrastructure view (Figure~\ref{fig:viz-secondary-infrastructure}):
+\begin{itemize}
+    \item \textbf{Network Changes by Year}: A diverging bar chart counting segments installed above the axis and retired below it, giving the temporal overview the map alone cannot convey.
+    \item \textbf{Segments by Borough}: A ranked breakdown comparing network size across the five boroughs.
+    \item \textbf{Segments by Facility Class}: The same count split by protection level, showing how much of the network is physically separated.
+\end{itemize}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.8\textwidth]{../media/report/secondary_infrastructure.png}
+    \caption{Infrastructure supplemental plots.}
+    \label{fig:viz-secondary-infrastructure}
+\end{figure}
+
+\paragraph{Challenges}
+Sentinel installation dates required careful handling rather than simple exclusion.
+Segments marked with \texttt{01/01/1900} predate formal record-keeping, and dropping them would have omitted long-standing parkway paths from the network.
+We retain these segments and clarify the convention in a chart note, ensuring the earliest temporal bin reads as a historical baseline rather than an active construction year.
+
+Integrating real-time and historical datasets introduced an unavoidable temporal mismatch. 
+While bike routes include installation and retirement timestamps, station metadata is available only as a live snapshot (Section~\ref{sec:data-pipeline}).
+Consequently, the temporal slider filters the route network exclusively while holding station locations at their current state, avoiding speculative reconstruction of past station positions.
+
+\subsection{Temporal}\label{sec:viz-temporal}
 The temporal view centers on a three-dimensional surface over the $7 \times 24$ grid of weekday and hour, flanked by two marginal histograms, one by day and one by hour, and a line chart over the selected date range.
 A metric selector switches what the surface encodes: ride count, average duration, distance, or speed.
 The week has two periodic axes, so a surface shows their joint pattern, such as weekday commute ridges, that separate small multiples would fragment.
