@@ -47,6 +47,8 @@ function TemporalPage({ filters, onCompareModeChange }) {
         hasPinnedCompareLayers,
         pendingLayerFilters,
         compareLayers,
+        isBaseLayerVisible,
+        visibleSurfaceCount,
         isPendingSelectionDuplicate,
         compareButtonRef,
         comparePanelRef,
@@ -58,6 +60,7 @@ function TemporalPage({ filters, onCompareModeChange }) {
         handleAddLayer,
         handleRemoveLayer,
         handleToggleLayerVisibility,
+        handleToggleBaseLayerVisibility,
         handleResetCompare,
     } = useCompareLayerState({ filtersKey, baseLayerKey, overlayRef, onCompareModeChange });
 
@@ -81,6 +84,7 @@ function TemporalPage({ filters, onCompareModeChange }) {
         stats,
         compareLayers,
         hasPinnedCompareLayers,
+        isBaseLayerVisible,
         compare,
     });
 
@@ -172,7 +176,9 @@ function TemporalPage({ filters, onCompareModeChange }) {
                             <CompareLayerList
                                 baseLayer={baseLayer}
                                 layers={comparedLayers}
+                                visibleSurfaceCount={visibleSurfaceCount}
                                 onToggleVisibility={handleToggleLayerVisibility}
+                                onToggleBaseVisibility={handleToggleBaseLayerVisibility}
                                 onRemove={handleRemoveLayer}
                             />
                         </CompareControlPanel>

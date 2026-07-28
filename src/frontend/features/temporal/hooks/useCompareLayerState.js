@@ -25,6 +25,7 @@ export default function useCompareLayerState({ filtersKey, baseLayerKey, overlay
         bike_type: "",
     });
     const [compareLayers, setCompareLayers] = useState([]);
+    const [isBaseLayerVisible, setIsBaseLayerVisible] = useState(true);
     const previousFiltersKeyRef = useRef(filtersKey);
     const compareButtonRef = useRef(null);
     const comparePanelRef = useRef(null);
@@ -32,6 +33,11 @@ export default function useCompareLayerState({ filtersKey, baseLayerKey, overlay
     const addLayerButtonRef = useRef(null);
     const hasPinnedCompareLayers = compareLayers.length > 0;
     const isComparePanelOpen = isCompareMode || isCompareHovered;
+    // The plot must always keep one surface, so the last visible one cannot be
+    // hidden or removed. Every toggle below is guarded against that count.
+    const visibleSurfaceCount =
+        (isBaseLayerVisible ? 1 : 0) +
+        compareLayers.filter((layer) => layer.visible).length;
 
     const handleCompareToggle = () => {
         // Avoid closing when hover already opened the panel.
@@ -134,23 +140,35 @@ export default function useCompareLayerState({ filtersKey, baseLayerKey, overlay
 
     const handleResetCompare = () => {
         setCompareLayers([]);
+        setIsBaseLayerVisible(true);
         setPendingLayerFilters({ user_type: "", bike_type: "" });
     };
 
     const handleRemoveLayer = (layerId) => {
-        setCompareLayers((prev) =>
-            prev.filter((layer) => layer.id !== layerId),
-        );
+        setCompareLayers((prev) => {
+            const target = prev.find((layer) => layer.id === layerId);
+            if (!target) return prev;
+            // Dropping the last visible surface would blank the plot.
+            if (target.visible && visibleSurfaceCount <= 1) return prev;
+            return prev.filter((layer) => layer.id !== layerId);
+        });
     };
 
     const handleToggleLayerVisibility = (layerId) => {
         setCompareLayers((prev) =>
-            prev.map((layer) =>
-                layer.id === layerId
-                    ? { ...layer, visible: !layer.visible }
-                    : layer,
-            ),
+            prev.map((layer) => {
+                if (layer.id !== layerId) return layer;
+                if (layer.visible && visibleSurfaceCount <= 1) return layer;
+                return { ...layer, visible: !layer.visible };
+            }),
         );
+    };
+
+    const handleToggleBaseLayerVisibility = () => {
+        setIsBaseLayerVisible((prev) => {
+            if (prev && visibleSurfaceCount <= 1) return prev;
+            return !prev;
+        });
     };
 
     const pendingCandidateKey = useMemo(
@@ -186,6 +204,7 @@ export default function useCompareLayerState({ filtersKey, baseLayerKey, overlay
         previousFiltersKeyRef.current = filtersKey;
         setIsCompareMode(false);
         setCompareLayers([]);
+        setIsBaseLayerVisible(true);
         setPendingLayerFilters({ user_type: "", bike_type: "" });
     }, [filtersKey]);
 
@@ -227,6 +246,8 @@ export default function useCompareLayerState({ filtersKey, baseLayerKey, overlay
         hasPinnedCompareLayers,
         pendingLayerFilters,
         compareLayers,
+        isBaseLayerVisible,
+        visibleSurfaceCount,
         isPendingSelectionDuplicate,
         compareButtonRef,
         comparePanelRef,
@@ -238,6 +259,7 @@ export default function useCompareLayerState({ filtersKey, baseLayerKey, overlay
         handleAddLayer,
         handleRemoveLayer,
         handleToggleLayerVisibility,
+        handleToggleBaseLayerVisibility,
         handleResetCompare,
     };
 }

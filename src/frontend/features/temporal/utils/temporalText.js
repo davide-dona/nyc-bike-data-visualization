@@ -18,6 +18,7 @@ export const TEMPORAL_TEXT = {
         hide: 'Hide',
         show: 'Show',
         remove: 'Remove',
+        lastVisibleHint: 'At least one surface must stay visible.',
     },
     lineChart: {
         titleSuffix: ' over selected time range',

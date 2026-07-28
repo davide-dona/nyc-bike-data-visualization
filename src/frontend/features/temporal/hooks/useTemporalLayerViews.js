@@ -14,6 +14,7 @@ import {
  * @param {Object} stats - Result of useTemporalStats (data, loading, error, queries).
  * @param {Array<Object>} compareLayers - Pinned compare layers (without data).
  * @param {boolean} hasPinnedCompareLayers - Whether any compare layer is pinned.
+ * @param {boolean} isBaseLayerVisible - Whether the base surface is currently shown.
  * @param {Object} compare - Result of useCompareTemporalLayers (layerData, loading, error, refetch).
  * @returns {Object} baseLayer, comparedLayers, activeLayers, merged states, and per-chart states.
  */
@@ -22,6 +23,7 @@ export default function useTemporalLayerViews({
     stats,
     compareLayers,
     hasPinnedCompareLayers,
+    isBaseLayerVisible = true,
     compare,
 }) {
     const { dayHourStats, dayStats, hourStats, dateStats, loading, error, queries } = stats;
@@ -56,7 +58,7 @@ export default function useTemporalLayerViews({
             label: `Current: ${buildLayerLabel(baseClassFilters)}`,
             color: COMPARE_LAYER_COLORS[0],
             colorscale: COMPARE_LAYER_SCALES[0],
-            visible: true,
+            visible: isBaseLayerVisible,
             dayHourStats,
             dayStats,
             hourStats,
@@ -64,12 +66,15 @@ export default function useTemporalLayerViews({
             loading,
             error,
         }),
-        [baseClassFilters, dayHourStats, dayStats, hourStats, dateStats, loading, error],
+        [baseClassFilters, isBaseLayerVisible, dayHourStats, dayStats, hourStats, dateStats, loading, error],
     );
 
     const activeLayers = useMemo(() => {
         if (!hasPinnedCompareLayers) return [baseLayer];
-        return [baseLayer, ...comparedLayers.filter((layer) => layer.visible)];
+        return [
+            ...(baseLayer.visible ? [baseLayer] : []),
+            ...comparedLayers.filter((layer) => layer.visible),
+        ];
     }, [hasPinnedCompareLayers, baseLayer, comparedLayers]);
 
     const mergedLoading = loading || (hasPinnedCompareLayers && compareLoading);
