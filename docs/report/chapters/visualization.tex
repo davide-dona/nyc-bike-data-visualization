@@ -227,28 +227,66 @@ While bike routes include installation and retirement timestamps, station metada
 Consequently, the temporal slider filters the route network exclusively while holding station locations at their current state, avoiding speculative reconstruction of past station positions.
 
 \subsection{Temporal}\label{sec:viz-temporal}
-The temporal view centers on a three-dimensional surface over the $7 \times 24$ grid of weekday and hour, flanked by two marginal histograms, one by day and one by hour, and a line chart over the selected date range.
-A metric selector switches what the surface encodes: ride count, average duration, distance, or speed.
-The week has two periodic axes, so a surface shows their joint pattern, such as weekday commute ridges, that separate small multiples would fragment.
-The histograms give the exact marginal for each axis, and the line chart shows the trend over calendar time.
+The temporal view centers on a 3D surface plot over a $7 \times 24$ grid of weekdays and hours, generated from hourly aggregates rolled up into day-hour cells (Section~\ref{sec:data-pipeline}).
+A metric selector toggles the surface encoding between average ride volume, duration, distance, and speed.
+Users can freely rotate the 3D surface to inspect temporal relief from any perspective, while hovering over individual points reveals exact values (Figure~\ref{fig:viz-temporal-surface}).
 
-The view reads from the hourly aggregates rolled up to day-hour cells (Section~\ref{sec:data-pipeline}).
-The time spine matters here: zero-activity hours are retained, so averages are not inflated by silently dropping quiet periods.
-Hovering a cell highlights the matching bars in both histograms, and clicking a bar pins that day or hour and overlays its profile on the other chart.
-A compare mode stacks several user and bike combinations as separate surfaces.
-This view stayed close to the proposal, which already sketched a surface paired with aligned charts.
-
-\paragraph{Challenge: keeping three linked charts consistent.}
-The surface, the two histograms, and any pinned slice must always agree.
-We hold the hovered cell and the pinned day or hour in shared state, so a hover lights the correct bars while a pinned slice draws both on the opposite histogram and as a guide line on the surface.
-This lets the user confirm a peak seen on the surface against its exact marginal value.
-
-\begin{figure}[H]
+Although global header filters can isolate specific user demographics or bike types, comparing them sequentially imposes a heavy cognitive load.
+To address this, we introduced a multi-surface comparison mode (expanding upon our initial proposal) that overlays multiple surfaces within the same coordinate space (Figure~\ref{fig:viz-temporal-compare}).
+Each surface maintains its own color gradient, with upper layers rendered semi-transparently to preserve the visibility of underlying topologies.
+\begin{figure}[htbp]
     \centering
-    \figplaceholder
-    \caption{Temporal view: the day-hour surface with its day and hour histograms and the date line chart.}
-    \label{fig:viz-temporal}
+    \begin{minipage}[t]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../media/report/primary_temporal_1.png}
+        \caption{Temporal view: the day-hour surface }
+        \label{fig:viz-temporal-surface}
+    \end{minipage}
+    \hfill
+    \begin{minipage}[t]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../media/report/primary_temporal_2.png}
+        \caption{Temporal view: the day-hour surface with comparison mode enabled.}
+        \label{fig:viz-temporal-compare}
+    \end{minipage}
 \end{figure}
+
+Two marginal histograms accompany the surface plot, aggregating data by weekday and hour (Figure~\ref{fig:viz-temporal-hist}).
+To clarify cross-chart relationships, all three views are interactively linked: hovering over a surface cell highlights the corresponding bars in both histograms, while clicking a bar pins a specific day or hour.
+Selecting a bar projects its distribution onto the opposite histogram and overlays a cross-sectional trace across the 3D surface.
+In comparison mode, the histograms display colored bars for each active surface (Figure~\ref{fig:viz-temporal-hist-compare}).
+
+Because grid-level averages tend to mask single-day anomalies like holidays or severe weather, a supplementary line chart plots individual dates continuously.
+This restores fine-grained detail and highlights temporal outliers that would otherwise remain hidden.
+\begin{figure}[htbp]
+    \centering
+    \begin{minipage}[t]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../media/report/secondary_temporal_1.png}
+        \caption{Supplemental temporal plots: the day and hour histograms and the date line chart.}
+        \label{fig:viz-temporal-hist}
+    \end{minipage}
+    \hfill
+    \begin{minipage}[t]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../media/report/secondary_temporal_2.png}
+        \caption{Supplemental temporal plots: the day and hour histograms and the date line chart with comparison mode enabled.}
+        \label{fig:viz-temporal-hist-compare}
+    \end{minipage}
+\end{figure}
+
+\paragraph{Challenges}
+Comparison mode intentionally disables this pinning mechanism.
+With multiple stacked surfaces, a single cross-sectional trace becomes ambiguous across overlapping populations.
+Consequently, opening comparison mode clears active pins and restricts slice selection. 
+This design explicitly separates two distinct analytical tasks: in-depth inspection of a single population versus high-level comparison across several cohorts.
+
+To maintain analytical integrity, comparison mode enforces three structural safeguards:
+\begin{itemize}
+    \item \textbf{Duplicate Prevention:} Prohibits adding duplicate layers, as identical surfaces would only occlude each other without adding analytical value.
+    \item \textbf{Filter Consistency:} Clears all pinned comparison layers whenever global header filters change, ensuring stale data is not compared against a newly selected population.
+    \item \textbf{Canvas Persistence:} Prevents the removal or hiding of the final active surface so the visual canvas is never left empty.
+\end{itemize}
 
 \subsection{Weather}
 The weather view combines four charts that together answer whether, when, and for whom weather changes behavior.
