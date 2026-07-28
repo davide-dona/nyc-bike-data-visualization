@@ -6,7 +6,7 @@ import useBarChart from '../hooks/useBarChart.js'
  * @param {string} highlight - Label of the bar to render in the solid color.
  * @param {Array} compareDatasets - Optional [{ label, data, color }] compare datasets.
  * @param {Function} onBarClick - Optional (index, label) callback; enables the pointer cursor over bars.
- * @param {Object} overlayDataset - Optional { label, data } line drawn over the bars (pinned slice from the other chart).
+ * @param {Array} overlayDatasets - Optional [{ label, data, color }] lines drawn over the bars (pinned slice from the other chart, one per layer).
  * @param {string} selectedLabel - Label of the pinned bar, painted in the amber selection color.
  * @param {string} [valueNoun='Rides'] - Tooltip name for the value (e.g. "Rides", "Duration").
  * @returns A canvas element where the Chart.js bar chart is rendered.
@@ -22,7 +22,7 @@ export default function BarChart({
     xLabelStep = 1,
     compareDatasets = null,
     onBarClick = null,
-    overlayDataset = null,
+    overlayDatasets = null,
     selectedLabel = null,
     valueNoun = 'Rides',
 }) {
@@ -37,7 +37,7 @@ export default function BarChart({
         xLabelStep,
         compareDatasets,
         onBarClick,
-        overlayDataset,
+        overlayDatasets,
         selectedLabel,
         valueNoun,
     })

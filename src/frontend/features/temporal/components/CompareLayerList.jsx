@@ -1,16 +1,14 @@
 import { TEMPORAL_TEXT } from '../utils/temporalText.js'
 
 /**
- * Collapsible list of surfaces in the compare panel: the base layer plus one
- * row per compare layer, each with Hide/Show and (compare layers only) Remove.
- * The plot must keep one surface, so whichever row is the last visible one has
- * its actions disabled.
- * @param {Object} baseLayer - The base layer (color, label, visible).
+ * Collapsible list of surfaces in the compare panel: the base layer followed
+ * by one row per compare layer, each with Hide/Show and Remove. The plot must
+ * keep one surface, so the last visible row shows no actions at all.
+ * @param {Object|null} baseLayer - The base layer (id, color, label, visible), or null once removed.
  * @param {Array<Object>} layers - Compare layers (id, color, label, visible).
- * @param {number} visibleSurfaceCount - How many surfaces are currently shown.
- * @param {Function} onToggleVisibility - Toggles a compare layer's visibility by id.
- * @param {Function} onToggleBaseVisibility - Toggles the base layer's visibility.
- * @param {Function} onRemove - Removes a compare layer by id.
+ * @param {number} visibleSurfaceCount - How many surfaces are currently drawn.
+ * @param {Function} onToggleVisibility - Toggles a surface's visibility by id.
+ * @param {Function} onRemove - Removes a surface by id.
  * @returns The rendered surfaces list.
  */
 export default function CompareLayerList({
@@ -18,18 +16,15 @@ export default function CompareLayerList({
     layers,
     visibleSurfaceCount,
     onToggleVisibility,
-    onToggleBaseVisibility,
     onRemove,
 }) {
-    // A visible row is locked while it is the only surface left on the plot.
-    const isLastVisible = (layer) => layer.visible && visibleSurfaceCount <= 1
-    const lockedHint = TEMPORAL_TEXT.layerList.lastVisibleHint
+    const surfaces = baseLayer ? [baseLayer, ...layers] : layers
 
     return (
         <details className="surface-layer-list" open>
             <summary>
                 <span className="surface-layer-list__title">
-                    {TEMPORAL_TEXT.layerList.title} ({1 + layers.length})
+                    {TEMPORAL_TEXT.layerList.title} ({surfaces.length})
                 </span>
                 <span
                     className="surface-layer-list__hint"
@@ -50,81 +45,52 @@ export default function CompareLayerList({
                 </span>
             </summary>
             <div className="surface-layer-list__items">
-                <div className="surface-layer-item is-base">
-                    <span
-                        className="surface-layer-swatch"
-                        style={{
-                            backgroundColor: baseLayer.color,
-                        }}
-                    />
-                    <span className="surface-layer-name">
-                        {baseLayer.label}
-                    </span>
-                    <button
-                        type="button"
-                        className={`surface-layer-toggle${baseLayer.visible ? " is-on" : ""}`}
-                        onClick={onToggleBaseVisibility}
-                        disabled={isLastVisible(baseLayer)}
-                        title={isLastVisible(baseLayer) ? lockedHint : undefined}
-                    >
-                        <span
-                            className="surface-btn-icon"
-                            aria-hidden="true"
-                        >
-                            <i
-                                className={`fa-solid ${baseLayer.visible ? "fa-eye-slash" : "fa-eye"}`}
-                            />
-                        </span>
-                        {baseLayer.visible ? TEMPORAL_TEXT.layerList.hide : TEMPORAL_TEXT.layerList.show}
-                    </button>
-                </div>
-
-                {layers.map((layer) => (
+                {surfaces.map((surface) => (
                     <div
-                        key={layer.id}
-                        className="surface-layer-item"
+                        key={surface.id}
+                        className={`surface-layer-item${surface.id === baseLayer?.id ? " is-base" : ""}`}
                     >
                         <span
                             className="surface-layer-swatch"
                             style={{
-                                backgroundColor: layer.color,
+                                backgroundColor: surface.color,
                             }}
                         />
                         <span className="surface-layer-name">
-                            {layer.label}
+                            {surface.label}
                         </span>
-                        <button
-                            type="button"
-                            className={`surface-layer-toggle${layer.visible ? " is-on" : ""}`}
-                            onClick={() => onToggleVisibility(layer.id)}
-                            disabled={isLastVisible(layer)}
-                            title={isLastVisible(layer) ? lockedHint : undefined}
-                        >
-                            <span
-                                className="surface-btn-icon"
-                                aria-hidden="true"
-                            >
-                                <i
-                                    className={`fa-solid ${layer.visible ? "fa-eye-slash" : "fa-eye"}`}
-                                />
-                            </span>
-                            {layer.visible ? TEMPORAL_TEXT.layerList.hide : TEMPORAL_TEXT.layerList.show}
-                        </button>
-                        <button
-                            type="button"
-                            className="surface-layer-delete"
-                            onClick={() => onRemove(layer.id)}
-                            disabled={isLastVisible(layer)}
-                            title={isLastVisible(layer) ? lockedHint : undefined}
-                        >
-                            <span
-                                className="surface-btn-icon"
-                                aria-hidden="true"
-                            >
-                                <i className="fa-solid fa-trash" />
-                            </span>
-                            {TEMPORAL_TEXT.layerList.remove}
-                        </button>
+                        {!(surface.visible && visibleSurfaceCount <= 1) && (
+                            <>
+                                <button
+                                    type="button"
+                                    className={`surface-layer-toggle${surface.visible ? " is-on" : ""}`}
+                                    onClick={() => onToggleVisibility(surface.id)}
+                                >
+                                    <span
+                                        className="surface-btn-icon"
+                                        aria-hidden="true"
+                                    >
+                                        <i
+                                            className={`fa-solid ${surface.visible ? "fa-eye-slash" : "fa-eye"}`}
+                                        />
+                                    </span>
+                                    {surface.visible ? TEMPORAL_TEXT.layerList.hide : TEMPORAL_TEXT.layerList.show}
+                                </button>
+                                <button
+                                    type="button"
+                                    className="surface-layer-delete"
+                                    onClick={() => onRemove(surface.id)}
+                                >
+                                    <span
+                                        className="surface-btn-icon"
+                                        aria-hidden="true"
+                                    >
+                                        <i className="fa-solid fa-trash" />
+                                    </span>
+                                    {TEMPORAL_TEXT.layerList.remove}
+                                </button>
+                            </>
+                        )}
                     </div>
                 ))}
             </div>

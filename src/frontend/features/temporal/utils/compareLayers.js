@@ -12,6 +12,8 @@ export const COMPARE_LAYER_SCALES = ["Blues", "Reds", "Greens", "Oranges", "Purp
 
 export const CLASS_FILTER_KEYS = ["user_type", "bike_type"];
 
+export const BASE_LAYER_ID = "base-layer";
+
 /**
  * Formats a raw filter value (e.g. "classic_bike") into a display label
  * ("Classic Bike"), with a fallback to "All" when the value is empty.

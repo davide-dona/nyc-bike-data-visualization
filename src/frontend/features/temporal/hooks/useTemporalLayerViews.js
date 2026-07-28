@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import {
+    BASE_LAYER_ID,
     COMPARE_LAYER_COLORS,
     COMPARE_LAYER_SCALES,
     buildLayerLabel,
@@ -54,7 +55,7 @@ export default function useTemporalLayerViews({
 
     const baseLayer = useMemo(
         () => ({
-            id: "base-layer",
+            id: BASE_LAYER_ID,
             label: `Current: ${buildLayerLabel(baseClassFilters)}`,
             color: COMPARE_LAYER_COLORS[0],
             colorscale: COMPARE_LAYER_SCALES[0],

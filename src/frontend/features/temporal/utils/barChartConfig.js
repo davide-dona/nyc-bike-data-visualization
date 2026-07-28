@@ -16,12 +16,12 @@ import { buildDatasetColors } from './chartColors.js'
  * @param {Array} data - Single-series values (ignored in compare mode).
  * @param {Array} labels - Category labels.
  * @param {Array|null} compareDatasets - Optional [{ label, data, color }] compare datasets.
- * @param {Object|null} overlayDataset - Optional { label, data } line series drawn over the bars.
+ * @param {Array|null} overlayDatasets - Optional [{ label, data, color }] pinned-slice lines drawn over the bars.
  * @param {string|null} highlight - Label of the hovered bar (solid color).
  * @param {string|null} selectedLabel - Label of the pinned bar (amber selection color).
  * @returns {Array<Object>} Chart.js dataset configs.
  */
-export function buildTemporalBarDatasets({ data, labels, compareDatasets, overlayDataset, highlight, selectedLabel }) {
+export function buildTemporalBarDatasets({ data, labels, compareDatasets, overlayDatasets, highlight, selectedLabel }) {
     const hasCompareDatasets = Array.isArray(compareDatasets) && compareDatasets.length > 0
     const compareList = hasCompareDatasets ? compareDatasets : null
 
@@ -45,20 +45,25 @@ export function buildTemporalBarDatasets({ data, labels, compareDatasets, overla
             borderSkipped: false,
         }]
 
-    // The pinned slice from the other chart, drawn as a line over the bars
-    return overlayDataset
-        ? [{
+    const overlayList = Array.isArray(overlayDatasets) ? overlayDatasets : []
+    // The pinned slice from the other chart, one line per layer over the bars
+    const overlayLines = overlayList.map((overlay) => {
+        const color = overlayList.length > 1 ? (overlay.color ?? LINE_PINNED) : LINE_PINNED
+
+        return {
             type: 'line',
-            label: overlayDataset.label,
-            data: overlayDataset.data,
-            borderColor: LINE_PINNED,
-            backgroundColor: LINE_PINNED,
+            label: overlay.label,
+            data: overlay.data,
+            borderColor: color,
+            backgroundColor: color,
             pointRadius: 2.5,
             borderWidth: 2,
             tension: 0.25,
             order: -1,
-        }, ...barDatasets]
-        : barDatasets
+        }
+    })
+
+    return [...overlayLines, ...barDatasets]
 }
 
 /**
@@ -86,7 +91,7 @@ export function applyTemporalBarPaint(chart, { labels, compareDatasets, highligh
  * @param {Array} data - Single-series values (ignored in compare mode).
  * @param {Array} labels - Category labels.
  * @param {Array|null} compareDatasets - Optional [{ label, data, color }] compare datasets.
- * @param {Object|null} overlayDataset - Optional { label, data } line series drawn over the bars.
+ * @param {Array|null} overlayDatasets - Optional [{ label, data, color }] pinned-slice lines drawn over the bars.
  * @param {string} xAxisTitle - Title of the x axis.
  * @param {string} yAxisTitle - Title of the y axis.
  * @param {string} unit - Unit appended to y-axis ticks.
@@ -100,7 +105,7 @@ export function buildTemporalBarChartConfig({
     data,
     labels,
     compareDatasets,
-    overlayDataset,
+    overlayDatasets,
     xAxisTitle,
     yAxisTitle,
     unit,
@@ -110,7 +115,6 @@ export function buildTemporalBarChartConfig({
     live,
 }) {
     const hasCompareDatasets = Array.isArray(compareDatasets) && compareDatasets.length > 0
-    const hasOverlay = Boolean(overlayDataset)
     const isHourChart = xAxisTitle === 'Hour of Day'
     const tooltipLabelCallback = (tooltipCtx) => {
         const valueLabel = formatTooltipLabel(live.current.format, tooltipCtx)
@@ -134,7 +138,7 @@ export function buildTemporalBarChartConfig({
                 data,
                 labels,
                 compareDatasets,
-                overlayDataset,
+                overlayDatasets,
                 highlight: live.current.highlight,
                 selectedLabel: live.current.selectedLabel,
             }),
@@ -162,7 +166,7 @@ export function buildTemporalBarChartConfig({
                 : undefined,
             plugins: {
                 legend: {
-                    display: hasCompareDatasets || hasOverlay,
+                    display: hasCompareDatasets,
                     position: 'top',
                     labels: {
                         boxWidth: 10,
@@ -170,8 +174,10 @@ export function buildTemporalBarChartConfig({
                         useBorderRadius: false,
                         font: { family: FONT_MONO, size: 10 },
                         color: INK_MUTED,
-                        // The single-mode bar dataset has no label; keep it out of the legend
-                        filter: (item) => Boolean(item.text),
+                        // The single-mode bar dataset has no label, and the pinned-slice
+                        // lines are named by the card title; keep both out of the legend
+                        filter: (item, chartData) =>
+                            Boolean(item.text) && chartData.datasets[item.datasetIndex]?.type !== 'line',
                     },
                 },
                 tooltip: {

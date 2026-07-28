@@ -30,8 +30,6 @@ export default function useSurfaceLineChart({ dateData, activeMetric, compareMod
     )
 
     const compareTraces = useMemo(() => {
-        // One visible layer still goes through here: hiding the base leaves a
-        // single compare series, which must plot its own data, not the base's.
         if (!compareMode || layers.length === 0) return []
 
         return layers

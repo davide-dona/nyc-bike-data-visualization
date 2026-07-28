@@ -8,8 +8,8 @@ import ChartFrame from "@/components/ChartFrame.jsx"
  * one for hour of day.
  * @param {Object} coordinates - The hovered surface point, used to highlight matching bars.
  * @param {Object} pinnedSlice - The pinned bar ({ type: 'day'|'hour', index, label }) or null.
- * @param {Object} overlay - The derived overlay series ({ target, label, data }) or null; drawn on the opposite card.
- * @param {Function} onBarClick - (type, index, label) callback when a bar is clicked; absent while comparing.
+ * @param {Object} overlay - The derived overlay ({ target, label, series }) or null; drawn on the opposite card, one line per layer.
+ * @param {Function} onBarClick - (type, index, label) callback when a bar is clicked.
  * @returns The rendered histogram grid.
  */
 export default function SurfaceHistograms({
@@ -112,7 +112,7 @@ export default function SurfaceHistograms({
                             xLabelStep={xLabelStep}
                             compareDatasets={compareDatasetsByCard?.[xAxisTitle]}
                             onBarClick={onBarClick ? (index, barLabel) => onBarClick(type, index, barLabel) : null}
-                            overlayDataset={isOverlayTarget ? { label: overlay.label, data: overlay.data } : null}
+                            overlayDatasets={isOverlayTarget ? overlay.series : null}
                             selectedLabel={selectedLabel}
                         />
                     </ChartFrame>

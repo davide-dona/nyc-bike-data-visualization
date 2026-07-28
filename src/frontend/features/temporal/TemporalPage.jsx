@@ -48,6 +48,7 @@ function TemporalPage({ filters, onCompareModeChange }) {
         pendingLayerFilters,
         compareLayers,
         isBaseLayerVisible,
+        isBaseLayerRemoved,
         visibleSurfaceCount,
         isPendingSelectionDuplicate,
         compareButtonRef,
@@ -60,7 +61,6 @@ function TemporalPage({ filters, onCompareModeChange }) {
         handleAddLayer,
         handleRemoveLayer,
         handleToggleLayerVisibility,
-        handleToggleBaseLayerVisibility,
         handleResetCompare,
     } = useCompareLayerState({ filtersKey, baseLayerKey, overlayRef, onCompareModeChange });
 
@@ -95,8 +95,7 @@ function TemporalPage({ filters, onCompareModeChange }) {
         handleClearPin,
     } = usePinnedSlice({
         filtersKey,
-        hasPinnedCompareLayers,
-        dayHourStats: stats.dayHourStats,
+        layers: activeLayers,
         activeMetric,
     });
 
@@ -146,8 +145,8 @@ function TemporalPage({ filters, onCompareModeChange }) {
                         onRefetch={surfaceState.refetch}
                         compareMode={hasPinnedCompareLayers}
                         layers={activeLayers}
-                        pinnedSlice={hasPinnedCompareLayers ? null : pinnedSlice}
-                        sliceValues={sliceOverlay?.data ?? null}
+                        pinnedSlice={pinnedSlice}
+                        sliceSeries={sliceOverlay?.series ?? null}
                     />
 
                     <div ref={overlayRef} className={"surface-plot-overlay"}>
@@ -174,11 +173,10 @@ function TemporalPage({ filters, onCompareModeChange }) {
                             addLayerButtonRef={addLayerButtonRef}
                         >
                             <CompareLayerList
-                                baseLayer={baseLayer}
+                                baseLayer={isBaseLayerRemoved ? null : baseLayer}
                                 layers={comparedLayers}
                                 visibleSurfaceCount={visibleSurfaceCount}
                                 onToggleVisibility={handleToggleLayerVisibility}
-                                onToggleBaseVisibility={handleToggleBaseLayerVisibility}
                                 onRemove={handleRemoveLayer}
                             />
                         </CompareControlPanel>
@@ -206,9 +204,9 @@ function TemporalPage({ filters, onCompareModeChange }) {
                     onRefetch={histogramsState.refetch}
                     compareMode={hasPinnedCompareLayers}
                     layers={activeLayers}
-                    pinnedSlice={hasPinnedCompareLayers ? null : pinnedSlice}
+                    pinnedSlice={pinnedSlice}
                     overlay={sliceOverlay}
-                    onBarClick={hasPinnedCompareLayers ? null : handleSliceBarClick}
+                    onBarClick={handleSliceBarClick}
                     onClearPin={handleClearPin}
                 />
 

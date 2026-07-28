@@ -20,7 +20,7 @@ import {
  * @param {number} params.xLabelStep - Step between rendered x labels.
  * @param {Array|null} params.compareDatasets - Optional [{ label, data, color }] compare datasets.
  * @param {Function|null} params.onBarClick - Optional (index, label) callback enabling the pointer cursor.
- * @param {Object|null} params.overlayDataset - Optional { label, data } line drawn over the bars.
+ * @param {Array|null} params.overlayDatasets - Optional [{ label, data, color }] pinned-slice lines drawn over the bars.
  * @param {string|null} params.selectedLabel - Label of the pinned bar, painted in the amber selection color.
  * @param {string} params.valueNoun - Tooltip name for the value.
  * @returns {{canvasRef: Object}} Canvas ref where the Chart.js bar chart is rendered.
@@ -36,7 +36,7 @@ export default function useBarChart({
     xLabelStep,
     compareDatasets,
     onBarClick,
-    overlayDataset,
+    overlayDatasets,
     selectedLabel,
     valueNoun,
 }) {
@@ -49,7 +49,7 @@ export default function useBarChart({
         data,
         labels,
         compareDatasets,
-        overlayDataset,
+        overlayDatasets,
         xAxisTitle ?? '',
         yAxisTitle ?? '',
         unit ?? '',
@@ -65,7 +65,7 @@ export default function useBarChart({
                 data,
                 labels,
                 compareDatasets,
-                overlayDataset,
+                overlayDatasets,
                 xAxisTitle,
                 yAxisTitle,
                 unit,

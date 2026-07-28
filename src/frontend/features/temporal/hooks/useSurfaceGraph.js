@@ -28,7 +28,7 @@ import {
  * @param {boolean} compareMode - Whether comparison surfaces are pinned.
  * @param {Array} layers - Active compare layers ({ label, dayHourStats, colorscale }).
  * @param {Object|null} pinnedSlice - The pinned bar ({ type: 'day'|'hour', index, label }) or null.
- * @param {Array|null} sliceValues - The pinned slice's metric values (24 for a day pin, 7 for an hour pin).
+ * @param {Array|null} sliceSeries - The pinned slice per layer ([{ label, color, data }]); 24 values for a day pin, 7 for an hour pin.
  * @returns {Object} Everything the SurfaceGraph render needs: refs, traces, layout, flags, and event handlers.
  */
 export default function useSurfaceGraph({
@@ -39,7 +39,7 @@ export default function useSurfaceGraph({
     compareMode,
     layers,
     pinnedSlice,
-    sliceValues,
+    sliceSeries,
 }) {
     const safeData = Array.isArray(data) ? data : []
     const isInteractionDisabled = Boolean(loading)
@@ -95,8 +95,6 @@ export default function useSurfaceGraph({
     }, [setCoordinates])
 
     const compareTraces = useMemo(() => {
-        // One visible layer still goes through here: hiding the base leaves a
-        // single compare surface, which must plot its own data, not the base's.
         if (!compareMode || layers.length === 0) return []
 
         return layers.map((layer, index) => {
@@ -151,25 +149,30 @@ export default function useSurfaceGraph({
         return zMax
     }, [traces])
 
-    // Amber slice line for the pinned day/hour, lifted slightly to avoid z-fighting.
-    const sliceTrace = useMemo(() => {
-        if (compareMode || !pinnedSlice || !Array.isArray(sliceValues)) return null
+    // Slice lines for the pinned day/hour, lifted slightly to avoid z-fighting:
+    // amber on its own, one per layer in the layer's color while comparing.
+    const sliceTraces = useMemo(() => {
+        if (!pinnedSlice || !Array.isArray(sliceSeries) || sliceSeries.length === 0) return []
 
         const lift = maxZ * 0.01
         const isDayPin = pinnedSlice.type === 'day'
-        return {
+        return sliceSeries.map((series) => ({
             type: 'scatter3d',
             mode: 'lines',
+            name: series.label,
             x: isDayPin ? HOUR_LABELS : Array(7).fill(HOUR_LABELS[pinnedSlice.index]),
             y: isDayPin ? Array(24).fill(DAY_LABELS[pinnedSlice.index]) : DAY_LABELS,
-            z: sliceValues.map((value) => (Number(value) || 0) + lift),
-            line: { color: WARM_HIGHLIGHT, width: 6 },
+            z: (series.data ?? []).map((value) => (Number(value) || 0) + lift),
+            line: {
+                color: sliceSeries.length > 1 ? series.color : WARM_HIGHLIGHT,
+                width: 6,
+            },
             showlegend: false,
             hovertemplate: hoverTemplate,
-        }
-    }, [compareMode, pinnedSlice, sliceValues, maxZ, hoverTemplate])
+        }))
+    }, [pinnedSlice, sliceSeries, maxZ, hoverTemplate])
 
-    const plotTraces = sliceTrace ? [...traces, sliceTrace] : traces
+    const plotTraces = [...traces, ...sliceTraces]
 
     const plotLayout = {
         paper_bgcolor: PAPER_RAISED,

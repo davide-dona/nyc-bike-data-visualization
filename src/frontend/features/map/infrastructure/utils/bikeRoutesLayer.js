@@ -18,7 +18,7 @@ export const FACILITY_COLORS = {
 export const FACILITY_LABELS = {
     I:   'Protected',
     II:  'Conventional',
-    III: 'Shared Lane or Signed Route',
+    III: 'Shared Lane / Signed Route',
     L:   'Link',
     _default: 'Unknown'
 }

@@ -34,3 +34,38 @@ export function buildSliceOverlay(dayHourStats, pinnedSlice, metricGetter) {
         data,
     }
 }
+
+/**
+ * Derives one overlay series per active layer for a pinned day/hour slice, so
+ * the same slice can be read across every surface on the plot. Series carry
+ * the layer label only while several layers are shown; with a single layer the
+ * slice label alone names the series, as it does outside compare mode.
+ * @param {Array} layers - Active layers ({ label, color, dayHourStats }).
+ * @param {{type: 'day'|'hour', index: number}|null} pinnedSlice - The pinned bar.
+ * @param {Function} metricGetter - Maps a stats row to the active metric value.
+ * @returns {{target: 'hour'|'day', label: string, series: Array<{label: string, color: string, data: number[]}>}|null}
+ *   Null when nothing is pinned or no layer yields a series.
+ */
+export function buildLayerSliceOverlays(layers, pinnedSlice, metricGetter) {
+    const overlays = (layers ?? [])
+        .map((layer) => ({
+            layer,
+            overlay: buildSliceOverlay(layer.dayHourStats, pinnedSlice, metricGetter),
+        }))
+        .filter((entry) => entry.overlay)
+
+    if (overlays.length === 0) return null
+
+    const { target, label } = overlays[0].overlay
+    const isMultiLayer = overlays.length > 1
+
+    return {
+        target,
+        label,
+        series: overlays.map((entry) => ({
+            label: isMultiLayer ? `${entry.layer.label} · ${label}` : label,
+            color: entry.layer.color,
+            data: entry.overlay.data,
+        })),
+    }
+}

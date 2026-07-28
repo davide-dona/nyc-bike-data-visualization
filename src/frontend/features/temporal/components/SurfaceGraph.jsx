@@ -16,8 +16,8 @@ import { DISPLAY_MAX_DEG, DISPLAY_MIN_DEG } from "../utils/surfaceCamera.js"
  * @param {Function} onRefetch - Callback to trigger a retry after error.
  * @param {boolean} compareMode - Whether comparison surfaces are pinned.
  * @param {Array} layers - Active compare layers ({ label, dayHourStats, colorscale }).
- * @param {Object} pinnedSlice - The pinned bar ({ type: 'day'|'hour', index, label }) or null; draws an amber slice line on the surface.
- * @param {Array} sliceValues - The pinned slice's metric values (24 for a day pin, 7 for an hour pin).
+ * @param {Object} pinnedSlice - The pinned bar ({ type: 'day'|'hour', index, label }) or null; draws a slice line on each surface.
+ * @param {Array} sliceSeries - The pinned slice per layer ([{ label, color, data }]); 24 values for a day pin, 7 for an hour pin.
  * @returns The rendered surface graph.
  */
 function SurfaceGraph({
@@ -30,7 +30,7 @@ function SurfaceGraph({
     compareMode = false,
     layers = [],
     pinnedSlice = null,
-    sliceValues = null,
+    sliceSeries = null,
 }) {
     const {
         containerRef,
@@ -62,7 +62,7 @@ function SurfaceGraph({
         compareMode,
         layers,
         pinnedSlice,
-        sliceValues,
+        sliceSeries,
     })
 
     return (
