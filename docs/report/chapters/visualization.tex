@@ -18,9 +18,9 @@ To preserve analytical clarity, the visual design employs a restrained palette:
     \item Animations and interface transitions are strictly not overwhelming, maintaining a professional environment tailored for deep visual analysis. 
 \end{itemize}
 This minimalist design directly reflects our proposal philosophy: prioritizing data legibility and depth over decorative ornamentation.
-\begin{figure}[H]
+\begin{figure}[ptb]
     \centering
-    \figplaceholder
+    \includegraphics[width=\textwidth]{../media/report/starting_page.png}
     \caption{Starting view of the visualization dashboard.}
     \label{fig:viz-overview}
 \end{figure}
@@ -53,21 +53,9 @@ The global header incorporates two primary filter controls (Figure~\ref{fig:viz-
 
 Modifying any selection in the global header triggers a background data refetch to update the active plots, while preserving the filter state seamlessly across route transitions.
 
-\begin{figure}[H]
+\begin{figure}[ptb]
     \centering
-    \begin{subfigure}[b]{0.48\textwidth}
-        \centering
-        \figplaceholder
-        \caption{Date-range picker.}
-        \label{fig:viz-filter-date}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}[b]{0.48\textwidth}
-        \centering
-        \figplaceholder
-        \caption{User and bike type selectors.}
-        \label{fig:viz-filter-types}
-    \end{subfigure}
+    \includegraphics[width=\textwidth]{../media/report/header.png}
     \caption{Global filter components in the header interface.}
     \label{fig:viz-filters}
 \end{figure}
@@ -84,30 +72,45 @@ Beyond backend performance, this global constraint demanded resilient design.
 Each view was engineered to remain expressive under any valid filter combination, preventing sparse queries from yielding empty or misleading visualizations.
 
 \subsection{Map}
-The map is a full-bleed \emph{deck.gl} canvas with a layer selector, a legend, contextual controls, an insights panel below, and the reading guide.
-Three layers share the same station geometry, taken from the live feed, and each answers a different spatial question.
+To avoid visual clutter and cognitive overload, we separated the spatial analysis of Citi Bike usage into three focused map layers rather than combining them into one view.
+As shown in Figure~\ref{fig:viz-overview}, users can easily navigate between these views using a basic selector.
 
 \subsubsection{Station Usage}
-This layer is a three-dimensional heatmap of extruded hexagons.
-Height encodes absolute usage, while color encodes each station's deviation from its own mean.
-The two encodings separate a busy station from an unusually busy one, which a single measure would blur.
-The layer reads from the precomputed hourly per-station ride counts, split into incoming and outgoing (Section~\ref{sec:data-pipeline}).
+Figure~\ref{fig:viz-station-usage} displays a three-dimensional heatmap of extruded hexagons, where height encodes absolute usage and color encodes a station's deviation from its mean activity.
+This dual encoding provides an immediate, high-impact method to identify anomalies in both absolute and relative terms, especially in spatial perspectives.
+In addition, the hexagonal binning approach aggregates stations, reducing visual clutter and enhancing the legibility of the spatial distribution of trips.
 
-A circular time wheel scrubs the hour, a play control animates a full day, and a mode selector switches between all, incoming, and outgoing trips.
-The insight panel below shows the peak-hour distribution, synced to the wheel, and the busiest stations for the current filters.
-A tall orange column marks a hotspot busier than its own average; a tall blue one marks a major station running below its norm.
+Driven by precomputed hourly trip counts (Section~\ref{sec:data-pipeline}), the layer includes a mode selector to isolate incoming, outgoing, or all trips.
+Temporal navigation is controlled via an interactive time wheel and play controls (equipped with speed and pause settings) to animate the daily average and reveal temporal usage patterns.
+Map navigation is fully interactive, allowing users to pan and zoom across the city thanks to \texttt{deck.gl}.
 
-\paragraph{Challenge: reading anomalies, not just size.}
-Absolute counts alone made every central station look uniformly busy.
-We encode each station's deviation from its mean on a diverging blue-to-orange scale, with grey at the mean, while height still shows raw volume.
-The user can then tell where demand is high from where it is atypical.
+To complement the spatial view, two auxiliary plots provide targeted insights (Figure~\ref{fig:viz-secondary-station-usage}):
+\begin{itemize}
+\item \textbf{Station Usage by Peak Hour}: A bar chart showing the number of stations reaching peak volume at each hour. By abstracting fine-grained spatial details, it immediately highlights the network's peak stress hours.
+\item \textbf{Busiest Stations}: A ranked bar chart of the top stations by average daily trip volume. This addresses spatial occlusion and crowding in the main map, making top-performing stations easy to identify individually.
+\end{itemize}
 
-\begin{figure}[H]
+\begin{figure}[ptb]
     \centering
-    \figplaceholder
-    \caption{Station usage: extruded hexagons with the time wheel and mode selector.}
+    \includegraphics[width=\textwidth]{../media/report/primary_station_usage.png}
+    \caption{Station usage primary view: a 3D heatmap of station activity.}
     \label{fig:viz-station-usage}
 \end{figure}
+
+\begin{figure}[ptb]
+    \centering
+    \includegraphics[width=\textwidth]{../media/report/secondary_station_usage.png}
+    \caption{Station usage supplemental plots.}
+    \label{fig:viz-secondary-station-usage}
+\end{figure}
+
+\paragraph{Challenges}
+Encoding thousands of stations and millions of rides on a single canvas created severe visual clutter and spatial occlusion, obscuring key usage patterns.
+The design choices detailed above were specifically chosen to mitigate these visual artifacts.
+
+Conversely, time granularity presented a lower-bound constraint, as the precomputed tables are aggregated by the hour.
+To enable smooth temporal navigation, the time wheel interpolates linearly between adjacent hourly averages. 
+This trade-off yields a continuous, fluid animation at the expense of rendering synthesized intermediate values rather than raw measurements.
 
 \subsubsection{Trip Flow}
 This layer draws origin-destination arcs, which read naturally as movement.
