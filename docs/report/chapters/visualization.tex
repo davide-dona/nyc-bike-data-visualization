@@ -157,11 +157,17 @@ Two secondary analytical panels complement the spatial view (Figure~\ref{fig:viz
 \end{figure}
 
 \paragraph{Challenges}
-A few dominant corridors crushed the rest into invisibility under a linear width scale.
-We map volume to width with a square-root ramp and give the ranked corridors an opacity floor, so mid-tier flows stay legible while the busiest still stand out.
-Consistency also required the live-versus-historical station join of Section~\ref{sec:data-pipeline}: arcs are drawn only between stations present in the live feed.
+Designing the origin-destination view required three major iterations.
+The initial implementation rendered the entire network simultaneously, producing extreme visual clutter that obscured individual flows.
+To resolve this, the second prototype hid all connections by default, revealing corridors only upon station selection.
+While this restored readability, it completely erased the macroscopic overview and discarded secondary routes.
+The final design reconciles both perspectives by rebalancing visual encoding rather than truncating underlying data.
 
-
+Additionally, visualizing directional flow introduced a distinct challenge, as geographic corridors carry no intrinsic orientation.
+Because station pairs are stored in a canonical order, raw rendering would arbitrarily label flows as inbound or outbound based solely on database sorting.
+To fix this, data rows are dynamically reoriented relative to the active station upon selection.
+Furthermore, corridors are classified as directional only when traffic strongly favors one side. 
+Otherwise, they are categorized as balanced to prevent minor fluctuations from mischaracterizing symmetric routes.
 
 \subsubsection{Infrastructure}
 This layer maps station dots colored by live status alongside bike routes colored by facility class.
