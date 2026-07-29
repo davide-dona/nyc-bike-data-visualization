@@ -73,12 +73,11 @@ Modifying any selection in the global header triggers a background data refetch 
 Managing global filter states introduced notable engineering trade-offs. 
 Synchronizing parameters across views required a centralized state architecture, though minimizing response latency initially proved challenging.
 
-Our initial strategy relied on prefetching query data upon application load.
-However, this approach created heavy memory footprints and network bottlenecks.
-The precomputed summary tables of Section~\ref{sec:data-pipeline} removed the need for client-side prefetching altogether.
-
 Beyond backend performance, this global constraint demanded resilient design. 
 Each view was engineered to remain expressive under any valid filter combination, preventing sparse queries from yielding empty or misleading visualizations.
+
+Centralizing the filters also narrowed the cross-filtering sketched in our proposal.
+Selections remain linked within a view rather than propagating across views, since the precomputed aggregates behind the temporal, weather, and footprint charts are not scoped by station.
 
 \subsection{Map}
 To avoid visual clutter and cognitive overload, we separated the spatial analysis of Citi Bike usage into three focused map layers rather than combining them into one view.

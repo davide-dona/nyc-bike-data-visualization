@@ -1,7 +1,35 @@
 \section{Conclusion}\label{sec:conclusion}
-\begin{comment}
-Final considerations and future work of the project.
-It should have the following subsections:
-- Objective achieved and how its different from the proposal
-- Challenges and limitations of the project, still open
-\end{comment}
+While technical challenges involved data quality, query latency, and encoding choices, organizational factors shaped the outcome just as strongly.
+
+\subsection{Team Work and Collaboration}
+Building a full-stack project of this scale in a team of three required structured coordination, managed primarily through \emph{GitHub}.
+Issues defined project scope, feature branches isolated work, and pull requests served as review gates for the main branch.
+Code reviews caught defects early while ensuring shared code ownership across the team.
+
+Maintainability was essential, as nearly every view underwent multiple revisions.
+We applied standard software engineering practices throughout: modular design, documented interfaces, and continuous refactoring.
+These conventions kept iteration low-cost, ensuring late-stage changes affected fewer files.
+
+A continuous integration pipeline via \emph{GitHub Actions} automated this discipline.
+On every pull request, the system runs backend integration tests against a disposable \emph{PostgreSQL} instance, executes frontend tests, and compiles the LaTeX documents.
+
+\subsection{Future Work}
+Throughout the project, we identified several opportunities for future work that would enhance the dashboard's utility and analytical depth.
+
+\paragraph{Actual Trip Routes}
+Because the dataset records only origin, destination, and duration, exact paths are unknown.
+GPS traces or routing engines would map trips onto the street network, transforming straight corridors into realistic cycling routes and enriching spatial visualizations.
+
+\paragraph{Station Availability History}
+Dock occupancy is currently limited to live snapshots.
+Persisting this data over time would reveal availability patterns, showing when shortages occur, how long they last, and how effectively rebalancing responds.
+
+\paragraph{Demand Forecasting}
+The current dashboard is entirely descriptive.
+However, as our temporal and weather views demonstrate, ridership responds predictably to weather, time, and day.
+Adding a forecasting model to these features would predict station-level demand, elevating the tool from retrospective analysis to operational planning.
+
+\subsection{Final Considerations}
+The project achieved its primary goal: an interactive dashboard that makes a complex mobility dataset intuitive and explorable.
+Every planned view was delivered, with most expanding beyond their original designs.
+All trade-offs are fully documented, and remaining limitations are stated explicitly, yielding a robust and transparent final result.
