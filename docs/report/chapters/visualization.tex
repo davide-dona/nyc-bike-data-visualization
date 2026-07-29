@@ -303,26 +303,54 @@ To maintain analytical integrity, comparison mode enforces three structural safe
 \end{itemize}
 
 \subsection{Weather}
-The weather view combines four charts that together answer whether, when, and for whom weather changes behavior.
-A scatter plot places each weather condition by typical speed and trip frequency, colored by condition.
-A ridgeline chart traces the rides-per-hour distribution under each condition, toggling between hour of day and weekday.
-A temperature-response line chart draws one curve per user type across temperature bins.
-A rain-impact bar chart compares ridership at each rain intensity to the dry-weather baseline.
+The primary visualization is a scatter plot where each point represents a WMO weather code, positioned by average trip speed and rides per hour, and color-coded by condition family (Figure~\ref{fig:viz-weather-scatterplot}). 
+Grouping codes into high-level categories (e.g., rain, snow, thunderstorm) simplifies interpretation: users perceive intuitive color semantics rather than raw numerical codes, allowing conditions with similar behavioral impacts to form distinct visual clusters. 
 
-All four read from trips joined to hourly weather on a complete grid (Section~\ref{sec:data-pipeline}); each trip is attributed the weather observed in its start hour.
-Hovering a scatter point reveals its exact conditions, the ridgeline switches its axis on demand, and the global filters recolor the temperature curves to contrast members and casual riders.
-Tight scatter clusters signal stable behavior, while a gap between clusters signals habits that shift sharply when conditions change.
-
-\paragraph{Challenge: making rare conditions comparable.}
-A heavy storm produces few hours, so its distribution is sparse and easily misread.
-The weather grid fills missing cells with zero (Section~\ref{sec:data-pipeline}), and each ridge is normalized to its own peak, so a rare storm and a common clear hour become visually comparable rather than dwarfed.
-
-\begin{figure}[H]
+Interactive controls enable deeper exploration: clicking a legend category isolates a condition family, while hovering over an individual point surfaces a tooltip with extended information about the weather condition and trip statistics. 
+This provides a compact summary of how weather suppresses or sustains global cycling activity, establishing baseline insights that supporting charts subsequently decompose.
+\begin{figure}[htbp]
     \centering
-    \figplaceholder
-    \caption{Weather view: the condition scatter, the ridgeline distributions, and the temperature and rain charts.}
-    \label{fig:viz-weather}
+    \includegraphics[width=0.8\textwidth]{../media/report/weather_scatterplot.png}
+    \caption{Weather view: the condition scatter.}
+    \label{fig:viz-weather-scatterplot}
 \end{figure}
+
+Beyond reducing total volume, weather fundamentally alters daily usage patterns. 
+To capture these temporal shifts, a ridgeline chart renders individual density curves per WMO weather code across either $24$ hours or $7$ weekdays, toggled via an interactive control (Figure~\ref{fig:viz-weather-ridgeline}). 
+Each ridge is independently normalized to its peak, allowing low-frequency events (such as thunderstorms) to be directly compared against baseline conditions like clear skies..
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.8\textwidth]{../media/report/weather_ridgeline.png}
+    \caption{Weather view: the ridgeline distributions.}
+    \label{fig:viz-weather-ridgeline}
+\end{figure}
+
+Two supplementary plots complement the WMO condition categories by examining continuous weather variables directly (Figure~\ref{fig:viz-secondary-weather}):
+\begin{itemize}
+    \item \textbf{Temperature Response:} A line chart plotting average hourly rides across one-degree temperature bins, disaggregated by user type to contrast subscriber behavior against casual ridership.
+    \item \textbf{Rain Impact:} A bar chart quantifying ridership loss across precipitation intensity tiers, expressed as a percentage of the dry-weather baseline.
+\end{itemize}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.8\textwidth]{../media/report/secondary_weather.png}
+    \caption{Weather view: supplemental plots.}
+    \label{fig:viz-secondary-weather}
+\end{figure}
+
+\paragraph{Challenges}
+Selecting appropriate axes for the scatter plot required several iterations to make anomalies both visible and explainable.
+Initial attempts (such as plotting total rides against temperature) were dominated by common conditions like clear skies, collapsing rare events near the origin.
+Conversely, pairing average duration with average distance yielded a highly correlated linear trend without meaningful clustering.
+Normalizing volume to average hourly rides and pairing it with average trip speed resolved these issues.
+
+Although our proposal designated the ridgeline chart as the primary visualization, testing revealed it was less intuitive for first-time readers due to its vertical height and emphasis on temporal shape over absolute magnitude.
+We therefore promoted the scatter plot to the primary position and placed the ridgeline directly below it, preserving its unique capacity to show how conditions redistribute hourly demand.
+
+Normalizing each ridge independently required a deliberate trade-off.
+While a shared scale obscures rare conditions beneath clear-sky totals, scaling ridges to their individual peaks preserves profile comparison at the expense of absolute magnitude. 
+Clear chart annotations and surrounding absolute-volume plots counteract this limitation, ensuring readers do not mistake relative temporal curves for absolute demand levels.
 
 \subsection{Footprint}
 The footprint view translates ridden kilometers into environmental terms.
