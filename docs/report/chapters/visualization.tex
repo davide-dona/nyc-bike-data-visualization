@@ -1,8 +1,4 @@
 \section{Visualization}\label{sec:visualization}
-% Visible stand-in for screenshots to be added later. Swap each \figplaceholder
-% for an \includegraphics once the figures are captured.
-\providecommand{\figplaceholder}{\fbox{\parbox[c][3cm][c]{0.8\textwidth}{\centering\itshape Image placeholder}}}
-
 Having processed and indexed the raw Citi Bike dataset into queryable API endpoints, the final step is visualization.
 
 \subsection{Overview}
@@ -37,7 +33,7 @@ Each view employs a rendering library tailored to its specific data structures:
 
 Although the original proposal specified \emph{D3.js} for non-map visualizations, adopting \emph{Plotly} and \emph{Chart.js} for standard visual controls freed development effort to focus on domain-specific encodings.
 
-\subsection{User Experience}
+\subsubsection{User Experience}
 To balance immediate legibility with analytical depth, the interface implements a three-part interaction model:
 \begin{itemize}
     \item \textbf{Onboarding Guidance:} Each view features a collapsible ``How To Read It'' (Figure~\ref{fig:viz-guide}) panel with three practical interaction hints, lowering the entry threshold without restricting open-ended exploration.
@@ -52,9 +48,7 @@ To balance immediate legibility with analytical depth, the interface implements 
     \label{fig:viz-guide}
 \end{figure}
 
-
-\subsubsection{Page Hierarchy}
-The spatial map serves as the default view, offering an immediate geographic overview. 
+Regarding page hierarchy, the spatial map serves as the default view, offering an immediate geographic overview. 
 To minimize cognitive load, every view shares a standardized layout skeleton: a descriptive header, a primary display, secondary plots, and the collapsible reading guide.
 
 %-----------
@@ -353,25 +347,42 @@ While a shared scale obscures rare conditions beneath clear-sky totals, scaling 
 Clear chart annotations and surrounding absolute-volume plots counteract this limitation, ensuring readers do not mistake relative temporal curves for absolute demand levels.
 
 \subsection{Footprint}
-The footprint view translates ridden kilometers into environmental terms.
-Three headline tiles report distance ridden, avoided CO\textsubscript{2}, and car trips replaced.
-A horizontal bar chart re-expresses the same distance as emissions per transport mode, a cumulative band shows avoided CO\textsubscript{2} over time, and a pictogram renders everyday equivalents.
-A slider sets the car-substitution rate.
+The footprint view translates ridden distance into environmental impact using published emission factors and one adjustable assumption: the car-substitution rate.
+A slider lets readers adjust this rate between 5\% and 25\%, the typical range in bike-share studies, that updates the displayed visualizations.
 
-The view reads from the precomputed daily distance and ride totals (Section~\ref{sec:data-pipeline}); the environmental figures are simple arithmetic on top, recomputed live as the slider moves.
-Every factor is stated on the page: standard per-mode emission rates, an uncertain car-substitution rate, and explicit exclusions such as manufacturing and rebalancing.
-Moving the slider shifts a dotted line inside the shaded band, and the equivalent icons rescale with it and with the selected date range.
-
-\paragraph{Challenge: honesty about uncertainty.}
-The proposal described a single figure for CO\textsubscript{2} saved.
-A point estimate would overstate a number that rests on an unknown, namely how many rides truly replace a car trip.
-We therefore present avoided CO\textsubscript{2} as a range bounded by low and high substitution rates, with the chosen rate marked inside it and every assumption listed openly.
-The design challenge was to make this uncertainty visible without burying the headline message.
-
-\begin{figure}[H]
+Three headline tiles summarize the selected distance ridden, avoided \textsubscript{CO2}, and car trips replaced (Figure~\ref{fig:viz-footprint}).
+A horizontal bar chart compares the emissions that same distance would generate across different modes, including car, taxi, bus, subway, e-bike, and classic bike, isolating mode efficiency by keeping distance constant.
+Finally, a cumulative chart plots daily avoided \textsubscript{CO2} over time, highlighting the impact of the car-substitution rate selection.
+Shaded areas represent the range between the minimum and maximum substitution rates, while a dotted line tracks the current setting.
+\begin{figure}[htbp]
     \centering
-    \figplaceholder
-    \caption{Footprint view: the headline tiles, the mode-comparison bars, the avoided-CO\textsubscript{2} band, and the equivalents.}
+    \includegraphics[width=0.8\textwidth]{../media/report/primary_footprint.png}
+    \caption{Footprint view: the primary visualization.}
     \label{fig:viz-footprint}
 \end{figure}
 
+Because absolute tonnage is hard to visualize, a pictogram translates the figure into familiar benchmarks: urban trees absorbing carbon annually, an average person's yearly emissions, and LED bulbs powered for a year (Figure~\ref{fig:viz-pictogram}).
+To keep captions easy to read, each row targets roughly 24 icons by rounding the value of a single icon to a clean multiple of 1, 2, or 5 times a power of ten.
+Anchor values are fixed at the midpoint substitution rate, meaning slider adjustments change the number of icons shown rather than what each icon represents.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.8\textwidth]{../media/report/secondary_footprint.png}
+    \caption{Footprint view: pictogram visualization.}
+    \label{fig:viz-pictogram}
+\end{figure}
+
+\paragraph{Challenges}
+Unlike other views, this page plots no directly measured values.
+Because the dataset tracks distance instead of emissions, every figure projects published averages onto aggregated totals, making the view reflective rather than strictly analytical.
+This carries an immediate risk: a prominently displayed figure for avoided \textsubscript{CO2} could easily be mistaken for a direct measurement.
+
+To address this, we opted for explicit transparency rather than adjusting the numbers. 
+An assumptions box details every input, including per-kilometer emission factors for each mode, the substitution range with its underlying studies, and deliberate exclusions such as manufacturing, fleet rebalancing, and disposal (Figure~\ref{fig:viz-assumptions}).
+Inline citation links include titles and publication years for direct verification.
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.8\textwidth]{../media/report/assumption_box.png}
+    \caption{Footprint view: the assumption box}
+    \label{fig:viz-assumptions}
+\end{figure}
