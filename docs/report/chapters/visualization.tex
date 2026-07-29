@@ -84,6 +84,9 @@ To avoid visual clutter and cognitive overload, we separated the spatial analysi
 As shown in Figure~\ref{fig:viz-overview}, users can easily navigate between these views using a basic selector.
 
 \subsubsection{Station Usage}
+This layer establishes where demand concentrates across the network, summarizing station activity into a form that remains legible at city scale.
+
+\paragraph{Hexagon Heatmap}
 Figure~\ref{fig:viz-station-usage} displays a three-dimensional heatmap of extruded hexagons, where height encodes absolute usage and color encodes a station's deviation from its mean activity.
 This dual encoding provides an immediate, high-impact method to identify anomalies in both absolute and relative terms, especially in spatial perspectives.
 In addition, the hexagonal binning approach aggregates stations, reducing visual clutter and enhancing the legibility of the spatial distribution of trips.
@@ -99,6 +102,7 @@ Map navigation is fully interactive, allowing users to pan and zoom across the c
     \label{fig:viz-station-usage}
 \end{figure}
 
+\paragraph{Peak Hour and Station Rankings}
 To complement the spatial view, two auxiliary plots provide targeted insights (Figure~\ref{fig:viz-secondary-station-usage}):
 \begin{itemize}
 \item \textbf{Station Usage by Peak Hour}: A bar chart showing the number of stations reaching peak volume at each hour. By abstracting fine-grained spatial details, it immediately highlights the network's peak stress hours.
@@ -121,15 +125,20 @@ To enable smooth temporal navigation, the time wheel interpolates linearly betwe
 This trade-off yields a continuous, fluid animation at the expense of rendering synthesized intermediate values rather than raw measurements.
 
 \subsubsection{Trip Flow}\label{sec:viz-trip-flow}
+While the previous layer quantifies activity at individual stations, this one examines the connections between them.
+
+\paragraph{Corridor Arcs}
 This layer renders origin-destination arcs representing trips between stations, directly mitigating the straight-line bias discussed in \href{../../technical-report/technical-report.pdf}{\underline{technical report}}.
 Arc width encodes trip volume, dynamically scaled against the busiest corridor in the current view.
 Arc height and curvature carry no quantitative data, as they serve exclusively to disentangle overlapping paths and maintain visual readability across dense networks.
 Stations are rendered as background points that recede behind the primary flow network until explicitly selected.
 All flow metrics are derived from the precomputed station-pair aggregations (Section~\ref{sec:data-pipeline}) and normalized to daily ride averages to ensure comparability across varying observation periods.
 
+\paragraph{Citywide Overview}
 Initial loading presents a citywide overview of the primary transit corridors (Figure~\ref{fig:viz-trip-flow-overview}), providing an immediate macroscopic view of high-volume routes prior to user interaction.
 To maximize visual reinforcement, a single-hue color ramp mirrors arc width, encoding volume across two perceptual channels.
 
+\paragraph{Station Focus}
 Selecting an individual station isolates its connected corridors and automatically re-frames the camera view around its dominant links (Figure~\ref{fig:viz-trip-flow-single-station}).
 Upon selection, color semantics shift from absolute volume to directional flow asymmetry, categorizing linked stations as predominantly inbound, outbound, or balanced.
 This state enables a directional filter to isolate one-way traffic flows, while re-selecting the origin station or executing a reset command restores the global overview.
@@ -151,6 +160,7 @@ This state enables a directional filter to isolate one-way traffic flows, while 
     \end{minipage}
 \end{figure}
 
+\paragraph{Summary Cards and Corridor Ranking}
 Two secondary analytical panels complement the spatial view (Figure~\ref{fig:viz-secondary-trip-flow}):
 \begin{itemize}
     \item \textbf{Summary Cards}: Display high-level aggregates for the active context, including total daily rides, active corridor counts, flow-weighted median trip distance, and net directional shares for selected stations.
@@ -180,9 +190,11 @@ Otherwise, they are categorized as balanced to prevent minor fluctuations from m
 \subsubsection{Infrastructure}
 Although bike-lane data was initially deferred in our project proposal, preliminary visual analysis revealed that infrastructure provides critical context for bike-share usage, leading us to promote it to a dedicated map layer.
 
+\paragraph{Station Status and Bike Routes}
 The default view renders station locations colored by real-time operational status (Figure~\ref{fig:viz-infrastructure}), while an interactive toggle overlays NYC bike routes categorized by facility class (Figure~\ref{fig:viz-infrastructure-bike-routes}). 
 Station color scales reflect operational pressure (highlighting stations that are nearly empty or full) allowing users to assess system capacity risks without inspecting individual nodes.
 
+\paragraph{Station Sidebar}
 Selecting a station opens a contextual sidebar uniting real-time and historical metrics:
 \begin{itemize}
     \item \textbf{Live Availability}: Reports effective capacity, open docks, and rentable bikes (disaggregated by classic and electric models), alongside out-of-service counts.
@@ -190,6 +202,7 @@ Selecting a station opens a contextual sidebar uniting real-time and historical 
     \item \textbf{Top Connected Stations}: Ranks the station's five strongest corridors. Selecting a corridor re-centers the interface on the partner station, allowing sequential exploration across connected routes.
 \end{itemize}
 
+\paragraph{Year Slider}
 A temporal slider completes the infrastructure layer, allowing users to filter bike lanes by installation year.
 By rendering only segments active in a selected year, the layer transforms from a static overview into a historical view of NYC's evolving cycling network.
 
@@ -210,6 +223,7 @@ By rendering only segments active in a selected year, the layer transforms from 
     \end{minipage}
 \end{figure}
 
+\paragraph{Network Composition Charts}
 Three supplementary plots extend the bike lanes infrastructure view (Figure~\ref{fig:viz-secondary-infrastructure}):
 \begin{itemize}
     \item \textbf{Network Changes by Year}: A diverging bar chart counting segments installed above the axis and retired below it, giving the temporal overview the map alone cannot convey.
@@ -234,10 +248,14 @@ While bike routes include installation and retirement timestamps, station metada
 Consequently, the temporal slider filters the route network exclusively while holding station locations at their current state, avoiding speculative reconstruction of past station positions.
 
 \subsection{Temporal}\label{sec:viz-temporal}
+Setting geography aside, the temporal view isolates when the system is used, across both the hours of the day and the days of the week.
+
+\paragraph{Surface Graph}
 The temporal view centers on a 3D surface plot over a $7 \times 24$ grid of weekdays and hours, generated from hourly aggregates rolled up into day-hour cells (Section~\ref{sec:data-pipeline}).
 A metric selector toggles the surface encoding between average ride volume, duration, distance, and speed.
 Users can freely rotate the 3D surface to inspect temporal relief from any perspective, while hovering over individual points reveals exact values (Figure~\ref{fig:viz-temporal-surface}).
 
+\paragraph{Comparison Mode}
 Although global header filters can isolate specific user demographics or bike types, comparing them sequentially imposes a heavy cognitive load.
 To address this, we introduced a multi-surface comparison mode (expanding upon our initial proposal) that overlays multiple surfaces within the same coordinate space (Figure~\ref{fig:viz-temporal-compare}).
 Each surface maintains its own color gradient, with upper layers rendered semi-transparently to preserve the visibility of underlying topologies.
@@ -258,11 +276,13 @@ Each surface maintains its own color gradient, with upper layers rendered semi-t
     \end{minipage}
 \end{figure}
 
+\paragraph{Histograms}
 Two marginal histograms accompany the surface plot, aggregating data by weekday and hour (Figure~\ref{fig:viz-temporal-hist}).
 To clarify cross-chart relationships, all three views are interactively linked: hovering over a surface cell highlights the corresponding bars in both histograms, while clicking a bar pins a specific day or hour.
 Selecting a bar projects its distribution onto the opposite histogram and overlays a cross-sectional trace across the 3D surface.
 In comparison mode, the histograms display colored bars for each active surface (Figure~\ref{fig:viz-temporal-hist-compare}).
 
+\paragraph{Line Chart}
 Because grid-level averages tend to mask single-day anomalies like holidays or severe weather, a supplementary line chart plots individual dates continuously.
 This restores fine-grained detail and highlights temporal outliers that would otherwise remain hidden.
 \begin{figure}[htbp]
@@ -296,6 +316,9 @@ To maintain analytical integrity, comparison mode enforces three structural safe
 \end{itemize}
 
 \subsection{Weather}
+This view relates ridership to the meteorological conditions recorded alongside it, progressing from a compact overview of all conditions to their effect on the daily rhythm.
+
+\paragraph{Condition Scatter}
 The primary visualization is a scatter plot where each point represents a WMO weather code, positioned by average trip speed and rides per hour, and color-coded by condition family (Figure~\ref{fig:viz-weather-scatterplot}). 
 Grouping codes into high-level categories (e.g., rain, snow, thunderstorm) simplifies interpretation: users perceive intuitive color semantics rather than raw numerical codes, allowing conditions with similar behavioral impacts to form distinct visual clusters. 
 
@@ -308,6 +331,7 @@ This provides a compact summary of how weather suppresses or sustains global cyc
     \label{fig:viz-weather-scatterplot}
 \end{figure}
 
+\paragraph{Ridgeline Distributions}
 Beyond reducing total volume, weather fundamentally alters daily usage patterns. 
 To capture these temporal shifts, a ridgeline chart renders individual density curves per WMO weather code across either $24$ hours or $7$ weekdays, toggled via an interactive control (Figure~\ref{fig:viz-weather-ridgeline}). 
 Each ridge is independently normalized to its peak, allowing low-frequency events (such as thunderstorms) to be directly compared against baseline conditions like clear skies..
@@ -319,6 +343,7 @@ Each ridge is independently normalized to its peak, allowing low-frequency event
     \label{fig:viz-weather-ridgeline}
 \end{figure}
 
+\paragraph{Temperature and Rain Response}
 Two supplementary plots complement the WMO condition categories by examining continuous weather variables directly (Figure~\ref{fig:viz-secondary-weather}):
 \begin{itemize}
     \item \textbf{Temperature Response:} A line chart plotting average hourly rides across one-degree temperature bins, disaggregated by user type to contrast subscriber behavior against casual ridership.
@@ -349,6 +374,7 @@ Clear chart annotations and surrounding absolute-volume plots counteract this li
 The footprint view translates ridden distance into environmental impact using published emission factors and one adjustable assumption: the car-substitution rate.
 A slider lets readers adjust this rate between 5\% and 25\%, the typical range in bike-share studies, that updates the displayed visualizations.
 
+\paragraph{Tiles and Emission Charts}
 Three headline tiles summarize the selected distance ridden, avoided \textsubscript{CO2}, and car trips replaced (Figure~\ref{fig:viz-footprint}).
 A horizontal bar chart compares the emissions that same distance would generate across different modes, including car, taxi, bus, subway, e-bike, and classic bike, isolating mode efficiency by keeping distance constant.
 Finally, a cumulative chart plots daily avoided \textsubscript{CO2} over time, highlighting the impact of the car-substitution rate selection.
@@ -360,6 +386,7 @@ Shaded areas represent the range between the minimum and maximum substitution ra
     \label{fig:viz-footprint}
 \end{figure}
 
+\paragraph{Pictogram}
 Because absolute tonnage is hard to visualize, a pictogram translates the figure into familiar benchmarks: urban trees absorbing carbon annually, an average person's yearly emissions, and LED bulbs powered for a year (Figure~\ref{fig:viz-pictogram}).
 To keep captions easy to read, each row targets roughly 24 icons by rounding the value of a single icon to a clean multiple of 1, 2, or 5 times a power of ten.
 Anchor values are fixed at the midpoint substitution rate, meaning slider adjustments change the number of icons shown rather than what each icon represents.
