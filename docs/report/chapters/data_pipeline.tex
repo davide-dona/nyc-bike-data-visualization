@@ -1,21 +1,21 @@
 \section{Data Pipeline}\label{sec:data-pipeline}
-Aggregating and visualizing a decade of Citi Bike trip data within an interactive dashboard introduces several significant engineering and integration challenges:
+Aggregating and visualizing a decade of \href{https://www.citibikenyc.com/system-data}{\underline{Citi Bike}} trip data within an interactive dashboard introduces several significant engineering and integration challenges:
 \begin{itemize}
-    \item \textbf{Scale}: Hundreds of millions of trip records must be filtered and aggregated fast enough to keep the dashboard interactive.
-    \item \textbf{Format Shifts}: Multiple data sources follow different packaging and column conventions, which have to be reconciled into a single schema.
-    \item \textbf{Data Quality}: Each source carries missing values, outliers, and coverage gaps that would otherwise surface as misleading visuals.
+    \item \textbf{Scale:} Hundreds of millions of trip records must be filtered and aggregated fast enough to keep the dashboard interactive.
+    \item \textbf{Format Shifts:} Multiple data sources follow different packaging and column conventions, which have to be reconciled into a single schema.
+    \item \textbf{Data Quality:} Each source carries missing values, outliers, and coverage gaps that would otherwise surface as misleading visuals.
 \end{itemize}
-Our pipeline addresses these challenges, enabling us to fulfill the core objectives outlined in our project proposal.
+Our pipeline addresses these challenges, enabling us to fulfill the core objectives outlined in our \href{https://github.com/davide-dona/nyc-bike-data-visualization/blob/main/docs/proposal.pdf}{\underline{project proposal}}.
 
 \subsection{Data Cleaning}
-In this section, we summarize the most significant data quality issues identified in our \href{../../technical-report/technical-report.pdf}{\underline{technical report}} and describe how we addressed them.
+In this section, we summarize the most significant data quality issues identified in our \href{https://github.com/davide-dona/nyc-bike-data-visualization/blob/main/docs/technical-report.pdf}{\underline{technical report}} and describe how we addressed them.
 
 \paragraph{Missing Values}
 Each source is parsed to extract only the required fields, and any records with missing station, timestamp, user, or bike type data are dropped rather than generated.
 Because the affected volume is negligible, discarding these rows preserves data integrity without sacrificing visible detail.
 
 \paragraph{Legacy Schema Reformatting}
-Citi Bike archives arrive in two packaging formats: yearly bundles containing monthly archives (legacy), and flat monthly files (modern).
+\href{https://www.citibikenyc.com/system-data}{\underline{Citi Bike}} archives arrive in two packaging formats: yearly bundles containing monthly archives (legacy), and flat monthly files (modern).
 The pipeline automatically handles both structures, emitting a single data frame per month.
 
 Within each month, schema variations across files are reconciled by taking their union, then retaining only the core fields shared across all releases.
@@ -26,22 +26,22 @@ Finally, station identifiers are cast to text at parse time to resolve type mism
 \paragraph{Trip Outliers}
 Three independent filters prevent extreme or invalid records from distorting duration and distance metrics:
 \begin{itemize}
-    \item \textbf{Negative Durations}: Records with timestamps where the end precedes the start are discarded as invalid.
-    \item \textbf{Round Trips}: Rides sharing the same origin and destination are removed, as their zero straight-line distance would artificially deflate distance averages.
-    \item \textbf{Upper-Tail Extremes}: Long-duration and long-distance outliers are trimmed using a one-sided $95\%$ z-score threshold, calculated per month for each metric.
+    \item \textbf{Negative Durations:} Records with timestamps where the end precedes the start are discarded as invalid.
+    \item \textbf{Round Trips:} Rides sharing the same origin and destination are removed, as their zero straight-line distance would artificially deflate distance averages.
+    \item \textbf{Upper-Tail Extremes:} Long-duration and long-distance outliers are trimmed using a one-sided $95\%$ z-score threshold, calculated per month for each metric.
                                         A relative monthly cutoff naturally adapts to seasonal patterns and system expansion without requiring manual retuning.
 \end{itemize}
 
 \paragraph{Station Metadata Reconciliation}
-The pipeline reconciles discrepancies between the GBFS live feed and Citi Bike historical trip archives through three main rules:
+The pipeline reconciles discrepancies between the GBFS live feed and \href{https://www.citibikenyc.com/system-data}{\underline{Citi Bike}} historical trip archives through three main rules:
 \begin{itemize}
-    \item \textbf{Identifier Alignment}: All records are mapped to shared station identifiers (\texttt{short\_name}), resolving mismatches with internal feed keys.
-    \item \textbf{Operational Filtering}: Live views only display stations actively reporting as installed, renting, and returning. By removing inactive stations, we are avoiding a cluttered interface and the main source for misleading availability ratios.
-    \item \textbf{Capacity Derivation}: For active stations with unreported capacity metadata, effective capacity is derived dynamically from live dock counters to maintain accurate availability ratios and consistency.
+    \item \textbf{Identifier Alignment:} All records are mapped to shared station identifiers (\texttt{short\_name}), resolving mismatches with internal feed keys.
+    \item \textbf{Operational Filtering:} Live views only display stations actively reporting as installed, renting, and returning. By removing inactive stations, we avoid a cluttered interface and the main source of misleading availability ratios.
+    \item \textbf{Capacity Derivation:} For active stations with unreported capacity metadata, effective capacity is derived dynamically from live dock counters to maintain accurate availability ratios and consistency.
 \end{itemize}
 
 \paragraph{Weather Timezone Alignment}
-Weather data is requested in UTC to prevent timezone distortion by calculating offsets on a per-observation basis.
+Weather data is requested in UTC to prevent the timezone distortion that would arise from calculating offsets on a per-observation basis.
 The initial API request is padded with a one-day buffer on both ends and trimmed post-conversion, ensuring clock shifts do not lose boundary data.
 
 \paragraph{Time and Weather Spine}
@@ -105,7 +105,7 @@ This, combined with our backend precomputation, ensures that initial requests ar
 \subsection{Pipeline Overview}
 Together, these measures form a four-stage sequential pipeline.
 
-First, the \textbf{data acquisition} step gathers the static datasets evaluated in our \href{../../technical-report/technical-report.pdf}{\underline{technical report}}: the trip archives, hourly weather, bike-route geometries, and a station metadata snapshot.
+First, the \textbf{data acquisition} step gathers the static datasets evaluated in our \href{https://github.com/davide-dona/nyc-bike-data-visualization/blob/main/docs/technical-report.pdf}{\underline{technical report}}: the trip archives, hourly weather, bike-route geometries, and a station metadata snapshot.
 Each download is cached on disk with a freshness window, so repeated runs re-fetch only what has aged.
 
 Second, the \textbf{cleaning and normalization} step leverages \emph{Polars} to unify heterogeneous source schemas, filter invalid records, and enrich each trip with key filter dimensions: date, hour, and day of the week.
@@ -116,7 +116,7 @@ These include hourly ridership trends, station-level turnover, and station-pair 
 Writing all summary tables via dimension-keyed upserts ensures idempotent reloads and safe pipeline retries.
 
 Finally, the \textbf{serving} step exposes these precomputed tables through a \emph{FastAPI} backend, eliminating the need to query raw records at runtime.
-The intermediate \emph{Parquet} files are pruned post-ingestion, leaving PostgreSQL as the single source of truth. 
+The intermediate \emph{Parquet} files are pruned post-ingestion, leaving \emph{PostgreSQL} as the single source of truth.
 Live station availability is the sole exception, fetched from the feed per request behind a short-lived cache rather than read from the database.
 
-In line with our project proposal, a \emph{GitHub Action} executes this complete sequence monthly and \textbf{publishes} the updated \texttt{Docker} image to a public repository, keeping the dashboard continuously up to date.
+In line with our \href{https://github.com/davide-dona/nyc-bike-data-visualization/blob/main/docs/proposal.pdf}{\underline{project proposal}}, a \emph{GitHub Action} executes this complete sequence monthly and \textbf{publishes} the updated \emph{Docker} image to a public repository, keeping the dashboard continuously up to date.

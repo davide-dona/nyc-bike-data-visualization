@@ -1,11 +1,11 @@
 \section{Visualization}\label{sec:visualization}
-Each view that follows answers a different question about the Citi Bike system.
+Each view that follows answers a different question about the \href{https://www.citibikenyc.com/system-data}{\underline{Citi Bike}} system.
 This section presents them in turn, describing the encodings each one relies on, the interactions it supports, and the design decisions that produced it.
 
 \subsection{Overview}
-The application is structured as a multi-view dashboard, as introduced in Section~\ref{sec:introduction}. 
+The application is structured as a multi-view dashboard, as introduced in Section~\ref{sec:introduction}.
 The global header hosts primary exploratory controls, while each view operates as a self-contained module with specialized visual representations.
-We enriched the proposal with secondary plots that supplement these primary insights to offer broader analytical context.
+We enriched the \href{https://github.com/davide-dona/nyc-bike-data-visualization/blob/main/docs/proposal.pdf}{\underline{proposal}} with secondary plots that supplement these primary insights to offer broader analytical context.
 
 To prioritize data legibility over decorative ornamentation, the design adopts a restrained aesthetic:
 \begin{itemize}
@@ -17,12 +17,12 @@ To prioritize data legibility over decorative ornamentation, the design adopts a
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=\textwidth]{../media/report/starting_page.png}
-    \caption{Starting view of the visualization dashboard.}
+    \caption{Dashboard: the starting view.}
     \label{fig:viz-overview}
 \end{figure}
 
 \subsubsection{Implementation}
-The frontend is a \emph{React} application built with \emph{Vite} and routed via \emph{React Router}. 
+The frontend is a \emph{React} application built with \emph{Vite} and routed via \emph{React Router}.
 Layout and visual design tokens are managed through a unified \emph{Tailwind CSS} module, ensuring consistent styling across interface components, charts, and maps.
 
 Each view employs a rendering library tailored to its specific data structures:
@@ -32,12 +32,12 @@ Each view employs a rendering library tailored to its specific data structures:
     \item \emph{Chart.js} and custom canvas routines handle two-dimensional categorical charts.
 \end{itemize}
 
-Although the original proposal specified \emph{D3.js} for non-map visualizations, adopting \emph{Plotly} and \emph{Chart.js} for standard visual controls freed development effort to focus on domain-specific encodings.
+Although the original \href{https://github.com/davide-dona/nyc-bike-data-visualization/blob/main/docs/proposal.pdf}{\underline{proposal}} specified \emph{D3.js} for non-map visualizations, adopting \emph{Plotly} and \emph{Chart.js} for standard visual controls freed development effort to focus on domain-specific encodings.
 
 \subsubsection{User Experience}
 To balance immediate legibility with analytical depth, the interface implements a three-part interaction model:
 \begin{itemize}
-    \item \textbf{Onboarding Guidance:} Each view features a collapsible ``How To Read It'' (Figure~\ref{fig:viz-guide}) panel with three practical interaction hints, lowering the entry cognitive load without restricting open-ended exploration.
+    \item \textbf{Onboarding Guidance:} Each view features a collapsible ``How To Read It'' panel (Figure~\ref{fig:viz-guide}) with three practical interaction hints, lowering the entry cognitive load without restricting open-ended exploration.
     \item \textbf{Contextual Microcopy:} Embedded hints and hover-triggered tooltips surface exact values and fine-grained details on demand.
     \item \textbf{Progressive Disclosure:} Sensible default states offer immediate macro-level insights, while interactive filters, toggles, and linked selections enable deeper inspection.
 \end{itemize}
@@ -45,11 +45,11 @@ To balance immediate legibility with analytical depth, the interface implements 
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=\textwidth]{../media/report/guide.png}
-    \caption{Example ``How To Read It'' panel}
+    \caption{Dashboard: the reading guide.}
     \label{fig:viz-guide}
 \end{figure}
 
-Regarding \textbf{page hierarchy}, the spatial map serves as the default view, offering an immediate and impactful geographic overview. 
+Regarding \textbf{page hierarchy}, the spatial map serves as the default view, offering an immediate and impactful geographic overview.
 Then, every view shares a standardized layout skeleton: a descriptive header, a primary display, secondary plots, and the collapsible reading guide.
 
 %-----------
@@ -57,7 +57,7 @@ Then, every view shares a standardized layout skeleton: a descriptive header, a 
 \subsection{Header}
 The global header incorporates two primary filter controls (Figure~\ref{fig:viz-filters}):
 \begin{itemize}
-    \item \textbf{Date Range Picker:} A calendar selector defining the temporal analysis window. Operating at a monthly granularity, it enforces a 12-month maximum range to prevent excessive backend query latency.
+    \item \textbf{Date Range Picker:} A calendar selector defining the temporal analysis window. Operating at a monthly granularity, it enforces a $12$-month maximum range to prevent excessive backend query latency.
     \item \textbf{User and Bike Type Selectors:} A pair of selectors filtering data by membership status (member or casual) and bike type (classic, electric, or both).
 \end{itemize}
 
@@ -66,23 +66,23 @@ Modifying any selection in the global header triggers a background data refetch 
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=\textwidth]{../media/report/header.png}
-    \caption{Header interface.}
+    \caption{Dashboard: the global header.}
     \label{fig:viz-filters}
 \end{figure}
 
 \paragraph{Challenges}
-Managing global filter states introduced notable engineering trade-offs. 
-Synchronizing parameters across views required a centralized state architecture. 
+Managing global filter states introduced notable engineering trade-offs.
+Synchronizing parameters across views required a centralized state architecture.
 While this initially caused response latency challenges, backend optimizations successfully resolved them.
 
-Beyond backend performance, this global constraint demanded resilient design. 
+Beyond backend performance, this global constraint demanded resilient design.
 Each view was engineered to remain expressive under any valid filter combination, preventing sparse queries from yielding empty or misleading visualizations.
 
-Centralizing the filters also narrowed the cross-filtering sketched in our proposal.
+Centralizing the filters also narrowed the cross-filtering sketched in our \href{https://github.com/davide-dona/nyc-bike-data-visualization/blob/main/docs/proposal.pdf}{\underline{proposal}}.
 Under this updated architecture, view-specific filters operate independently and do not affect other views.
 
 \subsection{Map}
-To avoid visual clutter and cognitive overload, we separated the spatial analysis of Citi Bike usage into three focused map layers rather than combining them into one view.
+To avoid visual clutter and cognitive overload, we separated the spatial analysis of \href{https://www.citibikenyc.com/system-data}{\underline{Citi Bike}} usage into three focused map layers rather than combining them into one view.
 As shown in Figure~\ref{fig:viz-overview}, users can easily navigate between these views using a basic selector.
 
 \subsubsection{Station Usage}
@@ -96,26 +96,26 @@ In addition, the hexagonal binning approach aggregates stations, reducing visual
 \paragraph{Map Controls}
 Driven by precomputed hourly trip counts (Section~\ref{sec:data-pipeline}), the layer includes a mode selector to isolate incoming, outgoing, or all trips.
 Temporal navigation is controlled via an interactive time wheel and play controls (equipped with speed and pause settings) to animate the daily average and reveal temporal usage patterns.
-Map navigation is fully interactive, allowing users to pan and zoom across the city thanks to \texttt{deck.gl}.
+Map navigation is fully interactive, allowing users to pan and zoom across the city thanks to \emph{deck.gl}.
 
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=\textwidth]{../media/report/primary_station_usage.png}
-    \caption{Station usage primary view: a 3D heatmap of station activity.}
+    \caption{Station usage: the hexagon heatmap.}
     \label{fig:viz-station-usage}
 \end{figure}
 
 \paragraph{Peak Hour and Station Rankings}
 To complement the spatial view, two auxiliary plots provide targeted insights (Figure~\ref{fig:viz-secondary-station-usage}):
 \begin{itemize}
-\item \textbf{Station Usage by Peak Hour}: A bar chart showing the number of stations reaching peak volume at each hour. By abstracting fine-grained spatial details, it immediately highlights the network's peak stress hours.
-\item \textbf{Busiest Stations}: A ranked bar chart of the top stations by average daily trip volume. This addresses spatial occlusion and crowding in the main map, making top-performing stations easy to identify individually.
+    \item \textbf{Station Usage by Peak Hour:} A bar chart showing the number of stations reaching peak volume at each hour. By abstracting fine-grained spatial details, it immediately highlights the network's peak stress hours.
+    \item \textbf{Busiest Stations:} A ranked bar chart of the top stations by average daily trip volume. This addresses spatial occlusion and crowding in the main map, making top-performing stations easy to identify individually.
 \end{itemize}
 
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=\textwidth]{../media/report/secondary_station_usage.png}
-    \caption{Station usage supplemental plots.}
+    \caption{Station usage: the supplemental plots.}
     \label{fig:viz-secondary-station-usage}
 \end{figure}
 
@@ -124,7 +124,7 @@ Encoding thousands of stations and millions of rides on a single canvas created 
 The design choices detailed above were specifically chosen to mitigate these visual artifacts.
 
 Conversely, time granularity presented a lower-bound constraint, as the precomputed tables are aggregated by the hour.
-To enable smooth temporal navigation, the time wheel interpolates linearly between adjacent hourly averages. 
+To enable smooth temporal navigation, the time wheel interpolates linearly between adjacent hourly averages.
 This trade-off yields a continuous, fluid animation at the expense of rendering synthesized intermediate values rather than raw measurements.
 
 \subsubsection{Trip Flow}\label{sec:viz-trip-flow}
@@ -151,14 +151,14 @@ This state enables a directional filter to isolate one-way traffic flows, while 
     \begin{minipage}[t]{0.49\textwidth}
         \centering
         \includegraphics[width=\textwidth]{../media/report/primary_trip_flow_1.png}
-        \caption{Trip flow: the citywide corridor overview }
+        \caption{Trip flow: the citywide overview.}
         \label{fig:viz-trip-flow-overview}
     \end{minipage}
     \hfill
     \begin{minipage}[t]{0.49\textwidth}
         \centering
         \includegraphics[width=\textwidth]{../media/report/primary_trip_flow_2.png}
-        \caption{Trip flow: a single-station focus view.}
+        \caption{Trip flow: the station focus.}
         \label{fig:viz-trip-flow-single-station}
     \end{minipage}
 \end{figure}
@@ -166,14 +166,14 @@ This state enables a directional filter to isolate one-way traffic flows, while 
 \paragraph{Summary Cards and Corridor Ranking}
 Two secondary analytical panels complement the spatial view (Figure~\ref{fig:viz-secondary-trip-flow}):
 \begin{itemize}
-    \item \textbf{Summary Cards}: Display high-level aggregates for the active context, including total daily rides, active corridor counts, flow-weighted median trip distance, and net directional shares for selected stations.
-    \item \textbf{Ranked Corridor List}: A bar chart illustrating the top twelve corridors of the relative view. Interactive hovering highlights the corresponding spatial arc, while clicking a bar isolates that specific corridor by hiding all remaining network links.
+    \item \textbf{Summary Cards:} Display high-level aggregates for the active context, including total daily rides, active corridor counts, flow-weighted median trip distance, and net directional shares for selected stations.
+    \item \textbf{Ranked Corridor List:} A bar chart illustrating the top twelve corridors of the current selection. Interactive hovering highlights the corresponding spatial arc, while clicking a bar isolates that specific corridor by hiding all remaining network links.
 \end{itemize}
 
-\begin{figure}[htbp]   
+\begin{figure}[htbp]
     \centering
     \includegraphics[width=\textwidth]{../media/report/secondary_trip_flow.png}
-    \caption{Trip flow supplemental plots.}
+    \caption{Trip flow: the supplemental plots.}
     \label{fig:viz-secondary-trip-flow}
 \end{figure}
 
@@ -187,11 +187,11 @@ The final design reconciles both perspectives by rebalancing visual encoding rat
 Additionally, visualizing directional flow introduced a distinct challenge, as geographic corridors carry no intrinsic orientation.
 Because station pairs are stored in a canonical order, raw rendering would arbitrarily label flows as inbound or outbound based solely on database sorting.
 To fix this, data rows are dynamically reoriented relative to the active station upon selection.
-Furthermore, corridors are classified as directional only when traffic strongly favors one side. 
-Otherwise, they are categorized as balanced to prevent minor fluctuations.
+Furthermore, corridors are classified as directional only when traffic strongly favors one side.
+Otherwise, they are categorized as balanced to prevent minor fluctuations from reading as directional.
 
 \subsubsection{Infrastructure}
-Although bike-lane data was initially deferred in our project proposal, preliminary visual analysis revealed that infrastructure provides critical context for bike-share usage, leading us to promote it to a dedicated map layer.
+Although bike-lane data was initially deferred in our \href{https://github.com/davide-dona/nyc-bike-data-visualization/blob/main/docs/proposal.pdf}{\underline{project proposal}}, preliminary visual analysis revealed that infrastructure provides critical context for bike-share usage, leading us to promote it to a dedicated map layer.
 
 \paragraph{Station Status and Bike Routes}
 The default view renders station locations by real-time operational status (Figure~\ref{fig:viz-infrastructure}), highlighting stations that are nearly empty or full so users can assess capacity risks without inspecting individual nodes.
@@ -200,9 +200,9 @@ Additionally, an interactive toggle overlays NYC bike routes categorized by faci
 \paragraph{Station Sidebar}
 Selecting a station opens a contextual sidebar merging real-time and historical metrics:
 \begin{itemize}
-    \item \textbf{Live Availability}: Reports effective capacity, open docks, and rentable bikes (disaggregated by classic and electric models), alongside out-of-service counts.
-    \item \textbf{Historical Profile}: Displays hourly and daily ride distributions, identifying peak usage hours, busiest days, and overall arrival-departure balance.
-    \item \textbf{Top Connected Stations}: Ranks the station's five strongest corridors. Selecting a corridor re-centers the interface on the partner station, allowing sequential exploration across connected routes.
+    \item \textbf{Live Availability:} Reports effective capacity, open docks, and rentable bikes (disaggregated by classic and electric models), alongside out-of-service counts.
+    \item \textbf{Historical Profile:} Displays hourly and daily ride distributions, identifying peak usage hours, busiest days, and overall arrival-departure balance.
+    \item \textbf{Top Connected Stations:} Ranks the station's five strongest corridors. Selecting a corridor re-centers the interface on the partner station, allowing sequential exploration across connected routes.
 \end{itemize}
 In this way, we provide a comprehensive profile of each station without cluttering the map with excessive visual elements or auxiliary views.
 
@@ -215,14 +215,14 @@ By rendering only segments active in a selected year, the layer transforms from 
     \begin{minipage}[t]{0.49\textwidth}
         \centering
         \includegraphics[width=\textwidth]{../media/report/primary_infrastructure_1.png}
-        \caption{Infrastructure: the network's spatial station distribution.}
+        \caption{Infrastructure: the station status.}
         \label{fig:viz-infrastructure}
     \end{minipage}
     \hfill
     \begin{minipage}[t]{0.49\textwidth}
         \centering
         \includegraphics[width=\textwidth]{../media/report/primary_infrastructure_2.png}
-        \caption{Infrastructure: the network's spatial station distribution paired with bike routes.}
+        \caption{Infrastructure: the bike routes overlay.}
         \label{fig:viz-infrastructure-bike-routes}
     \end{minipage}
 \end{figure}
@@ -230,15 +230,15 @@ By rendering only segments active in a selected year, the layer transforms from 
 \paragraph{Network Composition Charts}
 Three supplementary plots extend the bike lanes infrastructure view (Figure~\ref{fig:viz-secondary-infrastructure}):
 \begin{itemize}
-    \item \textbf{Network Changes by Year}: A diverging bar chart counting segments installed above the axis and retired below it, giving the temporal overview the map alone cannot convey.
-    \item \textbf{Segments by Borough}: A ranked breakdown comparing network size across the five boroughs.
-    \item \textbf{Segments by Facility Class}: The same count split by protection level, showing how much of the network is physically separated.
+    \item \textbf{Network Changes by Year:} A diverging bar chart counting segments installed above the axis and retired below it, giving the temporal overview the map alone cannot convey.
+    \item \textbf{Segments by Borough:} A ranked breakdown comparing network size across the five boroughs.
+    \item \textbf{Segments by Facility Class:} The same count split by protection level, showing how much of the network is physically separated.
 \end{itemize}
 
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=\textwidth]{../media/report/secondary_infrastructure.png}
-    \caption{Infrastructure supplemental plots.}
+    \caption{Infrastructure: the supplemental plots.}
     \label{fig:viz-secondary-infrastructure}
 \end{figure}
 
@@ -247,7 +247,7 @@ Sentinel installation dates required careful handling rather than simple exclusi
 Segments marked with \texttt{01/01/1900} predate formal record-keeping, and dropping them would have omitted long-standing parkway paths from the network.
 We retain these segments and clarify the convention in a chart note, ensuring the earliest temporal bin reads as a historical baseline rather than an active construction year.
 
-Integrating real-time and historical datasets introduced an unavoidable temporal mismatch. 
+Integrating real-time and historical datasets introduced an unavoidable temporal mismatch.
 While bike routes include installation and retirement timestamps, station metadata is available only as a live snapshot (Section~\ref{sec:data-pipeline}).
 Consequently, the temporal slider filters the route network exclusively while holding station locations at their current state, avoiding speculative reconstruction of past station positions.
 
@@ -261,21 +261,22 @@ Users can freely rotate the 3D surface to inspect temporal relief from any persp
 
 \paragraph{Comparison Mode}
 Although global header filters can isolate specific user demographics or bike types, comparing them sequentially imposes a heavy cognitive load.
-To address this, we introduced a multi-surface comparison mode (expanding upon our initial proposal) that overlays multiple surfaces within the same coordinate space (Figure~\ref{fig:viz-temporal-compare}).
+To address this, we introduced a multi-surface comparison mode (expanding upon our \href{https://github.com/davide-dona/nyc-bike-data-visualization/blob/main/docs/proposal.pdf}{\underline{initial proposal}}) that overlays multiple surfaces within the same coordinate space (Figure~\ref{fig:viz-temporal-compare}).
 Each surface maintains its own color gradient, with upper layers rendered semi-transparently to preserve the visibility of underlying topologies.
+
 \begin{figure}[htbp]
     \centering
     \begin{minipage}[t]{0.49\textwidth}
         \centering
         \includegraphics[width=\textwidth]{../media/report/primary_temporal_1.png}
-        \caption{Temporal view: the day-hour surface }
+        \caption{Temporal: the day-hour surface.}
         \label{fig:viz-temporal-surface}
     \end{minipage}
     \hfill
     \begin{minipage}[t]{0.49\textwidth}
         \centering
         \includegraphics[width=\textwidth]{../media/report/primary_temporal_2.png}
-        \caption{Temporal view: the day-hour surface with comparison mode enabled.}
+        \caption{Temporal: the comparison mode.}
         \label{fig:viz-temporal-compare}
     \end{minipage}
 \end{figure}
@@ -289,19 +290,20 @@ In comparison mode, the histograms display colored bars for each active surface 
 \paragraph{Line Chart}
 Because grid-level averages tend to mask single-day anomalies like holidays or severe weather, a supplementary line chart plots individual dates continuously.
 This restores fine-grained detail and highlights temporal outliers that would otherwise remain hidden.
+
 \begin{figure}[htbp]
     \centering
     \begin{minipage}[t]{0.49\textwidth}
         \centering
         \includegraphics[width=\textwidth]{../media/report/secondary_temporal_1.png}
-        \caption{Supplemental temporal plots: the day and hour histograms and the date line chart.}
+        \caption{Temporal: the supplemental plots.}
         \label{fig:viz-temporal-hist}
     \end{minipage}
     \hfill
     \begin{minipage}[t]{0.49\textwidth}
         \centering
         \includegraphics[width=\textwidth]{../media/report/secondary_temporal_2.png}
-        \caption{Supplemental temporal plots: the day and hour histograms and the date line chart with comparison mode enabled.}
+        \caption{Temporal: the supplemental plots in comparison mode.}
         \label{fig:viz-temporal-hist-compare}
     \end{minipage}
 \end{figure}
@@ -324,28 +326,27 @@ This view proposes a compact summary of grouped weather conditions to provide de
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=\textwidth]{../media/report/weather_scatterplot.png}
-    \caption{Weather view: the condition scatter.}
+    \caption{Weather: the condition scatter.}
     \label{fig:viz-weather-scatterplot}
 \end{figure}
 
 \paragraph{Condition Scatter}
 The primary visualization is a scatter plot where each point represents a WMO weather code, positioned by average trip speed and rides per hour.
-Each dot is color-coded by condition family (Figure~\ref{fig:viz-weather-scatterplot}), grouping into high-level categories (e.g., rain, snow, thunderstorm) simplifying interpretation.
-This permits intuitive color semantics rather than raw numerical codes, allowing conditions with similar behavioral impacts to form distinct visual clusters. 
+Each dot is color-coded by condition family (Figure~\ref{fig:viz-weather-scatterplot}), grouping them into high-level categories (e.g., rain, snow, thunderstorm) to simplify interpretation.
+This permits intuitive color semantics rather than raw numerical codes, allowing conditions with similar behavioral impacts to form distinct visual clusters.
 Then, interactive controls enable deeper data exploration.
 Clicking a legend category isolates a specific condition family, while hovering over any data point surfaces a detailed tooltip with weather conditions and trip statistics.
 This provides a compact summary of how weather suppresses or sustains global cycling activity, establishing baseline insights that supporting charts subsequently decompose.
 
-
 \paragraph{Ridgeline Distributions}
-Beyond reducing total volume, weather fundamentally alters daily usage patterns. 
-To capture these temporal shifts, a ridgeline chart renders individual density curves per WMO weather code across either $24$ hours or $7$ weekdays, toggled via an interactive control (Figure~\ref{fig:viz-weather-ridgeline}). 
-Each ridge is independently normalized to its peak, allowing low-frequency events (such as thunderstorms) to be directly compared against baseline conditions like clear skies..
+Beyond reducing total volume, weather fundamentally alters daily usage patterns.
+To capture these temporal shifts, a ridgeline chart renders individual density curves per WMO weather code across either $24$ hours or $7$ weekdays, toggled via an interactive control (Figure~\ref{fig:viz-weather-ridgeline}).
+Each ridge is independently normalized to its peak, allowing low-frequency events (such as thunderstorms) to be directly compared against baseline conditions like clear skies.
 
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=\textwidth]{../media/report/weather_ridgeline.png}
-    \caption{Weather view: the ridgeline distributions.}
+    \caption{Weather: the ridgeline distributions.}
     \label{fig:viz-weather-ridgeline}
 \end{figure}
 
@@ -359,7 +360,7 @@ Two supplementary plots complement the WMO condition categories by examining con
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=\textwidth]{../media/report/secondary_weather.png}
-    \caption{Weather view: supplemental plots.}
+    \caption{Weather: the supplemental plots.}
     \label{fig:viz-secondary-weather}
 \end{figure}
 
@@ -369,46 +370,49 @@ Initial attempts (such as plotting total rides against temperature) were dominat
 Conversely, pairing average duration with average distance yielded a highly correlated linear trend without meaningful clustering.
 Normalizing volume to average hourly rides and pairing it with average trip speed resolved these issues.
 
-Although our proposal designated the ridgeline chart as the primary visualization, it was less intuitive for first-time readers due to its height and emphasis on temporal shape over absolute rides magnitude.
+Although our \href{https://github.com/davide-dona/nyc-bike-data-visualization/blob/main/docs/proposal.pdf}{\underline{proposal}} designated the ridgeline chart as the primary visualization, it was less intuitive for first-time readers due to its height and emphasis on temporal shape over absolute ride magnitude.
 We therefore promoted the scatter plot to the primary position and placed the ridgeline directly below it.
 Then, normalizing each ridge independently required a deliberate trade-off: scaling each ridge to its own peak enables shape comparisons at the cost of absolute values.
 Clear chart annotations and surrounding absolute-volume plots counteract this limitation, ensuring readers do not mistake relative temporal curves for absolute demand levels.
 
 \subsection{Footprint}
 The footprint view translates ridden distance into environmental impact using published emission factors and one adjustable assumption: the car-substitution rate.
-A slider lets readers adjust this rate between 5\% and 25\%, updating the displayed visualizations.
+A slider lets readers adjust this rate between $5\%$ and $25\%$, updating the displayed visualizations.
 
 \paragraph{Tiles and Emission Charts}
 Three headline tiles summarize the selected distance ridden, avoided CO\textsubscript{2}, and car trips replaced (Figure~\ref{fig:viz-footprint}).
 A horizontal bar chart compares the emissions that same distance would generate across different modes, including car, taxi, bus, subway, e-bike, and classic bike, isolating mode efficiency by keeping distance constant.
 Finally, a cumulative chart plots daily avoided CO\textsubscript{2} over time, highlighting the impact of the car-substitution rate selection.
 Shaded areas represent the range between the minimum and maximum substitution rates, while a dotted line tracks the current setting.
+
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=\textwidth]{../media/report/primary_footprint.png}
-    \caption{Footprint view: the primary visualization.}
+    \caption{Footprint: the emission tiles and charts.}
     \label{fig:viz-footprint}
 \end{figure}
 
 \paragraph{Pictogram}
 Because absolute tonnage is hard to visualize, a pictogram translates the figures into familiar benchmarks: urban trees absorbing carbon annually, an average person's yearly emissions, and LED bulbs powered for a year (Figure~\ref{fig:viz-pictogram}).
-To maintain readability, each row targets roughly 24 icons by rounding an individual icon's value to a clean multiple of 1, 2, or 5 times a power of ten.
+To maintain readability, each row targets roughly $24$ icons by rounding an individual icon's value to a clean multiple of $1$, $2$, or $5$ times a power of ten.
 Slider adjustments change the number of displayed icons without altering their unit value; conversely, adjusting the global date range updates the icon scale to keep the row length normalized.
+
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=\textwidth]{../media/report/secondary_footprint.png}
-    \caption{Footprint view: pictogram visualization.}
+    \caption{Footprint: the pictogram.}
     \label{fig:viz-pictogram}
 \end{figure}
 
 \paragraph{Challenges}
 Unlike other views, this page displays modeled estimates rather than directly measured values.
 To prevent users from mistaking avoided CO\textsubscript{2} figures for direct measurements, we prioritized explicit transparency.
-An assumptions box outlines all baseline inputs, including modal emission factors, substitution rates from cited literature, and lifecycle exclusions (Figure~\ref{fig:viz-assumptions}). 
+An assumptions box outlines all baseline inputs, including modal emission factors, substitution rates from cited literature, and lifecycle exclusions (Figure~\ref{fig:viz-assumptions}).
 Inline citations provide direct links for verification.
+
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=\textwidth]{../media/report/assumption_box.png}
-    \caption{Footprint view: the assumption box}
+    \caption{Footprint: the assumptions box.}
     \label{fig:viz-assumptions}
 \end{figure}
