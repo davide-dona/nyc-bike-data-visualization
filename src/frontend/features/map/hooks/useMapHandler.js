@@ -1,29 +1,59 @@
 import { useCallback, useEffect, useState } from 'react'
-import { LAYER_OPTIONS, MIN_PITCH, MAX_PITCH, MIN_ZOOM, MAX_ZOOM, INITIAL_VIEW_STATE, MIN_LONGITUDE, MAX_LONGITUDE, MIN_LATITUDE, MAX_LATITUDE } from '../MapPage'
+import { FlyToInterpolator } from '@deck.gl/core'
+import { LAYER_OPTIONS, MIN_PITCH, MAX_PITCH, MIN_ZOOM, MAX_ZOOM, INITIAL_VIEW_STATE, MIN_LONGITUDE, MAX_LONGITUDE, MIN_LATITUDE, MAX_LATITUDE } from '../utils/mapConfig.js'
 
-// Utility function to clamp a value between a minimum and maximum
-const clamp = (value, min, max) => Math.min(max, Math.max(min, value))
+import { clamp } from '@/utils/math.js'
+
+// Duration of programmatic camera moves (ms).
+const FLY_TO_DURATION = 900
 
 /**
- * Hook for handling map-related state and logic.
- * @param {Object} param0 - The parameters for the hook.
+ * Handler hook for map view state, camera moves, and per-layer UI toggles.
  * @returns {Object} The map handler functions and state.
  */
 export function useMapHandler() {
-    // State for map view (center, zoom, etc.)
     const [viewState, setViewState] = useState(INITIAL_VIEW_STATE)
     // Current hour frame (0-23) for animation. Default to 7 AM
     const [currentTime, setCurrentTime] = useState(7)
-    // Whether the current layer supports animation
     const [hasAnimation, setHasAnimation] = useState(true)
-    // Currently selected map layer
     const [activeLayer, setActiveLayer] = useState('station_usage')
-    // Whether to show bike routes on the infrastructure layer
     const [showBikeRoutes, setShowBikeRoutes] = useState(false)
     // Which metric the station usage layer encodes ('all' | 'incoming' | 'outgoing')
     const [usageMode, setUsageMode] = useState('all')
+    // View preferences that persist across layer switches.
+    const [hiddenHealthCategories, setHiddenHealthCategories] = useState(() => new Set())
+    const [hiddenRouteClasses, setHiddenRouteClasses] = useState(() => new Set())
+    // Historical year for the bike-route network; null means "present"
+    const [selectedYear, setSelectedYear] = useState(null)
 
-    // Handler for view map changes
+    const toggleHealthCategory = useCallback((key) => {
+        setHiddenHealthCategories((prev) => {
+            const next = new Set(prev)
+            next.has(key) ? next.delete(key) : next.add(key)
+            return next
+        })
+    }, [])
+
+    const toggleRouteClass = useCallback((key) => {
+        setHiddenRouteClasses((prev) => {
+            const next = new Set(prev)
+            next.has(key) ? next.delete(key) : next.add(key)
+            return next
+        })
+    }, [])
+
+    // Animated camera move; target values pass through the same clamps as manual view changes.
+    const flyTo = useCallback(({ longitude, latitude, zoom }) => {
+        setViewState((prev) => ({
+            ...prev,
+            longitude: clamp(longitude, MIN_LONGITUDE, MAX_LONGITUDE),
+            latitude: clamp(latitude, MIN_LATITUDE, MAX_LATITUDE),
+            zoom: clamp(zoom, MIN_ZOOM, MAX_ZOOM),
+            transitionDuration: FLY_TO_DURATION,
+            transitionInterpolator: new FlyToInterpolator(),
+        }))
+    }, [])
+
     const handleViewStateChange = useCallback(({ viewState: nextViewState }) => {
         setViewState({
             ...nextViewState,
@@ -34,7 +64,6 @@ export function useMapHandler() {
         })
     }, [])
 
-    // Check current active layer for animation capability
     useEffect(() => {
         setHasAnimation(LAYER_OPTIONS.find((layer) => layer.value === activeLayer)?.hasAnimation ?? false)
     }, [activeLayer])
@@ -50,13 +79,20 @@ export function useMapHandler() {
             touchRotate: true,
         },
         currentTime,
+        flyTo,
         handleViewStateChange,
         hasAnimation,
+        hiddenHealthCategories,
+        hiddenRouteClasses,
+        selectedYear,
         setActiveLayer,
         setCurrentTime,
+        setSelectedYear,
         setShowBikeRoutes,
         setUsageMode,
         showBikeRoutes,
+        toggleHealthCategory,
+        toggleRouteClass,
         usageMode,
         viewState,
     }

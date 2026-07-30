@@ -1,0 +1,13 @@
+@layer components {
+  .footprint-rate {
+    @apply flex items-center gap-3 w-96 max-w-full;
+  }
+
+  .footprint-rate__label {
+    @apply font-mono text-[11px] uppercase tracking-eyebrow text-ink-muted whitespace-nowrap;
+  }
+
+  .footprint-rate__value {
+    @apply font-mono text-[11px] text-ink w-[3ch] text-right;
+  }
+}

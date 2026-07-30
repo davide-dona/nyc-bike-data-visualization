@@ -1,31 +1,61 @@
-import { LAYER_OPTIONS } from "../MapPage.jsx";
+import { LAYER_OPTIONS } from "../utils/mapConfig.js";
 import LegendRow from "./LegendRow.jsx";
-import { legendFor, bikeRoutesLegend } from "../utils/map_legend.js";
+import { legendFor } from "../utils/mapLegend.js";
+import { bikeRoutesLegend } from "../infrastructure/utils/bikeRoutesLayer.js";
 
 /**
- * Map legend panel — renders the active layer's swatch rows on an ink card.
+ * Map legend panel: renders the active layer's swatch rows; on the infrastructure layer they double as per-category visibility toggles.
  * @param {string} activeLayer - Key of the layer whose legend should be displayed.
  * @param {boolean} showBikeRoutes - When true, an extra bike-routes section is surfaced.
+ * @param {boolean} hasTripFlowFocus - Whether the trip-flow layer has a focused station (switches its legend).
+ * @param {Set} hiddenHealthCategories - Station health categories currently hidden on the map.
+ * @param {Set} hiddenRouteClasses - Bike-route facility classes currently hidden on the map.
+ * @param {Function} onToggleHealthCategory - Toggles one health category's visibility.
+ * @param {Function} onToggleRouteClass - Toggles one facility class's visibility.
  * @returns {JSX.Element} Legend panel for the current map layer.
  */
-export default function MapLegend({ activeLayer, showBikeRoutes, className = '' }) {
+export default function MapLegend({
+    activeLayer,
+    showBikeRoutes,
+    hasTripFlowFocus = false,
+    hiddenHealthCategories,
+    hiddenRouteClasses,
+    onToggleHealthCategory,
+    onToggleRouteClass,
+    className = '',
+}) {
     const activeLayerLabel = LAYER_OPTIONS.find((layer) => layer.value === activeLayer)?.label || "Layer";
-    const legend = legendFor(activeLayer, { showBikeRoutes });
+    const legend = legendFor(activeLayer, { showBikeRoutes, hasTripFlowFocus });
+    const isInfrastructure = activeLayer === "infrastructure";
 
     return (
         <div className={`map-legend-${activeLayerLabel == "Station usage" ? "bottom-right" : "top-left"}${className ? ` ${className}` : ''}`}>
             <p className="map-legend-title">{activeLayerLabel}</p>
             <ul className="map-legend__list">
-                {legend.entries.map((entry) => (
-                    <LegendRow key={entry.label} {...entry} />
+                {legend.entries.map(({ key, ...entry }) => (
+                    <LegendRow
+                        key={key ?? entry.label}
+                        {...entry}
+                        onToggle={isInfrastructure && onToggleHealthCategory
+                            ? () => onToggleHealthCategory(key)
+                            : undefined}
+                        isHidden={Boolean(hiddenHealthCategories?.has(key))}
+                    />
                 ))}
             </ul>
             {legend.includeBikeRoutes && (
                 <div className="map-legend__section">
                     <small className="map-legend__section-label">Bike routes</small>
                     <ul className="map-legend__list">
-                        {bikeRoutesLegend().entries.map((entry) => (
-                            <LegendRow key={entry.label} {...entry} />
+                        {bikeRoutesLegend().entries.map(({ key, ...entry }) => (
+                            <LegendRow
+                                key={key}
+                                {...entry}
+                                onToggle={isInfrastructure && onToggleRouteClass
+                                    ? () => onToggleRouteClass(key)
+                                    : undefined}
+                                isHidden={Boolean(hiddenRouteClasses?.has(key))}
+                            />
                         ))}
                     </ul>
                 </div>

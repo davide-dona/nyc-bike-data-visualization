@@ -1,0 +1,15 @@
+/* SurfaceLineChart.jsx: the compact line-chart card variant, built on the
+   shared ChartFrame (see chart-frame.css). */
+@layer components {
+    .surface-card {
+        @apply h-[25vw] min-h-[250px] relative flex flex-col gap-4 bg-paper-raised border-t border-ink border-x border-b border-rule p-5;
+    }
+
+    .surface-card__eyebrow {
+        @apply font-mono text-[11px] uppercase tracking-eyebrow text-ink-muted m-0;
+    }
+
+    .surface-chart {
+        @apply h-full w-full;
+    }
+}

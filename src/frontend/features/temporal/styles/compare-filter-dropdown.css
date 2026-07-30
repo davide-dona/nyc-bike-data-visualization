@@ -1,0 +1,121 @@
+/* CompareFilterDropdown.jsx: the station/metric select used inside the
+   compare panel. */
+@layer components {
+    .surface-compare-select-wrap {
+        @apply relative;
+    }
+
+    .surface-compare-select-wrap.is-open {
+        z-index: 30;
+    }
+
+    .surface-compare-select {
+        @apply w-full bg-paper-raised border border-rule px-3 py-1.5 pr-8 text-[12px] text-ink font-mono
+               transition-colors duration-150 text-left cursor-pointer select-none overflow-hidden
+               text-ellipsis whitespace-nowrap;
+    }
+
+    .surface-compare-select:hover {
+        @apply border-ink bg-paper;
+    }
+
+    .surface-compare-select:active {
+        background: rgba(235, 230, 221, 0.92);
+    }
+
+    .surface-compare-select:focus {
+        @apply outline-none border-ink;
+        box-shadow: 0 0 0 2px rgba(25, 83, 216, 0.18);
+    }
+
+    .surface-compare-select-chevron {
+        @apply absolute right-3 top-1/2 inline-flex items-center justify-center w-4 h-4 text-[13px] text-ink;
+        transform: translateY(-50%);
+        pointer-events: none;
+        opacity: 0.82;
+    }
+
+    .surface-compare-select-chevron i {
+        display: block !important;
+        position: relative;
+        width: 1em;
+        height: 1em;
+        line-height: 1;
+        transform: rotate(90deg);
+        transform-origin: center;
+        transition: transform 180ms ease;
+    }
+
+    .surface-compare-select-chevron i::before {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        display: block;
+        width: max-content;
+        line-height: 1;
+    }
+
+    .surface-compare-select-wrap.is-open .surface-compare-select-chevron {
+        opacity: 1;
+    }
+
+    .surface-compare-select-wrap.is-open .surface-compare-select-chevron i {
+        transform: rotate(270deg);
+    }
+
+    .surface-compare-select-value.is-placeholder {
+        @apply text-ink;
+        opacity: 1;
+    }
+
+    .surface-compare-select-wrap:hover .surface-compare-select-chevron {
+        opacity: 1;
+    }
+
+    .surface-compare-select-menu {
+        @apply absolute left-0 right-0 mt-1 border border-rule bg-paper-raised;
+        box-shadow: 0 10px 24px rgba(22, 20, 18, 0.14);
+        max-height: 220px;
+        overflow-y: auto;
+        animation: surface-select-in 160ms ease;
+    }
+
+    .surface-compare-select-option {
+        @apply w-full text-left px-3 py-1.5 font-mono text-[11px] text-ink border-b border-rule/50 overflow-hidden
+               text-ellipsis whitespace-nowrap;
+        background: transparent;
+        cursor: pointer;
+        transition:
+            background-color 140ms ease,
+            color 140ms ease;
+    }
+
+    .surface-compare-select-option:last-child {
+        border-bottom: 0;
+    }
+
+    .surface-compare-select-option:hover {
+        @apply bg-paper text-ink;
+    }
+
+    .surface-compare-select-option:active {
+        background: rgba(235, 230, 221, 0.92);
+    }
+
+    .surface-compare-select-option.is-selected {
+        @apply bg-ink text-white;
+    }
+
+    @keyframes surface-select-in {
+        from {
+            opacity: 0;
+            transform: translateY(-4px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+}

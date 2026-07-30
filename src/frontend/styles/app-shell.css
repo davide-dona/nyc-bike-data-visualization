@@ -1,0 +1,63 @@
+/* App.jsx: page shell, content area, and footer. */
+@layer components {
+    .app-shell {
+        @apply font-sans min-h-screen bg-paper text-ink flex flex-col select-none;
+    }
+
+    .app-content {
+        @apply flex-1;
+    }
+
+    .app-footer {
+        @apply border-t border-rule;
+    }
+
+    .app-footer__text {
+        @apply mx-auto w-full px-6 py-3
+           inline-flex items-center justify-center gap-1.5 text-center
+           font-mono text-[10px] tracking-[0.08em] text-ink-muted;
+    }
+
+    .app-footer__heart {
+        @apply w-3 h-3 fill-heart;
+        animation: footer-heart-pulse 1400ms ease-in-out infinite;
+        transform-origin: center;
+    }
+
+    .app-footer__heart-wrap {
+        @apply inline-flex items-center justify-center text-accent;
+        line-height: 1;
+        padding: 0;
+        padding-bottom: 1px;
+    }
+
+    @keyframes footer-heart-pulse {
+        0%,
+        100% {
+            transform: scale(1);
+            opacity: 1;
+        }
+        14% {
+            transform: scale(1.2);
+            opacity: 0.9;
+        }
+        22% {
+            transform: scale(1.02);
+            opacity: 1;
+        }
+        30% {
+            transform: scale(1.14);
+            opacity: 0.93;
+        }
+        40% {
+            transform: scale(1);
+            opacity: 1;
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .app-footer__heart {
+            animation: none;
+        }
+    }
+}

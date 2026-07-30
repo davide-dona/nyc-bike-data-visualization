@@ -1,0 +1,98 @@
+/* infrastructure/components/YearSlider.jsx: historical year chip next to the
+   routes toggle, shown only while bike routes are visible. */
+@layer components {
+  .year-slider {
+    @apply flex items-center gap-3 w-[34rem] max-w-full px-3 py-1.5
+           bg-paper-raised border border-rule border-ink/20 backdrop-blur-sm;
+  }
+
+  .year-slider__label {
+    @apply font-mono text-[11px] uppercase tracking-eyebrow text-ink-muted whitespace-nowrap;
+  }
+
+  /* Filled chip, matching the app's other small dark value badges
+     (e.g. .viz-guide__title-map-name), so the active year reads as a
+     distinct result rather than plain text. */
+  .year-slider__value {
+    @apply inline-flex items-center border border-ink bg-ink px-2 py-1
+           font-mono text-[11px] uppercase tracking-eyebrow text-white tabular-nums whitespace-nowrap;
+  }
+
+  /* Lays the slider on one centered row between its start/end year labels, so
+     the track reads as a range flanked by, and centered between, its bounds. */
+  .year-slider__track {
+    @apply flex flex-1 items-center gap-3;
+  }
+
+  /* Start and end year of the range, flanking the slider. */
+  .year-slider__bound {
+    @apply font-mono text-[11px] leading-none text-ink-muted tabular-nums whitespace-nowrap;
+  }
+
+  /* The input's own box is sized to the thumb (a generous hit target); the
+     visual "line" is the thinner ::-webkit-slider-runnable-track underneath
+     it, so the thumb centers against the track it's actually drawn on
+     instead of an ad-hoc margin against the input's own (unreliable) height.
+     Selector is qualified with the element type so its height reliably wins
+     over the shared .range-slider base class's own height at equal
+     class-only specificity. */
+  input.year-slider__input {
+    appearance: none;
+    -webkit-appearance: none;
+    flex: 1 1 0%;
+    min-width: 0;
+    height: 12px;
+    background: transparent;
+    cursor: pointer;
+  }
+
+  .year-slider__input:disabled {
+    @apply cursor-not-allowed opacity-50;
+  }
+
+  .year-slider__input::-webkit-slider-runnable-track {
+    height: 4px;
+    background: linear-gradient(
+      to right,
+      theme('colors.accent.DEFAULT') 0%,
+      theme('colors.accent.DEFAULT') var(--year-slider-progress, 0%),
+      theme('colors.rule.strong') var(--year-slider-progress, 0%),
+      theme('colors.rule.strong') 100%
+    );
+  }
+
+  .year-slider__input::-webkit-slider-thumb {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 12px;
+    height: 12px;
+    /* Centers the 12px thumb on the 4px track: (4 - 12) / 2. */
+    margin-top: -4px;
+    border-radius: 9999px;
+    background: theme('colors.accent.DEFAULT');
+    border: 2px solid theme('colors.paper.raised');
+    box-shadow: 0 0 0 1px theme('colors.accent.DEFAULT');
+    cursor: pointer;
+  }
+
+  .year-slider__input::-moz-range-track {
+    height: 4px;
+    background: linear-gradient(
+      to right,
+      theme('colors.accent.DEFAULT') 0%,
+      theme('colors.accent.DEFAULT') var(--year-slider-progress, 0%),
+      theme('colors.rule.strong') var(--year-slider-progress, 0%),
+      theme('colors.rule.strong') 100%
+    );
+  }
+
+  .year-slider__input::-moz-range-thumb {
+    width: 12px;
+    height: 12px;
+    border-radius: 9999px;
+    background: theme('colors.accent.DEFAULT');
+    border: 2px solid theme('colors.paper.raised');
+    box-shadow: 0 0 0 1px theme('colors.accent.DEFAULT');
+    cursor: pointer;
+  }
+}

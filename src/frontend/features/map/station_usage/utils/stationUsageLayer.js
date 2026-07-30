@@ -1,0 +1,83 @@
+import { HexagonLayer } from '@deck.gl/aggregation-layers'
+import { STATION_USAGE_COLOR_RANGE } from '@/utils/styling/map.ts'
+import { formatCount } from '@/utils/numberFormat.js'
+import { RIDE_METRIC_LABELS } from '@/utils/rideMetricLabels.js'
+
+const LAYER_CONFIG = {
+    radius: 150,
+    coverage: 0.8,
+    opacity: 0.75,
+    upperPercentile: 100,
+    extruded: true,
+    elevationScale: 3,
+    pickable: true,
+    gpuAggregation: false,
+}
+
+/**
+ * Creates a layer for displaying station usage data.
+ * Color encodes per-station delta (usage - meanUsage): blue = below, orange = above.
+ * Elevation still encodes absolute usage.
+ * @param {Array} frameStations - Station data; each station must have usage and meanUsage.
+ * @param {number} maxUsage - The maximum usage value for scaling elevation.
+ * @param {number} maxDelta - The maximum absolute delta across all stations, for color scaling.
+ * @returns {HexagonLayer} The created hexagon layer.
+ */
+export function createStationUsageLayer({ frameStations, maxUsage, maxDelta }) {
+    const elevationScale = maxUsage > 0 ? maxUsage : 1
+
+    // Symmetric domain around 0 so grey always means "exactly at mean"
+    const spread = maxDelta > 0 ? maxDelta : 1
+    const colorDomain = [-spread, spread]
+
+    return new HexagonLayer({
+        id: 'station-usage-layer',
+        data: frameStations,
+        ...LAYER_CONFIG,
+        colorRange: STATION_USAGE_COLOR_RANGE,
+        getPosition: (station) => [station.lon, station.lat],
+        getColorWeight: (station) => station.usage - station.meanUsage,
+        colorAggregation: 'SUM',
+        getElevationWeight: (station) => station.usage,
+        elevationAggregation: 'SUM',
+        colorDomain,
+        elevationDomain: [0, elevationScale],
+    })
+}
+// The hexagon shows the currently animated hour's value, which is always an hourly average.
+const MODE_TOOLTIP_LABELS = {
+    all: RIDE_METRIC_LABELS.perHour.label,
+    incoming: 'Avg incoming / hour',
+    outgoing: 'Avg outgoing / hour',
+}
+
+/**
+* Creates a tooltip for station usage data.
+* @param {Object} object - The data object associated with the hovered element on the map.
+* @param {string} usageMode - Usage mode of the layer ('all' | 'incoming' | 'outgoing').
+* @returns {string} The tooltip content.
+*/
+export function stationUsageTooltip(object, usageMode = 'all') {
+    const metricLabel = MODE_TOOLTIP_LABELS[usageMode] ?? MODE_TOOLTIP_LABELS.all
+    if (Array.isArray(object.points) && object.points.length > 0) {
+        const totalUsage = object.points.reduce((sum, p) => sum + (Number(p.usage) || 0), 0)
+        const ids = [...new Set(object.points.map((p) => p.stationId).filter(Boolean))]
+        return `Station(s): ${formatCount(object.points.length)}\n${metricLabel}: ${formatCount(totalUsage)}\nIDs: ${ids.slice(0, 4).join(', ')}${ids.length > 4 ? ', …' : ''}`
+    }
+    const totalUsage = Number(object.elevationValue ?? object.colorValue ?? 0) || 0
+    return `Station(s): ${formatCount(Number(object.count ?? 0) || 0)}\n${metricLabel}: ${formatCount(totalUsage)}`
+}
+
+/**
+ * Returns the legend entries for the station usage layer as plain data.
+ * `MapLegend` renders them uniformly alongside every other layer's entries.
+ */
+export function stationUsageLegend() {
+    return {
+        entries: [
+            { swatch: 'rgb(194, 80, 26)', label: 'Well below mean' },
+            { swatch: 'rgb(236, 230, 218)', label: 'At mean' },
+            { swatch: 'rgb(10, 42, 122)', label: 'Well above mean' },
+        ],
+    }
+}

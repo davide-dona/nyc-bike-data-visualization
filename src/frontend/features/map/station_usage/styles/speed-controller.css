@@ -1,0 +1,242 @@
+/* station_usage/components/SpeedController.jsx and the time-wheel scrubber. */
+@layer components {
+  .map-speed-controls {
+    @apply w-full px-4 py-3 text-xs text-ink pointer-events-auto
+           bg-paper-raised backdrop-blur-sm border border-rule;
+  }
+
+  .map-speed-controls.is-disabled {
+    opacity: 0.72;
+  }
+
+  .map-speed-controls__header {
+    @apply flex items-start justify-between gap-3 flex-wrap mb-2;
+  }
+
+  .map-speed-controls__meta {
+    @apply flex items-baseline gap-3 min-w-0;
+    padding-left: 2.5px;
+  }
+
+  .map-speed-controls__eyebrow {
+    @apply font-mono text-[11px] uppercase tracking-eyebrow text-ink-muted shrink-0;
+    padding-left: 1.5px;
+  }
+
+  .map-speed-clock {
+    @apply inline-flex items-center gap-1.5
+           font-mono text-[12px] font-semibold text-ink tabular-nums;
+  }
+
+  .map-speed-controls__hint {
+    @apply m-0 font-mono text-[11px] text-ink-muted;
+  }
+
+  .map-time-wheel-layout {
+    @apply mt-2 grid grid-cols-[auto_1fr_auto] items-stretch gap-3;
+  }
+
+  .map-speed-controls__play-btn {
+    @apply inline-flex h-full aspect-square self-stretch items-center justify-center text-white bg-ink border border-ink
+           hover:bg-ink-raised
+           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent;
+    border-radius: 0;
+    transition-property: background-color;
+    transition-duration: 220ms;
+    transition-timing-function: cubic-bezier(0.22, 0.61, 0.36, 1);
+  }
+
+  .map-speed-controls__play-btn.is-playing {
+    border-radius: 0;
+  }
+
+  .map-speed-controls__play-btn:disabled {
+    @apply cursor-not-allowed opacity-45;
+  }
+
+  .map-speed-controls__speed-selector {
+    @apply relative inline-flex h-full w-[3rem] flex-col items-center justify-center overflow-hidden
+           border border-rule bg-paper-raised py-1.5 font-mono text-[10px] uppercase tracking-eyebrow text-ink
+           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent;
+    justify-self: end;
+    transition-property: width, background-color, border-color;
+    transition-duration: 220ms;
+    transition-timing-function: cubic-bezier(0.22, 0.61, 0.36, 1);
+  }
+
+  .map-speed-controls__speed-selector:hover,
+  .map-speed-controls__speed-selector:focus-within {
+    width: 150px;
+    border-color: rgba(11, 12, 14, 0.22);
+  }
+
+  .map-speed-controls__speed-selector.is-disabled,
+  .map-speed-controls__speed-selector.is-disabled:hover,
+  .map-speed-controls__speed-selector.is-disabled:focus-within {
+    width: 3rem;
+    cursor: not-allowed;
+    border-color: rgba(11, 12, 14, 0.16);
+  }
+
+  .map-speed-controls__speed-selector.is-disabled .map-speed-controls__speed-wheel {
+    opacity: 0;
+    transform: scaleY(0.92);
+    pointer-events: none;
+  }
+
+  .map-time-wheel.is-disabled {
+    cursor: not-allowed;
+  }
+
+  .map-speed-controls__speed-value {
+    @apply text-center text-[12px] leading-none text-ink;
+    padding: 2px 6px;
+  }
+
+  .map-speed-controls__speed-summary {
+    @apply absolute left-1/2 top-1/2 z-[4] flex -translate-x-1/2 -translate-y-1/2 items-center justify-center text-center;
+    pointer-events: none;
+    transition: opacity 220ms cubic-bezier(0.22, 0.61, 0.36, 1);
+  }
+
+  /* The collapsed summary yields to the step buttons while expanded */
+  .map-speed-controls__speed-selector:hover .map-speed-controls__speed-summary,
+  .map-speed-controls__speed-selector:focus-within .map-speed-controls__speed-summary {
+    opacity: 0;
+  }
+
+  .map-speed-controls__speed-selector.is-disabled:hover .map-speed-controls__speed-summary,
+  .map-speed-controls__speed-selector.is-disabled:focus-within .map-speed-controls__speed-summary {
+    opacity: 1;
+  }
+
+  .map-speed-controls__speed-wheel {
+    @apply absolute inset-0 w-full overflow-hidden;
+    opacity: 0;
+    transform: scaleY(0.92);
+    pointer-events: none;
+    transform-origin: center;
+    transition-property: opacity, transform;
+    transition-duration: 220ms;
+    transition-timing-function: cubic-bezier(0.22, 0.61, 0.36, 1);
+  }
+
+  .map-speed-controls__speed-selector:hover .map-speed-controls__speed-wheel,
+  .map-speed-controls__speed-selector:focus-within .map-speed-controls__speed-wheel {
+    opacity: 1;
+    transform: scaleY(1);
+    pointer-events: auto;
+  }
+
+  .map-speed-controls__speed-selector.is-disabled:hover .map-speed-controls__speed-wheel,
+  .map-speed-controls__speed-selector.is-disabled:focus-within .map-speed-controls__speed-wheel {
+    opacity: 0;
+    transform: scaleY(0.92);
+    pointer-events: none;
+  }
+
+  .map-speed-controls__speed-wheel-rail {
+    @apply relative flex h-full w-full bg-paper-raised overflow-hidden;
+  }
+
+  .map-speed-controls__speed-step {
+    @apply relative z-[5] flex-1 h-full flex items-center justify-center
+           font-mono text-[10px] uppercase text-ink/55
+           transition-colors duration-150
+           hover:text-ink hover:bg-ink/5
+           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent;
+    letter-spacing: 0.08em;
+  }
+
+  .map-speed-controls__speed-step + .map-speed-controls__speed-step {
+    @apply border-l border-rule;
+  }
+
+  .map-speed-controls__speed-step.is-active {
+    @apply bg-ink text-white;
+  }
+
+  .map-speed-controls__speed-step.is-active:hover {
+    @apply bg-ink text-white;
+  }
+
+  .map-speed-controls__speed-step:disabled {
+    @apply cursor-not-allowed;
+  }
+
+  .map-time-wheel {
+    @apply relative w-full min-w-0 cursor-grab select-none outline-none touch-none;
+  }
+
+  .map-time-wheel.is-dragging {
+    @apply cursor-grabbing;
+  }
+
+  .map-time-wheel__rail {
+    @apply relative h-10 border border-rule bg-paper-raised overflow-hidden;
+  }
+
+  .map-time-wheel__moving-strip {
+    @apply absolute inset-0;
+  }
+
+  .map-time-wheel__ticks {
+    @apply absolute inset-0 w-full;
+  }
+
+  .map-time-wheel__pre-indicator-overlay {
+    @apply absolute inset-y-0 left-0 w-1/2 z-[5] bg-ink/10 pointer-events-none;
+  }
+
+  .map-time-wheel__center-indicator {
+    @apply absolute top-[24%] left-1/2 z-10 h-[1.4rem] w-[2px] -translate-x-1/2 -translate-y-1/2
+           bg-ink/70 rounded-full;
+  }
+
+  .map-time-wheel__tick {
+    @apply absolute inset-y-0 flex flex-col items-center justify-between
+           -translate-x-1/2 pointer-events-none;
+  }
+
+  .map-time-wheel__tick-line {
+    @apply block w-[2px] flex-1 bg-ink/35;
+  }
+
+  .map-time-wheel__tick-label {
+    @apply inline-flex items-center pt-1 pb-1 font-mono text-[10px] leading-none text-ink/70;
+  }
+
+  /* Responsive tick decimation keys on the hour itself (minor = odd hour,
+     major = every 6th) so the periodic strip stays stable while it moves */
+  @media (max-width: 1024px) {
+    .map-time-wheel__tick--minor {
+      opacity: 0.18;
+    }
+
+    .map-time-wheel__tick--minor .map-time-wheel__tick-line {
+      @apply w-px;
+    }
+
+    .map-time-wheel__tick--minor .map-time-wheel__tick-label {
+      @apply text-[9px];
+    }
+  }
+
+  @media (max-width: 640px) {
+    .map-time-wheel__tick:not(.map-time-wheel__tick--major) {
+      opacity: 0;
+    }
+
+    .map-time-wheel__tick--major {
+      opacity: 0.22;
+    }
+
+    .map-time-wheel__tick--major .map-time-wheel__tick-line {
+      @apply w-px;
+    }
+
+    .map-time-wheel__tick--major .map-time-wheel__tick-label {
+      @apply text-[9px];
+    }
+  }
+}

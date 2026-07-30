@@ -1,0 +1,16 @@
+/* deck.gl's built-in tooltip box, aligned to the shared tooltip tokens
+   published by applyEditorialChartDefaults(). Used by every layer's
+   getTooltip callback (utils/mapTooltip.js). */
+@layer components {
+  .deck-tooltip {
+    @apply text-[11px] leading-tight;
+    font-family: var(--tooltip-font);
+    color: var(--tooltip-text);
+    background-color: var(--tooltip-bg);
+    border: 1px solid var(--tooltip-border);
+  }
+
+  .deck-tooltip * {
+    font-family: inherit;
+  }
+}

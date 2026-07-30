@@ -1,16 +1,18 @@
 import { useMemo } from "react";
 import { useApiQueriesWithFilters } from "../../../clients/baseApiQuery.js";
-import { fetchStats } from "../services/statsApi.js";
+import { fetchStats } from "@/services/statsApi.js";
 import {
     createLayerQueries,
     hasDateRange,
     stripClassFilters,
-} from "../utils/compare_layers.js";
+} from "../utils/compareLayers.js";
+import { marginalizeDayHour } from "../utils/marginalizeStats.js";
 
 /**
- * Fetch hook. Runs every breakdown (day×hour, day, hour, date) for each
- * pinned comparison layer in parallel via the shared /clients query helper,
- * then regroups results by layer id for consumer components.
+ * Fetch hook. Runs the day×hour and date breakdowns for each pinned
+ * comparison layer in parallel via the shared /clients query helper, then
+ * regroups results by layer id for consumer components. The day and hour
+ * breakdowns are marginals of the day×hour grid, computed client-side.
  * @param {object} params - Hook parameters.
  * @param {object} params.filters - Global filters (date range, etc.).
  * @param {Array<{id:string, filters?:object}>} params.layers - Pinned comparison layers.
@@ -50,15 +52,18 @@ export default function useCompareTemporalLayers({ filters = {}, layers = [], en
             byLayer.set(descriptor.layerId, layerBucket);
         }
 
-        return layers.map((layer) => ({
-            id: layer.id,
-            dayHourStats: byLayer.get(layer.id)?.dayHourStats ?? [],
-            dayStats: byLayer.get(layer.id)?.dayStats ?? [],
-            hourStats: byLayer.get(layer.id)?.hourStats ?? [],
-            dateStats: byLayer.get(layer.id)?.dateStats ?? [],
-            loading: byLayer.get(layer.id)?.loading ?? false,
-            error: byLayer.get(layer.id)?.error ?? null,
-        }));
+        return layers.map((layer) => {
+            const dayHourStats = byLayer.get(layer.id)?.dayHourStats ?? [];
+            return {
+                id: layer.id,
+                dayHourStats,
+                dayStats: marginalizeDayHour(dayHourStats, "day_of_week"),
+                hourStats: marginalizeDayHour(dayHourStats, "hour"),
+                dateStats: byLayer.get(layer.id)?.dateStats ?? [],
+                loading: byLayer.get(layer.id)?.loading ?? false,
+                error: byLayer.get(layer.id)?.error ?? null,
+            };
+        });
     }, [layers, queryDescriptors, queryResults]);
 
     const loading = queryResults.some((result) => result.isLoading || result.isFetching);

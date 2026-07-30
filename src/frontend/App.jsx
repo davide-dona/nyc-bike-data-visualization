@@ -4,15 +4,13 @@ import AppHeader from './features/header/AppHeader.jsx'
 import MapPage from './features/map/MapPage.jsx'
 import TemporalPage from './features/temporal/TemporalPage.jsx'
 import WeatherPage from './features/weather/WeatherPage.jsx'
+import FootprintPage from './features/footprint/FootprintPage.jsx'
 
-/**
- * App component that sets up the main structure of the application, including routing and layout. 
- * Defines routes for the map and stats pages, and includes a header that is displayed on all pages.
- * @returns 
- */
+/** Root component: sets up routing and the shared header/footer layout. */
 function App() {
     const [filters, setFilters] = useState({})
     const [isTemporalCompareActive, setIsTemporalCompareActive] = useState(false)
+    const [isMapDataLoading, setIsMapDataLoading] = useState(false)
 
     return (
         <BrowserRouter>
@@ -21,12 +19,13 @@ function App() {
                     filters={filters}
                     onFiltersChange={setFilters}
                     forceDisableFilters={isTemporalCompareActive}
+                    mapDataLoading={isMapDataLoading}
                 />
                 <main className="app-content">
                     <div className="page-shell">
                         <Routes>
                             <Route path="/" element={<Navigate to="/map" replace />} />
-                            <Route path="/map" element={<MapPage filters={filters} />} />
+                            <Route path="/map" element={<MapPage filters={filters} onLoadingChange={setIsMapDataLoading} />} />
                             <Route
                                 path="/temporal"
                                 element={
@@ -37,6 +36,7 @@ function App() {
                                 }
                             />
                             <Route path="/weather" element={<WeatherPage filters={filters} />} />
+                            <Route path="/footprint" element={<FootprintPage filters={filters} />} />
                         </Routes>
                     </div>
                 </main>

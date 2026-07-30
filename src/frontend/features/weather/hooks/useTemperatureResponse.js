@@ -4,11 +4,7 @@ import { useApiQueriesWithFilters } from "../../../clients/baseApiQuery.js";
 const USER_TYPES = ["member", "casual"];
 
 /**
- * Fetch rides-per-hour bucketed by temperature, one series per user type so the
- * chart can contrast member and casual weather sensitivity. When the global
- * user filter is set only that type is fetched, keeping the page consistent
- * with the header filters.
- * @param {*} filters
+ * Fetch rides-per-hour by temperature, one series per user type (or just the selected type when the header filter narrows it).
  * @returns Series per user type plus loading/error states.
  */
 function useTemperatureResponse(filters = {}) {

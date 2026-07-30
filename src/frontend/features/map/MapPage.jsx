@@ -1,231 +1,118 @@
+import { useLayoutEffect } from 'react'
 import DeckGL from '@deck.gl/react'
-import { useCallback, useEffect, useRef, useState } from 'react'
 import { useMapHandler } from './hooks/useMapHandler.js'
 import { useBuildLayers } from './hooks/useBuildLayers.js'
+import useMapFullscreen from './hooks/useMapFullscreen.js'
+import useMapCursor from './hooks/useMapCursor.js'
+import useMapClickActions from './hooks/useMapClickActions.js'
+import useMapPageStatus from './hooks/useMapPageStatus.js'
+import { useTripFlowCamera } from './trip_flow/hooks/useTripFlowCamera.js'
+import { useInfrastructureCamera } from './infrastructure/hooks/useInfrastructureCamera.js'
 import MapController from './components/MapController.jsx'
 import MapLegend from './components/MapLegend.jsx'
 import LayerSelector from './components/LayerSelector.jsx'
-import InfrastructureStationSidebar from './components/InfrastructureStationSidebar.jsx'
+import InfrastructureStationSidebar from './infrastructure/components/InfrastructureStationSidebar.jsx'
 import StatusMessage from '../../components/StatusMessage.jsx'
-import Tooltip from './components/Tooltip.jsx'
+import mapTooltip from './utils/mapTooltip.js'
+import { MAP_TEXT } from './utils/mapText.js'
 import VisualizationGuide from '../../components/VisualizationGuide.jsx'
+import MapInsightsPanel from './components/MapInsightsPanel.jsx'
 
-// List of available map layers
-export const LAYER_OPTIONS = [
-    { value: 'station_usage', hasAnimation: true, label: 'Station usage' },
-    { value: 'trip_flow', hasAnimation: false, label: 'Trip flow' },
-    { value: 'infrastructure', hasAnimation: false, label: 'Infrastructure' }
-    // Future layers can be added here
-]
+/**
+ * Page for the interactive map: composes the layer selector, the DeckGL map
+ * with its controls, legend, and station sidebar, plus the layer-aware
+ * insights panel and reading guide. All state lives in the map handler
+ * hooks; this page only wires their results into components.
+ * @param {Object} filters - The filters to apply to the data.
+ * @param {Function} [onLoadingChange] - Notified with the active layer's loading state so the header can lock the date filter only while the shown layer fetches.
+ * @returns The rendered MapPage.
+ */
+function MapPage({ filters, onLoadingChange }) {
+    const { isFullscreen, mapShellRef, toggleFullscreen } = useMapFullscreen()
+    const { handleHover, getCursor } = useMapCursor()
 
-// Initial view state centered on NYC
-export const INITIAL_VIEW_STATE = {
-    longitude: -73.97,
-    latitude: 40.75,
-    zoom: 10.8,
-    pitch: 45,
-    bearing: 0,
-}
-
-// Allowed zoom range for map interactions
-export const MIN_ZOOM = 10
-export const MAX_ZOOM = 15
-// Allowed pitch range for map interactions
-export const MIN_PITCH = 0
-export const MAX_PITCH = 60
-
-// Clamp bounds for NYC area to keep navigation constrained but still fluid.
-export const MIN_LONGITUDE = -74.30
-export const MAX_LONGITUDE = -73.65
-export const MIN_LATITUDE = 40.45
-export const MAX_LATITUDE = 40.95
-
-const POINT_LAYER_ID_PREFIXES = [
-    'station-usage-layer',
-    'trip-flow-stations-layer',
-    'station-availability-layer',
-]
-
-const MAP_LAYER_GUIDES = {
-    station_usage: {
-        mapName: 'Station Usage',
-        title: 'How To Read It',
-        summary: 'This layer shows how busy each station is during the day. Use it to detect local demand peaks and identify where bike pressure concentrates over time.',
-        hints: [
-            {
-                mapType: 'Station Usage',
-                title: 'Follow rush-hour pulses',
-                text: 'Drag the time wheel from morning to evening and watch which neighborhoods light up first. This helps separate commute hubs from leisure hotspots.',
-            },
-            {
-                mapType: 'Station Usage',
-                title: 'Compare center vs edges',
-                text: 'Check if demand stays centralized or spreads outward at different hours. Sudden shifts often reveal directional commuting patterns.',
-            },
-            {
-                mapType: 'Station Usage',
-                title: 'Use pause for anomalies',
-                text: 'Pause on unusual spikes and inspect nearby stations one by one to see if the pattern is isolated or part of a broader corridor trend.',
-            },
-        ],
-    },
-    trip_flow: {
-        mapName: 'Trip Flow',
-        title: 'How To Read It',
-        summary: 'This layer highlights station-to-station movement intensity. Use it to understand directional connectivity and the strongest mobility corridors in the network.',
-        hints: [
-            {
-                mapType: 'Trip Flow',
-                title: 'Start from a station',
-                text: 'Click a station to isolate its outgoing and incoming links. This quickly reveals whether it behaves as a local feeder or a network hub.',
-            },
-            {
-                mapType: 'Trip Flow',
-                title: 'Read thickness as intensity',
-                text: 'Heavier arcs indicate stronger relationships between station pairs. Compare multiple links from the same origin before drawing conclusions.',
-            },
-            {
-                mapType: 'Trip Flow',
-                title: 'Reset and compare',
-                text: 'Use Reset often to avoid tunnel vision. Repeating selection across districts gives a cleaner picture of city-wide flow structure.',
-            },
-        ],
-    },
-    infrastructure: {
-        mapName: 'Infrastructure',
-        title: 'How To Read It',
-        summary: 'This layer focuses on station capacity and bike-route context. Use it to evaluate where infrastructure appears balanced or potentially undersized versus demand.',
-        hints: [
-            {
-                mapType: 'Infrastructure',
-                title: 'Toggle routes strategically',
-                text: 'Enable bike routes to assess whether high-capacity stations are supported by route coverage, then disable to inspect station signals without clutter.',
-            },
-            {
-                mapType: 'Infrastructure',
-                title: 'Check capacity clusters',
-                text: 'Look for areas where many nearby stations show similar capacity levels. Uniform clusters often reflect planning zones or network hierarchy.',
-            },
-            {
-                mapType: 'Infrastructure',
-                title: 'Pair with usage insights',
-                text: 'Use this layer after Station usage: places with repeated pressure and modest infrastructure are prime candidates for deeper operational analysis.',
-            },
-        ],
-    },
-}
-
-function MapPage({ filters }) {
-    const [showInitialLoadingOverlay, setShowInitialLoadingOverlay] = useState(true)
-    const [isHoveringPoint, setIsHoveringPoint] = useState(false)
-    const [isFullscreen, setIsFullscreen] = useState(false)
-    const mapShellRef = useRef(null)
-
-    const handleHover = useCallback(({ object, layer }) => {
-        if (!object || !layer?.id) {
-            setIsHoveringPoint(false)
-            return
-        }
-
-        setIsHoveringPoint(
-            POINT_LAYER_ID_PREFIXES.some((prefix) => layer.id.startsWith(prefix)),
-        )
-    }, [])
-
-    const getCursor = useCallback(({ isDragging }) => {
-        if (isDragging) return 'grabbing'
-        if (isHoveringPoint) return 'pointer'
-        return 'grab'
-    }, [isHoveringPoint])
-
-    useEffect(() => {
-        const timeoutId = setTimeout(() => {
-            setShowInitialLoadingOverlay(false)
-        }, 220)
-
-        return () => {
-            clearTimeout(timeoutId)
-        }
-    }, [])
-
-    useEffect(() => {
-        const syncFullscreenState = () => {
-            setIsFullscreen(document.fullscreenElement === mapShellRef.current)
-        }
-
-        document.addEventListener('fullscreenchange', syncFullscreenState)
-        return () => {
-            document.removeEventListener('fullscreenchange', syncFullscreenState)
-        }
-    }, [])
-
-    const toggleFullscreen = useCallback(async () => {
-        const mapShellNode = mapShellRef.current
-        if (!mapShellNode || !document.fullscreenEnabled) return
-
-        if (document.fullscreenElement === mapShellNode) {
-            await document.exitFullscreen()
-            return
-        }
-
-        await mapShellNode.requestFullscreen()
-    }, [])
-
-    // Map handler manages view state, active layer, animation time, and related logic
     const {
         activeLayer,
         controller,
         currentTime,
+        flyTo,
         handleViewStateChange,
         hasAnimation,
+        hiddenHealthCategories,
+        hiddenRouteClasses,
+        selectedYear,
         setActiveLayer,
         setCurrentTime,
+        setSelectedYear,
         setShowBikeRoutes,
         setUsageMode,
         showBikeRoutes,
+        toggleHealthCategory,
+        toggleRouteClass,
         usageMode,
         viewState,
     } = useMapHandler()
-    // Build the layers to be rendered based on the active layer and fetched data
     const {
         layers,
         loading,
         error,
+        hasData,
         clearInfrastructureSelection,
         refetch,
-        resetSelectedStationIds,
-        hasTripFlowSelection,
+        clearTripFlowFocus,
+        hasTripFlowFocus,
+        focusedStationId,
         selectedInfrastructureStations,
-    } = useBuildLayers({ filters, currentTime, activeLayer, showBikeRoutes, usageMode })
-    const shouldShowMapUi = !error
-    const shouldShowMapLegend = !loading && !error
-    const hasLayersData = layers.length > 0 && layers.some(layer => Array.isArray(layer.data) && layer.data.length > 0)
-    const shouldShowStatusOverlay = showInitialLoadingOverlay || loading || error || !hasLayersData
-    const guide = MAP_LAYER_GUIDES[activeLayer] ?? MAP_LAYER_GUIDES.station_usage
+        selectInfrastructureStation,
+        bikeRoutes,
+        insights,
+        tripFlowHover,
+        tripFlowPin,
+        clearCorridorPin,
+        tripDirection,
+        setTripDirection,
+        tripLoading,
+        trips,
+    } = useBuildLayers({ filters, currentTime, activeLayer, showBikeRoutes, usageMode, hiddenHealthCategories, hiddenRouteClasses, selectedYear })
 
-    const handleMapClick = useCallback((info) => {
-        if (activeLayer !== 'infrastructure') return
+    // Frame the focused station's corridors; return to the citywide view on reset.
+    useTripFlowCamera({ activeLayer, focusedStationId, trips, tripLoading, flyTo, mapShellRef })
+    // Fly to the selected infrastructure station; fly back out when cleared.
+    useInfrastructureCamera({ activeLayer, selectedStations: selectedInfrastructureStations, flyTo })
+    const {
+        yearBounds,
+        shouldShowMapUi,
+        shouldShowMapLegend,
+        isAwaitingData,
+        shouldShowStatusOverlay,
+        guide,
+    } = useMapPageStatus({ activeLayer, loading, error, hasData, bikeRoutes })
 
-        const pickedObject = info?.object
-        const layerId = info?.layer?.id ?? ''
-        const isStationPick = layerId.startsWith('station-availability-layer') && pickedObject?.id
+    // Surface the active layer's loading to the header so it locks the filters
+    // only while the layer on screen fetches; reset on unmount. Layout effect
+    // (not useEffect) so the header's lock commits in the same paint as the
+    // map's loading state instead of a frame later.
+    useLayoutEffect(() => {
+        onLoadingChange?.(loading)
+        return () => onLoadingChange?.(false)
+    }, [loading, onLoadingChange])
 
-        if (isStationPick) return
-
-        if (!pickedObject) {
-            clearInfrastructureSelection()
-        }
-    }, [activeLayer, clearInfrastructureSelection])
+    const handleMapClick = useMapClickActions({
+        activeLayer,
+        clearTripFlowFocus,
+        hasCorridorPin: Boolean(tripFlowPin.pinnedCorridorKey),
+        clearCorridorPin,
+        clearInfrastructureSelection,
+    })
 
     return (
         <section className="page-card">
             <header className="page-card__header">
                 <div className="page-card__heading">
-                    <span className="page-card__eyebrow">01 — Atlas</span>
-                    <h2 className="page-card__title">The city, one ride at a time.</h2>
+                    <span className="page-card__eyebrow">{MAP_TEXT.page.eyebrow}</span>
+                    <h2 className="page-card__title">{MAP_TEXT.page.title}</h2>
                     <p className="page-card__subtitle">
-                        An interactive read of station usage, trip flows, and cycling
-                        infrastructure across the five boroughs.
+                        {MAP_TEXT.page.subtitle}
                     </p>
                 </div>
                 <div className="page-card__actions">
@@ -246,20 +133,20 @@ function MapPage({ filters }) {
                         onHover={handleHover}
                         onClick={handleMapClick}
                         getCursor={getCursor}
-                        getTooltip={({ object }) => Tooltip({ object, activeLayer, usageMode })}
+                        getTooltip={({ object }) => mapTooltip({ object, activeLayer, usageMode })}
                     />
                     <button
                         type="button"
                         className="map-fullscreen-button"
                         onClick={toggleFullscreen}
-                        title={isFullscreen ? 'Exit full screen' : 'Enter full screen'}
+                        title={isFullscreen ? MAP_TEXT.fullscreen.exitTitle : MAP_TEXT.fullscreen.enterTitle}
                         aria-label={isFullscreen ? 'Exit full screen map' : 'Enter full screen map'}
                     >
                         <span className="map-fullscreen-button__icon" aria-hidden="true">
                             <i className={`fa-solid ${isFullscreen ? 'fa-compress' : 'fa-expand'}`} />
                         </span>
                         <span className="map-fullscreen-button__text">
-                            {isFullscreen ? 'Exit Full Screen' : 'Full Screen'}
+                            {isFullscreen ? MAP_TEXT.fullscreen.exit : MAP_TEXT.fullscreen.enter}
                         </span>
                     </button>
                     {shouldShowMapUi && (
@@ -272,8 +159,14 @@ function MapPage({ filters }) {
                             setShowBikeRoutes={setShowBikeRoutes}
                             usageMode={usageMode}
                             setUsageMode={setUsageMode}
-                            resetSelectedStationIds={resetSelectedStationIds}
-                            hasTripFlowSelection={hasTripFlowSelection}
+                            tripDirection={tripDirection}
+                            setTripDirection={setTripDirection}
+                            clearTripFlowFocus={clearTripFlowFocus}
+                            hasTripFlowFocus={hasTripFlowFocus}
+                            hasCorridorPin={Boolean(tripFlowPin.pinnedCorridorKey)}
+                            selectedYear={selectedYear}
+                            setSelectedYear={setSelectedYear}
+                            yearBounds={yearBounds}
                             disabled={loading}
                         />
                     )}
@@ -281,21 +174,39 @@ function MapPage({ filters }) {
                         <MapLegend
                             activeLayer={activeLayer}
                             showBikeRoutes={showBikeRoutes}
+                            hasTripFlowFocus={hasTripFlowFocus}
+                            hiddenHealthCategories={hiddenHealthCategories}
+                            hiddenRouteClasses={hiddenRouteClasses}
+                            onToggleHealthCategory={toggleHealthCategory}
+                            onToggleRouteClass={toggleRouteClass}
                         />
                     )}
                     <InfrastructureStationSidebar
                         selectedStations={selectedInfrastructureStations}
                         filters={filters}
                         onClose={clearInfrastructureSelection}
+                        selectStation={selectInfrastructureStation}
                     />
                     {shouldShowStatusOverlay && (
                         <StatusMessage
-                            loading={showInitialLoadingOverlay || loading}
+                            loading={loading || isAwaitingData}
                             error={error}
                             onRefetch={refetch}
                         />
                     )}
                 </div>
+
+                <MapInsightsPanel
+                    activeLayer={activeLayer}
+                    insights={insights}
+                    tripFlowHover={tripFlowHover}
+                    tripFlowPin={tripFlowPin}
+                    usageMode={usageMode}
+                    currentTime={currentTime}
+                    selectedYear={selectedYear}
+                    setSelectedYear={setSelectedYear}
+                    yearBounds={yearBounds}
+                />
 
                 <VisualizationGuide
                     mapName={guide.mapName}

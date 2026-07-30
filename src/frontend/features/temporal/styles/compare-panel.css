@@ -1,0 +1,120 @@
+/* CompareControlPanel.jsx and its positioning wrapper in TemporalPage.jsx
+   (surface-plot-stack / surface-plot-overlay). */
+@layer components {
+    .surface-actions--disabled {
+        @apply opacity-60;
+    }
+
+    .surface-compare-btn {
+        @apply inline-flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-eyebrow px-3 py-1.5 border border-rule
+               text-ink-muted bg-paper/90 transition-all duration-200
+               focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent;
+        backdrop-filter: blur(4px);
+    }
+
+    .surface-compare-btn__icon,
+    .surface-btn-icon {
+        @apply inline-flex items-center justify-center w-4 h-4 text-[11px];
+    }
+
+    .surface-compare-btn:hover {
+        @apply text-white bg-ink border-ink;
+    }
+
+    .surface-compare-btn.is-active {
+        @apply text-white bg-ink border-ink;
+    }
+
+    .surface-compare-btn:disabled,
+    .surface-compare-btn:disabled:hover,
+    .surface-compare-btn:disabled.is-active {
+        @apply text-ink-muted bg-paper/90 border-rule cursor-not-allowed;
+    }
+
+    .surface-compare-panel {
+        @apply border border-rule p-4 flex flex-col gap-3;
+        margin-top: 0.5rem;
+        background: linear-gradient(
+            180deg,
+            rgba(251, 248, 242, 0.76) 0%,
+            rgba(245, 241, 234, 0.66) 100%
+        );
+        backdrop-filter: blur(10px);
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+        transform: translate(10px, -10px) scale(0.985);
+        transform-origin: top right;
+        transition:
+            opacity 220ms ease,
+            visibility 0ms linear 220ms,
+            transform 260ms cubic-bezier(0.22, 0.61, 0.36, 1);
+    }
+
+    .surface-compare-panel.is-open {
+        opacity: 1;
+        visibility: visible;
+        pointer-events: auto;
+        transform: translate(0, 0) scale(1);
+        transition:
+            opacity 220ms ease,
+            visibility 0ms linear 0ms,
+            transform 260ms cubic-bezier(0.22, 0.61, 0.36, 1);
+    }
+
+    .surface-compare-panel__controls {
+        @apply grid grid-cols-1 md:grid-cols-[1fr_1fr_auto_auto] gap-3 items-end;
+    }
+
+    .surface-compare-field {
+        @apply flex flex-col gap-1 w-28 select-none;
+    }
+
+    .surface-compare-field span {
+        @apply font-mono text-[10px] uppercase tracking-eyebrow text-ink;
+    }
+
+    .surface-compare-add {
+        @apply inline-flex items-center gap-1.5 h-[32px] px-4 bg-ink text-white font-mono text-[11px] uppercase tracking-eyebrow
+               border border-ink transition-colors duration-150 hover:bg-accent;
+    }
+
+    .surface-compare-add:hover {
+        @apply bg-ink/80;
+    }
+
+    .surface-compare-add:disabled {
+        @apply cursor-not-allowed opacity-45 hover:bg-ink;
+    }
+
+    .surface-compare-reset {
+        @apply inline-flex items-center gap-1.5 h-[32px] px-4 bg-paper text-ink font-mono text-[11px] uppercase tracking-eyebrow
+               border border-ink/40 transition-colors duration-150 hover:text-white hover:bg-ink hover:border-ink
+               cursor-pointer;
+    }
+
+    .surface-compare-reset:disabled {
+        @apply cursor-not-allowed opacity-45 bg-paper-raised text-ink-muted border-rule hover:text-ink-muted hover:bg-paper-raised hover:border-rule;
+    }
+
+    /* Content sizing for the Add Surface hint; the surface look and
+       positioning come from the shared .floating-tooltip class. */
+    .surface-compare-add-tooltip {
+        width: 260px;
+        white-space: pre-line;
+    }
+
+    .surface-plot-stack {
+        @apply relative;
+    }
+
+    .surface-plot-overlay {
+        @apply absolute top-3 right-3 z-20 flex flex-col gap-0 items-end;
+        pointer-events: none;
+    }
+
+    .surface-compare-btn,
+    .surface-compare-panel {
+        pointer-events: auto;
+    }
+}

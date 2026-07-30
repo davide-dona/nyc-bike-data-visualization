@@ -1,0 +1,26 @@
+/* Shared floating tooltip surface. Colors and font come from the CSS custom
+   properties published at startup by applyEditorialChartDefaults(), so every
+   tooltip in the app (Chart.js, Plotly, deck.gl, FloatingTooltip) shares the
+   same look. */
+@layer components {
+    .floating-tooltip {
+        position: fixed;
+        z-index: 9999;
+        pointer-events: none;
+        background: var(--tooltip-bg);
+        border: 1px solid var(--tooltip-border);
+        color: var(--tooltip-text);
+        font-family: var(--tooltip-font);
+        font-size: 11px;
+        line-height: 1.5;
+        padding: 12px 14px;
+        max-width: 280px;
+        box-shadow: 0 12px 26px rgba(0, 0, 0, 0.34);
+        opacity: 0;
+        transition: opacity 120ms ease;
+    }
+
+    .floating-tooltip.is-visible {
+        opacity: 1;
+    }
+}

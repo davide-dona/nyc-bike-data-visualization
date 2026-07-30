@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from "react";
-import { formatFilterValue } from "../utils/compare_layers.js";
+import { formatFilterValue } from '../utils/compareLayers.js'
+import useCompareFilterDropdown from '../hooks/useCompareFilterDropdown.js'
 
 /**
  * Custom dropdown used inside the Compare panel to pick a single class filter
@@ -11,46 +11,24 @@ import { formatFilterValue } from "../utils/compare_layers.js";
  * @returns {JSX.Element} Dropdown trigger + menu wrapper.
  */
 export default function CompareFilterDropdown({ value, options, onChange }) {
-    const [isOpen, setIsOpen] = useState(false);
-    const rootRef = useRef(null);
+    const { isOpen, rootRef, toggle, handleSelect } = useCompareFilterDropdown({ onChange })
 
-    useEffect(() => {
-        const handleClickOutside = (event) => {
-            const rootNode = rootRef.current;
-            if (!rootNode) return;
-            if (!rootNode.contains(event.target)) {
-                setIsOpen(false);
-            }
-        };
-
-        document.addEventListener("mousedown", handleClickOutside);
-
-        return () => {
-            document.removeEventListener("mousedown", handleClickOutside);
-        };
-    }, []);
-
-    const selectedLabel = value ? formatFilterValue(value) : "All";
-
-    const handleSelect = (nextValue) => {
-        onChange(nextValue);
-        setIsOpen(false);
-    };
+    const selectedLabel = value ? formatFilterValue(value) : 'All'
 
     return (
         <div
             ref={rootRef}
-            className={`surface-compare-select-wrap${isOpen ? " is-open" : ""}`}
+            className={`surface-compare-select-wrap${isOpen ? ' is-open' : ''}`}
         >
             <button
                 type="button"
                 className="surface-compare-select"
                 aria-haspopup="listbox"
                 aria-expanded={isOpen}
-                onClick={() => setIsOpen((prev) => !prev)}
+                onClick={toggle}
             >
                 <span
-                    className={`surface-compare-select-value${value ? "" : " is-placeholder"}`}
+                    className={`surface-compare-select-value${value ? '' : ' is-placeholder'}`}
                 >
                     {selectedLabel}
                 </span>
@@ -66,8 +44,8 @@ export default function CompareFilterDropdown({ value, options, onChange }) {
                 <div className="surface-compare-select-menu" role="listbox">
                     <button
                         type="button"
-                        className={`surface-compare-select-option${value ? "" : " is-selected"}`}
-                        onClick={() => handleSelect("")}
+                        className={`surface-compare-select-option${value ? '' : ' is-selected'}`}
+                        onClick={() => handleSelect('')}
                     >
                         All
                     </button>
@@ -75,7 +53,7 @@ export default function CompareFilterDropdown({ value, options, onChange }) {
                         <button
                             key={option}
                             type="button"
-                            className={`surface-compare-select-option${value === option ? " is-selected" : ""}`}
+                            className={`surface-compare-select-option${value === option ? ' is-selected' : ''}`}
                             onClick={() => handleSelect(option)}
                         >
                             {formatFilterValue(option)}
@@ -84,5 +62,5 @@ export default function CompareFilterDropdown({ value, options, onChange }) {
                 </div>
             ) : null}
         </div>
-    );
+    )
 }

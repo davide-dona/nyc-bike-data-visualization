@@ -1,0 +1,48 @@
+/* Shared headline stat tile (components/StatCard.jsx). Light theme reads on
+   paper surfaces (map insights, footprint tiles); dark theme reads on the
+   inverted infrastructure sidebar. */
+@layer components {
+  .stat-card {
+    @apply flex flex-col gap-0.5 border border-rule bg-paper px-3 py-2.5;
+  }
+
+  .stat-card--dark {
+    @apply gap-1 border-rule-invert/20 bg-white/5;
+  }
+
+  .stat-card__value {
+    @apply font-mono leading-tight text-ink;
+  }
+
+  .stat-card--dark .stat-card__value {
+    @apply uppercase tracking-[0.12em] text-white;
+  }
+
+  .stat-card__value--sm {
+    @apply text-[15px];
+  }
+
+  .stat-card__value--md {
+    @apply text-xl;
+  }
+
+  .stat-card__value--lg {
+    @apply text-2xl;
+  }
+
+  .stat-card__label {
+    @apply font-mono text-[10px] uppercase tracking-eyebrow text-ink-muted;
+  }
+
+  .stat-card--dark .stat-card__label {
+    @apply text-white/55;
+  }
+
+  .stat-card__hint {
+    @apply font-sans text-[11px] leading-snug text-ink-muted;
+  }
+
+  .stat-card--dark .stat-card__hint {
+    @apply leading-4 text-white/60;
+  }
+}

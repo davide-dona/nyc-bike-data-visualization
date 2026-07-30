@@ -1,0 +1,48 @@
+@layer components {
+  .weather-ridgeline-frame {
+    @apply panel-frame;
+  }
+
+  .weather-ridgeline-frame--hidden .weather-ridgeline-toolbar,
+  .weather-ridgeline-frame--hidden .weather-ridgeline-plot,
+  .weather-ridgeline-frame--hidden .weather-ridgeline-note,
+  .weather-ridgeline-frame--hidden .weather-ridgeline-empty {
+    visibility: hidden;
+  }
+
+  .weather-ridgeline-toolbar {
+    @apply flex flex-wrap items-center justify-between gap-3 mb-4;
+  }
+
+  .weather-ridgeline-toolbar__title {
+    @apply m-0 font-mono text-[11px] uppercase tracking-eyebrow text-ink-muted;
+  }
+
+  .weather-ridgeline-toggle {
+    @apply inline-flex border border-rule border-[1px] bg-paper;
+  }
+
+  .weather-ridgeline-toggle__btn {
+    @apply h-[28px] py-[1px] px-3 font-mono text-[10px] uppercase tracking-eyebrow text-ink-muted border-r border-rule;
+  }
+
+  .weather-ridgeline-toggle__btn:last-child {
+    border-right: 0;
+  }
+
+  .weather-ridgeline-toggle__btn:hover {
+    @apply text-ink bg-paper-raised;
+  }
+
+  .weather-ridgeline-toggle__btn.is-active {
+    @apply text-white bg-ink;
+  }
+
+  .weather-ridgeline-plot {
+    @apply w-full h-[44vh] min-h-[320px];
+  }
+
+  .weather-ridgeline-empty {
+    @apply chart-frame__empty;
+  }
+}

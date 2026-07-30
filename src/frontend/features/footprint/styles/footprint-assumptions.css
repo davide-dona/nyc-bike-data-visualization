@@ -1,0 +1,32 @@
+@layer components {
+  /* Assumptions sit on the flat paper tone, unlike the raised chart frames */
+  .footprint-assumptions {
+    @apply bg-paper;
+  }
+
+  .footprint-assumptions__grid {
+    @apply grid grid-cols-1 gap-6 lg:grid-cols-2;
+  }
+
+  .footprint-assumptions__heading {
+    @apply m-0 mb-2 font-sans text-sm text-ink;
+  }
+
+  .footprint-assumptions__heading + .footprint-assumptions__heading,
+  .footprint-assumptions__text + .footprint-assumptions__heading,
+  .footprint-assumptions__list + .footprint-assumptions__heading {
+    @apply mt-4;
+  }
+
+  .footprint-assumptions__text {
+    @apply m-0 font-sans text-xs leading-relaxed text-ink-soft;
+  }
+
+  .footprint-assumptions__list {
+    @apply m-0 mt-2 list-disc pl-4 font-sans text-xs leading-relaxed text-ink-soft;
+  }
+
+  .footprint-assumptions__list li + li {
+    @apply mt-1;
+  }
+}

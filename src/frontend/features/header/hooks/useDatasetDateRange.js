@@ -10,18 +10,11 @@ export function useDatasetDateRange() {
         const query = useApiQueryWithFilters({
             queryKey: 'dataset-date-range',
             fetcher: fetchDateRange,
-            enabledWhen: () => true,            // Always enable this query since it doesn't depend on user-provided filters
+            enabledWhen: () => true,
             staleTime: Number.POSITIVE_INFINITY,
             gcTime: Number.POSITIVE_INFINITY,
             fallbackData: null,
         })
-
-        // Minimal debug info to help trace why data may not load in browser
-        try {
-            console.debug('[useDatasetDateRange] query', { loading: query.loading, data: query.data, error: query.error })
-        } catch (e) {
-            // ignore if console access fails
-        }
 
         return {
             dateRange: query.data,
