@@ -1,0 +1,81 @@
+\section{Station Metadata Dataset (GBFS)}
+To enrich the static station data provided by Citi Bike, we incorporate their real-time feed, available on the \href{https://www.citibikenyc.com/system-data}{\underline{Citi Bike System Data}}.
+
+\subsection{Dataset Structure}
+Unlike historical trip records, station metadata is served via a public JSON API adhering to MobilityData's \href{https://gbfs.org/}{\underline{GBFS}} standard.
+From this service, we query two key Citi Bike endpoints:
+\begin{itemize}
+    \item \texttt{station\_information.json}: Static properties like location and capacity, whose content changes only when the infrastructure is modified.
+    \item \texttt{station\_status.json}: Live availability and operational state.
+\end{itemize}
+
+\subsubsection{Original Structure}
+The two endpoints share the \texttt{station\_id} field, on which they are merged to produce a unified station record comprising:
+\begin{itemize}
+    \item \textbf{Station ID}: Internal GBFS identifier, a UUID for most stations and a numeric string for the rest.
+    \item \textbf{Short Name}: Public station identifier used for joins with Citi Bike trip data.
+    \item \textbf{Name}: Station name.
+    \item \textbf{Latitude} and \textbf{Longitude}: Station coordinates.
+    \item \textbf{Capacity}: Total number of docks installed at the station.
+    \item \textbf{Bikes Available}: Currently rentable bikes.
+    \item \textbf{Vehicle Types Available}: Per-type counts of the bikes currently at the station.
+    \item \textbf{Docks Available}: Currently available docks.
+    \item \textbf{Operational Flags}: \textbf{is\_installed}, \textbf{is\_renting}, and \textbf{is\_returning}.
+\end{itemize}
+
+\subsubsection{Extracted Features}
+Using the three operational flags (\texttt{is\_installed}, \texttt{is\_renting}, and \texttt{is\_returning}), we derive a boolean \texttt{active} indicator to filter out unavailable stations from live views.
+Evaluating all three status flags is necessary because physical installation does not imply service: stations can remain installed while suspending both rentals and returns.
+Relying solely on \texttt{is\_installed} would therefore misclassify inactive stations as available.
+
+\subsection{Analysis and Insights}
+This section examines the structural and operational characteristics of the Citi Bike network, providing a foundational snapshot of its system infrastructure.
+Because the feed is a dynamic snapshot, this analysis represents a single point in time rather than a strictly reproducible state.
+
+\paragraph{Capacity Distribution}
+Figure~\ref{fig:station_capacity} highlights the contrast between standard neighborhood stations and high-capacity transit hubs. 
+The distribution peaks sharply between $18$ and $28$ docks, representing the typical capacity for residential and local commercial stations. 
+Conversely, a extended right tail stretches beyond $50$ docks (reaching up to $80$ docks at major hubs) to accommodate heavy commuter turnover and intermodal connections. 
+Notably, the count at $0$ docks does not indicate corrupted data; rather, it represents $42$ inactive stations currently present in the feed (as detailed in our \href{https://github.com/davide-dona/nyc-bike-data-visualization/blob/main/src/notebooks/analysis.ipynb}{\underline{analysis notebook}}).
+\begin{figure}[ptb]
+    \centering
+    \includegraphics[width=0.8\textwidth]{../media/technical/station_capacity.png}
+    \caption{Distribution of station capacity, measured as the number of docks per station.}
+    \label{fig:station_capacity}
+\end{figure}
+
+\paragraph{Live Availability}
+Figure~\ref{fig:station_availability} evaluates real-time operational capacity across the network.
+Unreported capacity represents the discrepancy when a station's static capacity exceeds the sum of its live bike and dock counts. 
+It's instantly noticeable that a significant portion of the system's inconsistencies (out-of-service or unreported) is concentrated in the inactive stations, which represents only $4.1\%$ of the total station count.
+Exposing supply-demand imbalances, bottlenecks, and maintenance backlogs would allow operators to quickly target areas for improvement.
+
+\begin{figure}[ptb]
+    \centering
+    \includegraphics[width=\textwidth]{../media/technical/station_availability.png}
+    \caption{System-wide capacity breakdown across all, active, and inactive stations. The left panel gives the size of each group, in stations and in docks. In the right panel, total capacity is fully decomposed into six mutually exclusive states: rentable classic bikes, rentable e-bikes, free docks, out-of-service bikes, out-of-service docks, and unreported capacity.}
+    \label{fig:station_availability}
+\end{figure}
+
+\subsection{Data Quality}
+To maintain data integrity and prevent visual distortion, our initial validation focused on those core quality issues.
+Ultimately, as confirmed in our \href{https://github.com/davide-dona/nyc-bike-data-visualization/blob/main/src/notebooks/analysis.ipynb}{\underline{analysis notebook}}, the live feed contains no missing station values.
+
+\paragraph{Inactive Stations}
+Stations undergoing installation, repair, or decommission are grouped under the \texttt{inactive} category, representing $100$ out of $2{,}462$ stations ($4.1\%$) and $1{,}976$ docks ($2.7\%$ of total capacity).
+As illustrated in Figure~\ref{fig:station_availability}, these stations declare capacity while broadcasting almost no live counts, and the few bikes assigned to them are nearly all out of service.
+Retaining them would distort overall capacity metrics and render ghost (false empty) stations without contributing usable availability.
+
+\paragraph{Unreported Capacity}
+Unreported capacity (Figure~\ref{fig:station_availability}) arises from inconsistencies between the two endpoints, which are not guaranteed to be synchronized in the updates.
+In the analyzed snapshot, the notebook records $2{,}809$ unreported docks: $1{,}693$ at inactive stations and $1{,}116$ at active stations.
+It's possible to observe that this issue is particularly evident in inactive stations, but it also affects a small number of active stations, which may report fewer bikes and docks than their static capacity.
+
+\paragraph{Identifier Consistency}
+GBFS identifies stations in two ways: an internal \texttt{station\_id} (either a UUID or a numeric string) and a public \texttt{short\_name}.
+Trip history files use only the latter: $93.8\%$ of station references in historical trips match a \texttt{short\_name}, whereas none match a \texttt{station\_id}.
+
+\paragraph{Live-Only Metadata}
+Citi Bike provides station metadata only as a live feed, with no historical archives.
+Consequently, removed stations retain their past trip records but lose all feed attributes, while newly added stations lack historical data, making them appear prematurely inactive.
+This bias only affects feed-specific attributes like capacity and operational status, as each trip record independently contains its own station name and coordinates.
