@@ -1,27 +1,28 @@
 \section{Visualization}\label{sec:visualization}
-Having processed and indexed the raw Citi Bike dataset into queryable API endpoints, the final step is visualization.
+Each view that follows answers a different question about the Citi Bike system.
+This section presents them in turn, describing the encodings each one relies on, the interactions it supports, and the design decisions that produced it.
 
 \subsection{Overview}
 The application is structured as a multi-view dashboard, as introduced in Section~\ref{sec:introduction}. 
 The global header hosts primary exploratory controls, while each view operates as a self-contained module with specialized visual representations.
-We enriched the proposal with secondary plots that supplement these primary views to offer broader analytical context.
+We enriched the proposal with secondary plots that supplement these primary insights to offer broader analytical context.
 
 To prioritize data legibility over decorative ornamentation, the design adopts a restrained aesthetic:
 \begin{itemize}
     \item Neutral tones structure the interface, reserving vibrant color encodings strictly for semantic data attributes.
-    \item Clean typography maximizes legibility. 
-    \item Subtle transitions avoid visual distraction during analytical tasks. 
+    \item Clean typography maximizes legibility, being consistent across all views and responsive to screen size.
+    \item Minimal animation enriches the interface without distracting from the data.
 \end{itemize}
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=0.8\textwidth]{../media/report/starting_page.png}
+    \includegraphics[width=\textwidth]{../media/report/starting_page.png}
     \caption{Starting view of the visualization dashboard.}
     \label{fig:viz-overview}
 \end{figure}
 
 \subsubsection{Implementation}
-The frontend is a \emph{React} single-page application built with \emph{Vite} and routed via \emph{React Router}. 
+The frontend is a \emph{React} application built with \emph{Vite} and routed via \emph{React Router}. 
 Layout and visual design tokens are managed through a unified \emph{Tailwind CSS} module, ensuring consistent styling across interface components, charts, and maps.
 
 Each view employs a rendering library tailored to its specific data structures:
@@ -36,7 +37,7 @@ Although the original proposal specified \emph{D3.js} for non-map visualizations
 \subsubsection{User Experience}
 To balance immediate legibility with analytical depth, the interface implements a three-part interaction model:
 \begin{itemize}
-    \item \textbf{Onboarding Guidance:} Each view features a collapsible ``How To Read It'' (Figure~\ref{fig:viz-guide}) panel with three practical interaction hints, lowering the entry threshold without restricting open-ended exploration.
+    \item \textbf{Onboarding Guidance:} Each view features a collapsible ``How To Read It'' (Figure~\ref{fig:viz-guide}) panel with three practical interaction hints, lowering the entry cognitive load without restricting open-ended exploration.
     \item \textbf{Contextual Microcopy:} Embedded hints and hover-triggered tooltips surface exact values and fine-grained details on demand.
     \item \textbf{Progressive Disclosure:} Sensible default states offer immediate macro-level insights, while interactive filters, toggles, and linked selections enable deeper inspection.
 \end{itemize}
@@ -44,12 +45,12 @@ To balance immediate legibility with analytical depth, the interface implements 
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=\textwidth]{../media/report/guide.png}
-    \caption{Generic ``How To Read It'' panel}
+    \caption{Example ``How To Read It'' panel}
     \label{fig:viz-guide}
 \end{figure}
 
-Regarding page hierarchy, the spatial map serves as the default view, offering an immediate geographic overview. 
-To minimize cognitive load, every view shares a standardized layout skeleton: a descriptive header, a primary display, secondary plots, and the collapsible reading guide.
+Regarding \textbf{page hierarchy}, the spatial map serves as the default view, offering an immediate and impactful geographic overview. 
+Then, every view shares a standardized layout skeleton: a descriptive header, a primary display, secondary plots, and the collapsible reading guide.
 
 %-----------
 
@@ -60,24 +61,25 @@ The global header incorporates two primary filter controls (Figure~\ref{fig:viz-
     \item \textbf{User and Bike Type Selectors:} A pair of selectors filtering data by membership status (member or casual) and bike type (classic, electric, or both).
 \end{itemize}
 
-Modifying any selection in the global header triggers a background data refetch to update the active plots, while preserving the filter state seamlessly across route transitions.
+Modifying any selection in the global header triggers a background data refetch to update the active plots, while preserving the filter state seamlessly across page transitions.
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=0.8\textwidth]{../media/report/header.png}
-    \caption{Global filter components in the header interface.}
+    \includegraphics[width=\textwidth]{../media/report/header.png}
+    \caption{Header interface.}
     \label{fig:viz-filters}
 \end{figure}
 
 \paragraph{Challenges}
 Managing global filter states introduced notable engineering trade-offs. 
-Synchronizing parameters across views required a centralized state architecture, though minimizing response latency initially proved challenging.
+Synchronizing parameters across views required a centralized state architecture. 
+While this initially caused response latency challenges, backend optimizations successfully resolved them.
 
 Beyond backend performance, this global constraint demanded resilient design. 
 Each view was engineered to remain expressive under any valid filter combination, preventing sparse queries from yielding empty or misleading visualizations.
 
 Centralizing the filters also narrowed the cross-filtering sketched in our proposal.
-Selections remain linked within a view rather than propagating across views, since the precomputed aggregates behind the temporal, weather, and footprint charts are not scoped by station.
+Under this updated architecture, view-specific filters operate independently and do not affect other views.
 
 \subsection{Map}
 To avoid visual clutter and cognitive overload, we separated the spatial analysis of Citi Bike usage into three focused map layers rather than combining them into one view.
@@ -91,13 +93,14 @@ Figure~\ref{fig:viz-station-usage} displays a three-dimensional heatmap of extru
 This dual encoding provides an immediate, high-impact method to identify anomalies in both absolute and relative terms, especially in spatial perspectives.
 In addition, the hexagonal binning approach aggregates stations, reducing visual clutter and enhancing the legibility of the spatial distribution of trips.
 
+\paragraph{Map Controls}
 Driven by precomputed hourly trip counts (Section~\ref{sec:data-pipeline}), the layer includes a mode selector to isolate incoming, outgoing, or all trips.
 Temporal navigation is controlled via an interactive time wheel and play controls (equipped with speed and pause settings) to animate the daily average and reveal temporal usage patterns.
 Map navigation is fully interactive, allowing users to pan and zoom across the city thanks to \texttt{deck.gl}.
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=0.8\textwidth]{../media/report/primary_station_usage.png}
+    \includegraphics[width=\textwidth]{../media/report/primary_station_usage.png}
     \caption{Station usage primary view: a 3D heatmap of station activity.}
     \label{fig:viz-station-usage}
 \end{figure}
@@ -111,7 +114,7 @@ To complement the spatial view, two auxiliary plots provide targeted insights (F
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=0.8\textwidth]{../media/report/secondary_station_usage.png}
+    \includegraphics[width=\textwidth]{../media/report/secondary_station_usage.png}
     \caption{Station usage supplemental plots.}
     \label{fig:viz-secondary-station-usage}
 \end{figure}
@@ -128,7 +131,7 @@ This trade-off yields a continuous, fluid animation at the expense of rendering 
 While the previous layer quantifies activity at individual stations, this one examines the connections between them.
 
 \paragraph{Corridor Arcs}
-This layer renders origin-destination arcs representing trips between stations, directly mitigating the straight-line bias discussed in \href{../../technical-report/technical-report.pdf}{\underline{technical report}}.
+This layer renders origin-destination arcs representing trips between stations.
 Arc width encodes trip volume, dynamically scaled against the busiest corridor in the current view.
 Arc height and curvature carry no quantitative data, as they serve exclusively to disentangle overlapping paths and maintain visual readability across dense networks.
 Stations are rendered as background points that recede behind the primary flow network until explicitly selected.
@@ -145,14 +148,14 @@ This state enables a directional filter to isolate one-way traffic flows, while 
 
 \begin{figure}[htbp]
     \centering
-    \begin{minipage}[t]{0.45\textwidth}
+    \begin{minipage}[t]{0.49\textwidth}
         \centering
         \includegraphics[width=\textwidth]{../media/report/primary_trip_flow_1.png}
         \caption{Trip flow: the citywide corridor overview }
         \label{fig:viz-trip-flow-overview}
     \end{minipage}
     \hfill
-    \begin{minipage}[t]{0.45\textwidth}
+    \begin{minipage}[t]{0.49\textwidth}
         \centering
         \includegraphics[width=\textwidth]{../media/report/primary_trip_flow_2.png}
         \caption{Trip flow: a single-station focus view.}
@@ -169,7 +172,7 @@ Two secondary analytical panels complement the spatial view (Figure~\ref{fig:viz
 
 \begin{figure}[htbp]   
     \centering
-    \includegraphics[width=0.8\textwidth]{../media/report/secondary_trip_flow.png}
+    \includegraphics[width=\textwidth]{../media/report/secondary_trip_flow.png}
     \caption{Trip flow supplemental plots.}
     \label{fig:viz-secondary-trip-flow}
 \end{figure}
@@ -177,7 +180,7 @@ Two secondary analytical panels complement the spatial view (Figure~\ref{fig:viz
 \paragraph{Challenges}
 Designing the origin-destination view required three major iterations.
 The initial implementation rendered the entire network simultaneously, producing extreme visual clutter that obscured individual flows.
-To resolve this, the second prototype hid all connections by default, revealing corridors only upon station selection.
+To resolve this, the second prototype hid all connections by default, revealing top corridors only upon station selection.
 While this restored readability, it completely erased the macroscopic overview and discarded secondary routes.
 The final design reconciles both perspectives by rebalancing visual encoding rather than truncating underlying data.
 
@@ -185,22 +188,23 @@ Additionally, visualizing directional flow introduced a distinct challenge, as g
 Because station pairs are stored in a canonical order, raw rendering would arbitrarily label flows as inbound or outbound based solely on database sorting.
 To fix this, data rows are dynamically reoriented relative to the active station upon selection.
 Furthermore, corridors are classified as directional only when traffic strongly favors one side. 
-Otherwise, they are categorized as balanced to prevent minor fluctuations from mischaracterizing symmetric routes.
+Otherwise, they are categorized as balanced to prevent minor fluctuations.
 
 \subsubsection{Infrastructure}
 Although bike-lane data was initially deferred in our project proposal, preliminary visual analysis revealed that infrastructure provides critical context for bike-share usage, leading us to promote it to a dedicated map layer.
 
 \paragraph{Station Status and Bike Routes}
-The default view renders station locations colored by real-time operational status (Figure~\ref{fig:viz-infrastructure}), while an interactive toggle overlays NYC bike routes categorized by facility class (Figure~\ref{fig:viz-infrastructure-bike-routes}). 
-Station color scales reflect operational pressure (highlighting stations that are nearly empty or full) allowing users to assess system capacity risks without inspecting individual nodes.
+The default view renders station locations by real-time operational status (Figure~\ref{fig:viz-infrastructure}), highlighting stations that are nearly empty or full so users can assess capacity risks without inspecting individual nodes.
+Additionally, an interactive toggle overlays NYC bike routes categorized by facility class (Figure~\ref{fig:viz-infrastructure-bike-routes}).
 
 \paragraph{Station Sidebar}
-Selecting a station opens a contextual sidebar uniting real-time and historical metrics:
+Selecting a station opens a contextual sidebar merging real-time and historical metrics:
 \begin{itemize}
     \item \textbf{Live Availability}: Reports effective capacity, open docks, and rentable bikes (disaggregated by classic and electric models), alongside out-of-service counts.
     \item \textbf{Historical Profile}: Displays hourly and daily ride distributions, identifying peak usage hours, busiest days, and overall arrival-departure balance.
     \item \textbf{Top Connected Stations}: Ranks the station's five strongest corridors. Selecting a corridor re-centers the interface on the partner station, allowing sequential exploration across connected routes.
 \end{itemize}
+In this way, we provide a comprehensive profile of each station without cluttering the map with excessive visual elements or auxiliary views.
 
 \paragraph{Year Slider}
 A temporal slider completes the infrastructure layer, allowing users to filter bike lanes by installation year.
@@ -208,14 +212,14 @@ By rendering only segments active in a selected year, the layer transforms from 
 
 \begin{figure}[htbp]
     \centering
-    \begin{minipage}[t]{0.45\textwidth}
+    \begin{minipage}[t]{0.49\textwidth}
         \centering
         \includegraphics[width=\textwidth]{../media/report/primary_infrastructure_1.png}
         \caption{Infrastructure: the network's spatial station distribution.}
         \label{fig:viz-infrastructure}
     \end{minipage}
     \hfill
-    \begin{minipage}[t]{0.45\textwidth}
+    \begin{minipage}[t]{0.49\textwidth}
         \centering
         \includegraphics[width=\textwidth]{../media/report/primary_infrastructure_2.png}
         \caption{Infrastructure: the network's spatial station distribution paired with bike routes.}
@@ -233,7 +237,7 @@ Three supplementary plots extend the bike lanes infrastructure view (Figure~\ref
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=0.8\textwidth]{../media/report/secondary_infrastructure.png}
+    \includegraphics[width=\textwidth]{../media/report/secondary_infrastructure.png}
     \caption{Infrastructure supplemental plots.}
     \label{fig:viz-secondary-infrastructure}
 \end{figure}
@@ -251,7 +255,7 @@ Consequently, the temporal slider filters the route network exclusively while ho
 Setting geography aside, the temporal view isolates when the system is used, across both the hours of the day and the days of the week.
 
 \paragraph{Surface Graph}
-The temporal view centers on a 3D surface plot over a $7 \times 24$ grid of weekdays and hours, generated from hourly aggregates rolled up into day-hour cells (Section~\ref{sec:data-pipeline}).
+The temporal view centers on a 3D surface plot over a $7 \times 24$ grid of weekdays and hours.
 A metric selector toggles the surface encoding between average ride volume, duration, distance, and speed.
 Users can freely rotate the 3D surface to inspect temporal relief from any perspective, while hovering over individual points reveals exact values (Figure~\ref{fig:viz-temporal-surface}).
 
@@ -261,14 +265,14 @@ To address this, we introduced a multi-surface comparison mode (expanding upon o
 Each surface maintains its own color gradient, with upper layers rendered semi-transparently to preserve the visibility of underlying topologies.
 \begin{figure}[htbp]
     \centering
-    \begin{minipage}[t]{0.45\textwidth}
+    \begin{minipage}[t]{0.49\textwidth}
         \centering
         \includegraphics[width=\textwidth]{../media/report/primary_temporal_1.png}
         \caption{Temporal view: the day-hour surface }
         \label{fig:viz-temporal-surface}
     \end{minipage}
     \hfill
-    \begin{minipage}[t]{0.45\textwidth}
+    \begin{minipage}[t]{0.49\textwidth}
         \centering
         \includegraphics[width=\textwidth]{../media/report/primary_temporal_2.png}
         \caption{Temporal view: the day-hour surface with comparison mode enabled.}
@@ -287,14 +291,14 @@ Because grid-level averages tend to mask single-day anomalies like holidays or s
 This restores fine-grained detail and highlights temporal outliers that would otherwise remain hidden.
 \begin{figure}[htbp]
     \centering
-    \begin{minipage}[t]{0.45\textwidth}
+    \begin{minipage}[t]{0.49\textwidth}
         \centering
         \includegraphics[width=\textwidth]{../media/report/secondary_temporal_1.png}
         \caption{Supplemental temporal plots: the day and hour histograms and the date line chart.}
         \label{fig:viz-temporal-hist}
     \end{minipage}
     \hfill
-    \begin{minipage}[t]{0.45\textwidth}
+    \begin{minipage}[t]{0.49\textwidth}
         \centering
         \includegraphics[width=\textwidth]{../media/report/secondary_temporal_2.png}
         \caption{Supplemental temporal plots: the day and hour histograms and the date line chart with comparison mode enabled.}
@@ -303,12 +307,11 @@ This restores fine-grained detail and highlights temporal outliers that would ot
 \end{figure}
 
 \paragraph{Challenges}
-Comparison mode intentionally disables this pinning mechanism.
-With multiple stacked surfaces, a single cross-sectional trace becomes ambiguous across overlapping populations.
-Consequently, opening comparison mode clears active pins and restricts slice selection. 
-This design explicitly separates two distinct analytical tasks: in-depth inspection of a single population versus high-level comparison across several cohorts.
+Comparison mode disables the multi-plot highlighting feature due to inconsistencies that arise when multiple surfaces are active.
+Consequently, entering comparison mode clears active pins and limits slice selection.
+This design intentionally separates two distinct tasks: deep-diving into a single population versus comparing high-level trends across multiple cohorts.
 
-To maintain analytical integrity, comparison mode enforces three structural safeguards:
+To prevent analytical ambiguities, comparison mode enforces three key structural safeguards:
 \begin{itemize}
     \item \textbf{Duplicate Prevention:} Prohibits adding duplicate layers, as identical surfaces would only occlude each other without adding analytical value.
     \item \textbf{Filter Consistency:} Clears all pinned comparison layers whenever global header filters change, ensuring stale data is not compared against a newly selected population.

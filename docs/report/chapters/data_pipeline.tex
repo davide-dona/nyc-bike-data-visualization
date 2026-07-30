@@ -107,7 +107,6 @@ Together, these measures form a four-stage sequential pipeline.
 
 First, the \textbf{data acquisition} step gathers the static datasets evaluated in our \href{../../technical-report/technical-report.pdf}{\underline{technical report}}: the trip archives, hourly weather, bike-route geometries, and a station metadata snapshot.
 Each download is cached on disk with a freshness window, so repeated runs re-fetch only what has aged.
-The step also derives what the sources omit, computing pairwise station distances from the metadata coordinates.
 
 Second, the \textbf{cleaning and normalization} step leverages \emph{Polars} to unify heterogeneous source schemas, filter invalid records, and enrich each trip with key filter dimensions: date, hour, and day of the week.
 The pipeline then exports the cleaned data as compressed, monthly-partitioned \emph{Parquet} files.
