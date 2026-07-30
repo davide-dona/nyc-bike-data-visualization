@@ -1,4 +1,5 @@
-import { LAYER_OPTIONS } from '../MapPage.jsx'
+import { LAYER_OPTIONS } from '../utils/mapConfig.js'
+import SegmentedControl from '../../../components/SegmentedControl.jsx'
 
 const LAYER_ICONS = {
     station_usage: 'fa-solid fa-chart-column',
@@ -6,6 +7,11 @@ const LAYER_ICONS = {
     infrastructure: 'fa-solid fa-road',
 }
 
+/**
+ * Resolves the Font Awesome icon for a map layer key.
+ * @param {string} value - Layer key.
+ * @returns {string} Icon class, with a circle fallback.
+ */
 const getLayerIcon = (value) => LAYER_ICONS[value] ?? 'fa-solid fa-circle'
 
 /**
@@ -15,22 +21,19 @@ const getLayerIcon = (value) => LAYER_ICONS[value] ?? 'fa-solid fa-circle'
  * @param {boolean} [disabled=false] - Whether layer buttons are disabled.
  */
 export default function LayerSelector({ activeLayer, setActiveLayer, disabled = false }) {
+    const options = LAYER_OPTIONS.map(({ value, label }) => ({
+        value,
+        label,
+        icon: getLayerIcon(value),
+    }))
+
     return (
-        <div className="layer-selector" aria-disabled={disabled}>
-            {LAYER_OPTIONS.map(({ value, label }) => (
-                <button
-                    key={value}
-                    className={`layer-selector-btn${value === activeLayer ? ' active' : ''}`}
-                    onClick={() => setActiveLayer(value)}
-                    disabled={disabled}
-                    aria-disabled={disabled}
-                >
-                    <span className="layer-selector-btn__icon" aria-hidden="true">
-                        <i className={getLayerIcon(value)} />
-                    </span>
-                    {label}
-                </button>
-            ))}
-        </div>
+        <SegmentedControl
+            options={options}
+            value={activeLayer}
+            onChange={setActiveLayer}
+            disabled={disabled}
+            ariaLabel="Map layer"
+        />
     )
 }

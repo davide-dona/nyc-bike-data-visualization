@@ -1,0 +1,36 @@
+/* SurfaceHistograms.jsx: the paired hour/day distribution charts below the
+   surface plot, each built on the shared ChartFrame (see chart-frame.css). */
+@layer components {
+    .surface-histograms-grid {
+        @apply relative grid grid-cols-1 md:grid-cols-2 gap-6;
+    }
+
+    .surface-histogram-card {
+        @apply relative flex flex-col gap-4 bg-paper-raised border-t border-ink
+               border-x border-b border-rule p-5;
+    }
+
+    .surface-histogram-card__eyebrow {
+        @apply font-mono text-[11px] uppercase tracking-eyebrow text-ink-muted m-0
+               flex items-center gap-2 min-h-[1.5rem];
+    }
+
+    /* Dismissable pin chip shown on the card that receives the slice overlay */
+    .surface-histogram-chip {
+        @apply font-mono text-[10px] uppercase tracking-eyebrow cursor-pointer
+               inline-flex items-center gap-1 px-2 py-0.5 border
+               text-warm border-warm/[0.55] bg-warm/[0.10];
+    }
+
+    .surface-histogram-chip:hover {
+        @apply bg-warm/[0.22];
+    }
+
+    .surface-histogram-chart {
+        @apply h-[15vw] w-full;
+    }
+
+    .surface-histogram-chart .js-plotly-plot {
+        @apply font-mono;
+    }
+}

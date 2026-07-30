@@ -1,25 +1,23 @@
-export const API_BASE_URL = 'http://localhost:8000'
-
-// Define API endpoints as functions to allow for dynamic parameters when needed
+// Paths are relative: the shared apiClient supplies the base URL
 export const ENDPOINTS = {
     // Stations
-    stations: () => `${API_BASE_URL}/stations/`,
-    stationsAvailability: () => `${API_BASE_URL}/stations/availability`,
-    stationsEmpty: () => `${API_BASE_URL}/stations/empty`,
-    stationById: (id) => `${API_BASE_URL}/stations/${id}`,
-    stationAvailabilityById: (id) => `${API_BASE_URL}/stations/${id}/availability`,
+    stations: () => '/stations/',
+    stationsAvailability: () => '/stations/availability',
+    stationsEmpty: () => '/stations/empty',
+    stationById: (id) => `/stations/${id}`,
+    stationAvailabilityById: (id) => `/stations/${id}/availability`,
 
     // Rides
-    rides: () => `${API_BASE_URL}/rides/`,
-    rideById: (id) => `${API_BASE_URL}/rides/by_ride_id/${id}`,
+    rides: () => '/rides/',
+    rideById: (id) => `/rides/by_ride_id/${id}`,
 
     // Bike routes
-    bikeRoutes: () => `${API_BASE_URL}/bike_routes/`,
+    bikeRoutes: () => '/bike_routes/',
 
     // Stats
-    stats: () => `${API_BASE_URL}/stats/`,
-    statsByWeather: () => `${API_BASE_URL}/stats/stats_by_weather`,
-    stationUsageCounts: () => `${API_BASE_URL}/stats/station_usage_counts`,
-    stationFlowCounts: () => `${API_BASE_URL}/stats/station_flow_counts`,
-    dateRange: () => `${API_BASE_URL}/stats/date_range`,
+    stats: () => '/stats/',
+    statsByWeather: () => '/stats/stats_by_weather',
+    stationUsageCounts: () => '/stats/station_usage_counts',
+    stationFlowCounts: () => '/stats/station_flow_counts',
+    dateRange: () => '/stats/date_range',
 }

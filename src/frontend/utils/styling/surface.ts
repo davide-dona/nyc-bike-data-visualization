@@ -7,12 +7,11 @@ import {
     ACCENT_INK,
     RULE,
     RULE_STRONG,
-    FONT_DISPLAY,
+    FONT_SANS,
     FONT_MONO,
 } from '../editorialTokens.js'
 
-// Sequential editorial ramp: paper (min) → accent-ink (max).
-// Five stops map the full z range cleanly without muddying the midrange.
+// Sequential editorial ramp: paper (min) → accent-ink (max); five stops map the full z range cleanly without muddying the midrange.
 export const EDITORIAL_COLORSCALE = [
     [0.00, PAPER],
     [0.25, '#b8c9ec'],
@@ -21,10 +20,14 @@ export const EDITORIAL_COLORSCALE = [
     [1.00, ACCENT_INK],
 ]
 
-// Shared axis factory — every axis uses the same typography and rule tones,
-// so x/y/z stay visually parallel even when their labels differ.
+/**
+ * Shared Plotly axis factory - every axis uses the same typography and rule
+ * tones, so x/y/z stay visually parallel even when their labels differ.
+ * @param title - Axis title text.
+ * @returns The Plotly axis config.
+ */
 export const editorialAxis = (title: string) => ({
-    title: { text: title, font: { family: FONT_DISPLAY, color: INK, size: 14 } },
+    title: { text: title, font: { family: FONT_SANS, color: INK, size: 14 } },
     tickfont: { family: FONT_MONO, color: INK_MUTED, size: 11 },
     gridcolor: RULE,
     backgroundcolor: PAPER_RAISED,

@@ -7,13 +7,14 @@ import WeatherRidgeline from "./components/WeatherRidgeline"
 import TemperatureResponse from "./components/TemperatureResponse"
 import RainImpact from "./components/RainImpact"
 import VisualizationGuide from "../../components/VisualizationGuide"
+import { WEATHER_GUIDE } from "./utils/weatherGuide.js"
+import { WEATHER_TEXT } from './utils/weatherText.js'
 
 /**
  *  Component for the weather impact on ride behaviour page
  * @param {Object} filters - The filters to apply to the data, such as date range or user-selected filters.
  */
 function WeatherPage({ filters = {} }) {
-    // Fetch weather statistics using the custom hook
     const { weatherStats, loading, error, refetch } = useWeatherStats(filters)
     const {
         ridgelineStats,
@@ -34,75 +35,47 @@ function WeatherPage({ filters = {} }) {
         refetch: refetchRain,
     } = useRainImpact(filters)
 
-    const loadingAll = loading || ridgelineLoading || temperatureLoading || rainLoading
-    const errorAll = error || ridgelineError || temperatureError || rainError
-    const refetchAll = () => Promise.all([refetch(), refetchRidgeline(), refetchTemperature(), refetchRain()])
 
     return (
         <section className="page-card">
             <header className="page-card__header">
                 <div className="page-card__heading">
-                    <span className="page-card__eyebrow">03 — Climate</span>
-                    <h2 className="page-card__title">When the sky decides.</h2>
-                    <p className="page-card__subtitle">
-                        How average speed and trip frequency respond to the weather
-                        over New York.
-                    </p>
+                    <span className="page-card__eyebrow">{WEATHER_TEXT.page.eyebrow}</span>
+                    <h2 className="page-card__title">{WEATHER_TEXT.page.title}</h2>
+                    <p className="page-card__subtitle">{WEATHER_TEXT.page.subtitle}</p>
                 </div>
             </header>
             <div className="page-card__body">
                 <ScatterPlot
                     data={weatherStats}
-                    loading={loadingAll}
-                    error={errorAll}
-                    onRefetch={refetchAll}
+                    loading={loading}
+                    error={error}
+                    onRefetch={refetch}
                 />
 
                 <WeatherRidgeline
                     data={ridgelineStats}
-                    loading={loadingAll}
-                    error={errorAll}
-                    onRefetch={refetchAll}
+                    loading={ridgelineLoading}
+                    error={ridgelineError}
+                    onRefetch={refetchRidgeline}
                 />
 
                 <div className="weather-deepdive-grid">
                     <TemperatureResponse
                         series={temperatureSeries}
-                        loading={loadingAll}
-                        error={errorAll}
-                        onRefetch={refetchAll}
+                        loading={temperatureLoading}
+                        error={temperatureError}
+                        onRefetch={refetchTemperature}
                     />
                     <RainImpact
                         data={rainStats}
-                        loading={loadingAll}
-                        error={errorAll}
-                        onRefetch={refetchAll}
+                        loading={rainLoading}
+                        error={rainError}
+                        onRefetch={refetchRain}
                     />
                 </div>
 
-                <VisualizationGuide
-                    mapName="Weather Impact"
-                    title="How To Read It"
-                    summary="Each point links weather conditions to mobility behavior. Use the chart to identify thresholds where weather starts changing trip speed or volume in a meaningful way."
-                    hints={[
-                        {
-                            title: 'Look for clusters',
-                            text: 'Tight clouds suggest stable behavior under similar weather, while spread-out clouds indicate more uncertainty in rider response.',
-                        },
-                        {
-                            title: 'Watch for breakpoints',
-                            text: 'Find where trends bend: a small weather change can trigger a strong drop or rise after a critical point.',
-                        },
-                        {
-                            title: 'Compare with other views',
-                            text: 'Use the ridgeline to inspect when each weather code concentrates over hours and weekdays, then connect that pattern to temporal peaks.',
-                        },
-                        {
-                            title: 'Read the curves',
-                            text: 'The temperature curve shows how demand climbs with warmth — casual riders react more strongly than members. The rain bars show how much ridership survives each precipitation intensity relative to dry hours.',
-                        },
-                    ]}
-                />
+                <VisualizationGuide {...WEATHER_GUIDE} />
             </div>
         </section>
     )

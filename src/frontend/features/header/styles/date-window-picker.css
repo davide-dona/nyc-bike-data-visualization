@@ -1,3 +1,5 @@
+/* DateWindowPicker.jsx: dark-themed date range picker in the app header. */
+@layer components {
 .date-window-picker { position: relative; display: inline-block; }
 .dw-inputs { display: flex; flex-direction: column; gap: .75rem; }
 .dw-row { display: flex; align-items: center; gap: 0.5rem; }
@@ -12,9 +14,9 @@
 .dw-input:focus { outline: 1px solid rgba(255,255,255,0.12); }
 .dw-input:disabled { opacity: 0.5; cursor: not-allowed; background: rgba(255,255,255,0.03); }
 .dw-icon { color: rgba(255,255,255,0.7); font-size: 10px; padding-top: 1px; }
-.dw-text { font-size: 0.7rem; font-weight: 300; color: #fff; }
+.dw-text { @apply text-white; font-size: 0.7rem; font-weight: 300; }
 
-.dw-modal { position: absolute; top: 0; left: 4rem; z-index: 60; width: 18rem; background: var(--card-bg, #0b1220); border: 1px solid rgba(255,255,255,0.12); border-radius: 0px; padding: 0.5rem; box-shadow: 0 6px 18px rgba(2,6,23,0.6); transform-origin: top left; transition: transform 200ms cubic-bezier(.2,.9,.2,1), opacity 160ms ease; opacity: 0; transform: translateY(-6px) scale(0.98); }
+.dw-modal { @apply bg-ink; position: absolute; top: 0; left: 4rem; z-index: 60; width: 18rem; border: 1px solid rgba(255,255,255,0.12); border-radius: 0px; padding: 0.5rem; box-shadow: 0 6px 18px rgba(2,6,23,0.6); transform-origin: top left; transition: transform 200ms cubic-bezier(.2,.9,.2,1), opacity 160ms ease; opacity: 0; transform: translateY(-6px) scale(0.98); }
 .dw-modal.dw-modal--closing { opacity: 0; transform: translateY(-6px) scale(0.98); }
 .dw-modal.dw-modal--open { opacity: 1; transform: translateY(0) scale(1); }
 .dw-topbar { display: flex; align-items: center; justify-content: space-between; padding: 0.25rem 0.5rem; }
@@ -23,20 +25,20 @@
 .dw-year-label { font-weight: 700; color: rgba(255,255,255,0.65); font-size: 18px; }
 
 /* Make chevrons fully white on hover when not disabled */
-.dw-year-nav:not(:disabled):hover { color: #ffffff; }
+.dw-year-nav:not(:disabled):hover { @apply text-white; }
 .dw-year-nav { transition: color 120ms ease; }
 
 .dw-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.35rem; padding: 0.5rem; }
-.dw-month-cell { display:flex; align-items:center; justify-content:center; height: 33px; background: transparent; cursor: pointer; user-select: none; border: 1px solid transparent; font-weight: 400; color: #e6eef8; font-size: 14px; }
+.dw-month-cell { @apply text-white/90; display:flex; align-items:center; justify-content:center; height: 33px; background: transparent; cursor: pointer; user-select: none; border: 1px solid transparent; font-weight: 400; font-size: 14px; }
 
-.dw-year-nav:disabled { opacity: 0.3; cursor: not-allowed; background: rgba(255,255,255,0.02); }
+.dw-year-nav:disabled { opacity: 0.3; cursor: not-allowed }
 .dw-month-cell.disabled { opacity: 0.2; cursor: not-allowed; background: rgba(0,0,0,0.3); color: rgba(255,255,255,0.35); filter: grayscale(0.8); pointer-events: none; }
 .dw-month-cell:hover:not(.disabled) { background: rgba(255,255,255,0.04); }
 .dw-month-cell:focus { outline: none; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.06); }
 
-.dw-month-cell.shade-start { background: rgba(255,255,255,0.24); font-weight:600; color: #fff; border: 1px solid rgba(255,255,255,0.28); }
+.dw-month-cell.shade-start { @apply text-white; background: rgba(255,255,255,0.24); font-weight:600; border: 1px solid rgba(255,255,255,0.28); }
 .dw-month-cell.shade-start:hover:not(.disabled) { background: rgba(255,255,255,0.32); border-color: rgba(255,255,255,0.38); }
-.dw-month-cell.shade-end { background: rgba(255,255,255,0.24); font-weight:600; color: #fff; border: 1px solid rgba(255,255,255,0.28); }
+.dw-month-cell.shade-end { @apply text-white; background: rgba(255,255,255,0.24); font-weight:600; border: 1px solid rgba(255,255,255,0.28); }
 .dw-month-cell.shade-end:hover:not(.disabled) { background: rgba(255,255,255,0.32); border-color: rgba(255,255,255,0.38); }
 .dw-month-cell.shade-mid { background: rgba(255,255,255,0.09); }
 .dw-month-cell.shade-mid:hover:not(.disabled) { background: rgba(255,255,255,0.14); }
@@ -46,4 +48,5 @@
 @media (max-width: 480px) {
     .dw-modal { width: 90vw; left: 50%; transform: translateX(-50%); top: 3.4rem; }
     .dw-grid { gap: 0.25rem; }
+}
 }

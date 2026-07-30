@@ -5,22 +5,22 @@ import {
     getStationForCurrentTime,
     getMaxUsage,
     getMaxDelta,
-} from '../features/map/layers/station_usage_layer/stationUsageSelector.js'
+} from '@/features/map/station_usage/utils/stationUsageSelector.js'
 import {
     classifyStationHealth,
     selectStationAvailability,
     HEALTH_CATEGORY,
-} from '../features/map/layers/infrastructure_layer/stations/stationAvailabilitySelector.js'
-import { stationCharacter } from '../features/map/layers/infrastructure_layer/stations/useInfrastructureStationSidebarData.js'
+} from '@/features/map/infrastructure/utils/stationAvailabilitySelector.js'
+import { stationCharacter } from '@/features/map/infrastructure/utils/stationSidebarSelectors.js'
 
-// One observed day (hours_count 24 => daysCount 1) so averages equal raw counts
+// One observed day: each hour-of-day bucket occurred once (hours_count 1), so per-day averages equal the raw counts
 const USAGE_FIXTURE = [{
     station_id: 'S1',
     lat: 40.75,
     lon: -73.97,
     groups: [
-        { hour: 8, outgoing_rides: 10, incoming_rides: 2, total_rides: 12, hours_count: 24 },
-        { hour: 17, outgoing_rides: 0, incoming_rides: 9, total_rides: 9, hours_count: 24 },
+        { hour: 8, outgoing_rides: 10, incoming_rides: 2, total_rides: 12, hours_count: 1 },
+        { hour: 17, outgoing_rides: 0, incoming_rides: 9, total_rides: 9, hours_count: 1 },
     ],
 }]
 
@@ -58,6 +58,18 @@ describe('stationUsageSelector usage modes', () => {
         expect(getMaxUsage(stations, 'incoming')).toBe(9)
         expect(getMaxDelta(stations, 'outgoing')).toBeCloseTo(10 - 10 / 24)
         expect(getMaxDelta(stations, 'incoming')).toBeCloseTo(9 - 11 / 24)
+    })
+
+    it('the all max bounds every per-mode max so a shared elevation domain keeps heights additive', () => {
+        const stations = selectStations(USAGE_FIXTURE)
+        const maxAll = getMaxUsage(stations, 'all')
+
+        // incoming + outgoing = all per bucket, so normalizing every mode by the all max keeps heights additive
+        expect(maxAll).toBeGreaterThanOrEqual(getMaxUsage(stations, 'outgoing'))
+        expect(maxAll).toBeGreaterThanOrEqual(getMaxUsage(stations, 'incoming'))
+        const [station] = stations
+        expect(station.hourlyByMode.incoming[8] + station.hourlyByMode.outgoing[8])
+            .toBeCloseTo(station.hourlyByMode.all[8])
     })
 })
 
@@ -107,6 +119,26 @@ describe('selectStationAvailability', () => {
         }])
         expect(station.health_category).toBe(HEALTH_CATEGORY.EMPTY_RISK)
     })
+
+    it('derives effective capacity from the live counters, not from the declared capacity', () => {
+        // The feed's static capacity disagrees with the live counters at about a third of the
+        // stations, so scores must never be scaled by it.
+        const [station] = selectStationAvailability([{
+            id: 'S2',
+            name: 'Stale capacity',
+            lat: 40.75,
+            lon: -73.97,
+            capacity: 100,
+            num_bikes_available: 3,
+            num_classic_bikes_available: 2,
+            num_ebikes_available: 1,
+            num_docks_available: 2,
+            num_bikes_disabled: 4,
+        }])
+        expect(station.actual_capacity).toBe(5)
+        expect(station.availability_score).toBeCloseTo(3 / 5)
+        expect(station.dock_score).toBeCloseTo(2 / 5)
+    })
 })
 
 function hourSeriesWith(overrides) {
@@ -141,5 +173,58 @@ describe('stationCharacter', () => {
 
     it('labels symmetric stations balanced', () => {
         expect(stationCharacter(hourSeriesWith({})).label).toBe('Balanced')
+    })
+})
+
+// --- Footprint math ---
+
+import {
+    kmToCo2Tonnes,
+    avoidedCo2Tonnes,
+    avoidedCo2Range,
+    buildCumulativeAvoidedSeries,
+} from '@/features/footprint/utils/footprintMath.js'
+import { CAR_G_PER_KM, SUBSTITUTION_RATE } from '@/features/footprint/utils/emissionFactors.js'
+
+describe('footprint math', () => {
+    it('converts km to tonnes for a per-km factor', () => {
+        // 1,000,000 km at 251 g/km is exactly 251 t
+        expect(kmToCo2Tonnes(1_000_000, 251)).toBeCloseTo(251)
+        expect(kmToCo2Tonnes(0, 251)).toBe(0)
+    })
+
+    it('discounts avoided CO2 by the substitution rate against the car factor', () => {
+        expect(avoidedCo2Tonnes(1_000_000, 0.5)).toBeCloseTo(kmToCo2Tonnes(500_000, CAR_G_PER_KM))
+    })
+
+    it('always returns a low < high avoided range', () => {
+        const range = avoidedCo2Range(1_000_000)
+        expect(range.low).toBeLessThan(range.high)
+        expect(range.low).toBeCloseTo(avoidedCo2Tonnes(1_000_000, SUBSTITUTION_RATE.low))
+        expect(range.high).toBeCloseTo(avoidedCo2Tonnes(1_000_000, SUBSTITUTION_RATE.high))
+    })
+
+    it('builds a date-sorted cumulative series with mid inside the band', () => {
+        const rows = [
+            { date: '2026-04-02', total_distance_km: 200 },
+            { date: '2026-04-01', total_distance_km: 100 },
+        ]
+        const series = buildCumulativeAvoidedSeries(rows, SUBSTITUTION_RATE.mid)
+
+        expect(series.dates).toEqual(['2026-04-01', '2026-04-02'])
+        // Cumulative: day 2 covers 300 km total
+        expect(series.mid[1]).toBeCloseTo(avoidedCo2Tonnes(300, SUBSTITUTION_RATE.mid))
+        series.dates.forEach((_, index) => {
+            expect(series.low[index]).toBeLessThanOrEqual(series.mid[index])
+            expect(series.mid[index]).toBeLessThanOrEqual(series.high[index])
+        })
+    })
+
+    it('drops rows without a date or a numeric distance', () => {
+        const series = buildCumulativeAvoidedSeries(
+            [{ date: null, total_distance_km: 10 }, { date: '2026-04-01', total_distance_km: 'n/a' }],
+            SUBSTITUTION_RATE.mid,
+        )
+        expect(series.dates).toEqual([])
     })
 })

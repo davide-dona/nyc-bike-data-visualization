@@ -1,0 +1,15 @@
+/* components/MapInsightsPanel.jsx and the shared StatCard grid used by each
+   layer's insights component. */
+@layer components {
+  .map-insights {
+    @apply grid grid-cols-1 gap-4;
+  }
+
+  .map-insights__row {
+    @apply grid grid-cols-1 gap-4 lg:grid-cols-2;
+  }
+
+  .map-insights__stat-row {
+    @apply grid grid-cols-2 gap-2 mb-4 sm:grid-cols-4;
+  }
+}

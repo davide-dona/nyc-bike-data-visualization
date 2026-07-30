@@ -1,0 +1,11 @@
+/* Shared native range slider (year slider, speed controls, etc). */
+@layer components {
+  .range-slider {
+    @apply flex-1 h-1 cursor-pointer;
+    accent-color: theme('colors.accent.DEFAULT');
+  }
+
+  .range-slider:disabled {
+    @apply cursor-not-allowed opacity-50;
+  }
+}

@@ -1,0 +1,63 @@
+/* components/MapLegend.jsx, LegendRow.jsx: on-map legend panel shared by all
+   three layers. */
+@layer components {
+  .map-legend-top-left {
+    @apply absolute left-4 top-4 px-4 py-3 text-xs text-white/90
+           bg-ink/85 backdrop-blur-sm border border-rule-invert
+           min-w-[180px];
+  }
+
+  .map-legend-bottom-right {
+    @apply absolute right-4 bottom-4 px-4 py-3 text-xs text-white/90
+           bg-ink/85 backdrop-blur-sm border border-rule-invert
+           min-w-[180px];
+  }
+
+  .map-legend-title {
+    @apply font-mono text-[11px] uppercase tracking-eyebrow text-white m-0;
+  }
+
+  .map-legend__list {
+    @apply m-0 mt-2 flex flex-col gap-1.5 list-none p-0;
+  }
+
+  .map-legend__row {
+    @apply flex items-center gap-2 font-mono text-[11px] text-white/85;
+  }
+
+  .map-legend__swatch {
+    @apply inline-block w-3 h-3 border border-rule-invert shrink-0;
+  }
+
+  .map-legend__label {
+    @apply text-white/90 tracking-[0.02em];
+  }
+
+  .map-legend__hint {
+    @apply text-white/55 font-sans text-[11px] normal-case;
+  }
+
+  /* Interactive legend rows (infrastructure layer): the whole row is a toggle */
+  .map-legend__row-toggle {
+    @apply flex items-center gap-2 w-full p-0 m-0 border-0 bg-transparent
+           font-mono text-[11px] text-white/85 text-left cursor-pointer;
+  }
+
+  .map-legend__row-toggle:hover .map-legend__label {
+    @apply text-white;
+  }
+
+  .map-legend__row--hidden .map-legend__swatch,
+  .map-legend__row--hidden .map-legend__label,
+  .map-legend__row--hidden .map-legend__hint {
+    opacity: 0.35;
+  }
+
+  .map-legend__section {
+    @apply mt-3 pt-3 border-t border-rule-invert;
+  }
+
+  .map-legend__section-label {
+    @apply font-mono text-[10px] uppercase tracking-eyebrow text-white/55;
+  }
+}

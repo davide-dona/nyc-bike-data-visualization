@@ -2,9 +2,8 @@ import { fetchStatsByWeather } from "../services/statsByWeatherApi.js";
 import useApiQueryWithFilters from "../../../clients/baseApiQuery.js";
 
 /**
- * Custom hook to fetch stats grouped by weather, used for surface graph rendering.
- * @param {*} filters 
- * @returns An object containing weather stats data and loading/error states
+ * Fetches stats grouped by weather, used for surface graph rendering.
+ * @returns Weather stats data and loading/error states.
  */
 function useWeatherStats(filters={}) {
     const params = { ...filters}

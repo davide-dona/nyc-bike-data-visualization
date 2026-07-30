@@ -1,4 +1,3 @@
-import { useCallback, useEffect, useRef, useState } from "react";
 import { NavLink } from "react-router-dom";
 import { useLocation } from "react-router-dom";
 import DateWindowPicker from "./components/DateWindowPicker.jsx";
@@ -6,91 +5,54 @@ import useHeaderFilters from "./hooks/useHeaderFilters.js";
 import RiderBikeFilter from "./components/RiderBikeFilter.jsx";
 import { useDatasetDateRange } from "./hooks/useDatasetDateRange.js";
 import useSafeIsFetching from "./hooks/useSafeIsFetching.js";
+import useDateRangeSeed from "./hooks/useDateRangeSeed.js";
+import useLockHint from "./hooks/useLockHint.js";
+import FloatingTooltip from "@/components/FloatingTooltip.jsx";
+import { HEADER_TEXT } from "./utils/headerText.js";
 
 const PAGES = [
     { to: "/map", label: "Map", icon: "fa-solid fa-map-location-dot" },
     { to: "/temporal", label: "Temporal", icon: "fa-solid fa-clock" },
     { to: "/weather", label: "Weather", icon: "fa-solid fa-cloud-sun" },
+    { to: "/footprint", label: "Footprint", icon: "fa-solid fa-leaf" },
 ];
 
 /**
- * Header component for the application, containing the title, navigation links, and the date range filter.
- * @returns
+ * App header: title, nav links, and the date range filter.
  */
-function AppHeader({ onFiltersChange, forceDisableFilters = false }) {
+function AppHeader({ onFiltersChange, forceDisableFilters = false, mapDataLoading = false }) {
     const location = useLocation();
     const isTemporalRoute = location.pathname === "/temporal";
+    const isMapRoute = location.pathname === "/map";
     const {
         dateRange,
         currentUserFilters,
         handleDateRangeCommit,
         handleUserFilterChange,
     } = useHeaderFilters(onFiltersChange);
+    const { dateRange: datasetRange, loading: datasetRangeLoading } = useDatasetDateRange();
     const activeDataFetches = useSafeIsFetching();
-    const areDateFiltersDisabled = activeDataFetches > 0;
-    const areUserFiltersDisabled = activeDataFetches > 0 || forceDisableFilters;
+    // The map eagerly fetches every layer, so the global fetch count would lock the
+    // date filter for layers that aren't on screen. On the map, block only while the
+    // selected layer is loading; on other routes the single mounted page is the only fetcher.
+    const isDisplayLoading = isMapRoute ? mapDataLoading : activeDataFetches > 0;
+    const areDateFiltersDisabled = datasetRangeLoading || isDisplayLoading;
+    const areUserFiltersDisabled = forceDisableFilters || isDisplayLoading;
     const shouldShowLockHint = isTemporalRoute && forceDisableFilters;
-    const [isLockHintVisible, setIsLockHintVisible] = useState(false);
-    const [lockHintPosition, setLockHintPosition] = useState({ x: 0, y: 0 });
-    const lockHintRef = useRef(null);
-    const { dateRange: datasetRange } = useDatasetDateRange();
-    const hasSeededDateRangeRef = useRef(false);
     const kicker =
         datasetRange?.min_date && datasetRange?.max_date
             ? `NYC / ${datasetRange.min_date.slice(0, 4)}–${datasetRange.max_date.slice(0, 4)}`
             : "NYC";
 
-    useEffect(() => {
-        if (hasSeededDateRangeRef.current) return;
-        if (!datasetRange?.min_date || !datasetRange?.max_date) return;
-        if (dateRange) return;
+    useDateRangeSeed({ datasetRange, dateRange, onCommit: handleDateRangeCommit });
 
-        hasSeededDateRangeRef.current = true;
-        handleDateRangeCommit({
-            start_date: datasetRange.min_date,
-            end_date: datasetRange.max_date,
-        });
-    }, [datasetRange, dateRange, handleDateRangeCommit]);
-
-    const updateLockHintPosition = useCallback(
-        (event) => {
-            if (!shouldShowLockHint) return;
-
-            const VIEWPORT_MARGIN = 12;
-            const NORTH_OFFSET_Y = 14;
-            const hintWidth = lockHintRef.current?.offsetWidth ?? 340;
-            const hintHeight = lockHintRef.current?.offsetHeight ?? 70;
-
-            const anchorX = event.clientX;
-            const anchorY = event.clientY + NORTH_OFFSET_Y;
-
-            const rawLeft = anchorX - hintWidth / 2;
-            const rawTop = anchorY;
-
-            const maxLeft = Math.max(
-                VIEWPORT_MARGIN,
-                window.innerWidth - hintWidth - VIEWPORT_MARGIN,
-            );
-            const maxTop = Math.max(
-                VIEWPORT_MARGIN,
-                window.innerHeight - hintHeight - VIEWPORT_MARGIN,
-            );
-
-            const nextX = Math.min(Math.max(VIEWPORT_MARGIN, rawLeft), maxLeft);
-            const nextY = Math.min(Math.max(VIEWPORT_MARGIN, rawTop), maxTop);
-
-            setLockHintPosition({
-                x: nextX,
-                y: nextY,
-            });
-            setIsLockHintVisible(true);
-        },
-        [shouldShowLockHint],
-    );
-
-    const hideLockHint = useCallback(() => {
-        setIsLockHintVisible(false);
-    }, []);
+    const {
+        isLockHintVisible,
+        lockHintPosition,
+        lockHintRef,
+        updateLockHintPosition,
+        hideLockHint,
+    } = useLockHint({ isActive: shouldShowLockHint });
 
     return (
         <header className="app-header">
@@ -149,20 +111,16 @@ function AppHeader({ onFiltersChange, forceDisableFilters = false }) {
                             disabled={areUserFiltersDisabled}
                         />
                     {shouldShowLockHint && (
-                        <p
-                            ref={lockHintRef}
-                            className={`app-header__filter-lock-hint${isLockHintVisible ? " is-visible" : ""}`}
+                        <FloatingTooltip
+                            visible={isLockHintVisible}
+                            position={lockHintPosition}
+                            nodeRef={lockHintRef}
                             role="note"
-                            aria-live="polite"
-                            style={{
-                                "--filter-lock-hint-x": `${lockHintPosition.x}px`,
-                                "--filter-lock-hint-y": `${lockHintPosition.y}px`,
-                            }}
+                            ariaLive="polite"
+                            className="app-header__filter-lock-hint"
                         >
-                            Class filters are locked while comparison surfaces
-                            are active. Remove all surfaces or press Reset to
-                            unlock them.
-                        </p>
+                            {HEADER_TEXT.lockHint}
+                        </FloatingTooltip>
                     )}
                     </div>
                 </div>

@@ -1,113 +1,189 @@
-// Base Layer
-import { createBaseTileLayer } from '../layers/base_layer/baseTileLayer.js'
+import { useCallback, useMemo } from 'react'
 // Station Usage Layer
-import { createStationUsageLayer } from '../layers/station_usage_layer/stationUsageLayer.jsx'
-import { useStationUsageLayer } from '../layers/station_usage_layer/useStationUsageHook.js'
+import { useStationUsageLayer } from '../station_usage/hooks/useStationUsageLayer.js'
 // Trip Flow Layer
-import { createTripFlowLayers } from '../layers/trip_flow_layer/tripFlowLayer.jsx'
-import { useTripFlowLayer } from '../layers/trip_flow_layer/useTripFlowHook.js'
-import { useTripStationSelection } from '../layers/trip_flow_layer/stations/useTripStationSelection.js'
+import { useTripFlowLayer } from '../trip_flow/hooks/useTripFlowLayer.js'
+import { useTripStationFocus } from '../trip_flow/hooks/useTripStationFocus.js'
+import { useTripCorridorPin } from '../trip_flow/hooks/useTripCorridorPin.js'
+import { useTripFlowDirection } from '../trip_flow/hooks/useTripFlowDirection.js'
 // Infrastructure Layer
-import { createStationAvailabilityLayer } from '../layers/infrastructure_layer/stations/stationAvailabilityLayer.jsx'
-import { createBikeRoutesLayer } from '../layers/infrastructure_layer/bike_routes/bikeRoutesLayer.jsx'
-import { useInfrastructureLayer } from '../layers/infrastructure_layer/useInfrastructureHook.js'
-import { useInfrastructureStationSelection } from '../layers/infrastructure_layer/stations/useInfrastructureStationSelection.js'
-
-import { useMemo, useState } from 'react'
-
-// CartoDB Positron — subdued paper/grey basemap that lets the data layers carry
-// the color weight. Same provider as Voyager, no API key required.
-const BASE_TILE_URL = 'https://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png'
+import { useInfrastructureLayer } from '../infrastructure/hooks/useInfrastructureLayer.js'
+import { useInfrastructureStationSelection } from '../infrastructure/hooks/useInfrastructureStationSelection.js'
+import useLayerHoverState from './useLayerHoverState.js'
+import { filterRoutesByYear } from '../infrastructure/utils/routeYearFilter.js'
+import { buildDeckLayers } from '../utils/buildDeckLayers.js'
+import { selectMapInsights } from '../utils/selectMapInsights.js'
+import { rankCorridors } from '../utils/insightSelectors.js'
+import { TRIP_FLOW_LIST_SIZE } from '@/utils/config.js'
 
 /**
- * Function to build the layers for the map based on the active layer and the provided data. 
+ * Orchestrating handler hook for the map page: composes the per-layer data
+ * hooks, focus/selection/hover state, and the pure deck.gl layer assembly,
+ * and resolves the active layer's loading/error/data status.
  * @param {Object} filters - Optional filters for fetching data, such as date range or user-selected filters.
  * @param {number} currentTime - Current hour frame (0-23) for filtering station usage data.
  * @param {string} activeLayer - The currently active map layer to determine which layers to build.
- * @returns {Object} The built layers and their status.
+ * @param {boolean} showBikeRoutes - Whether the bike routes overlay is enabled.
+ * @param {string} usageMode - Station usage mode ('all' | 'incoming' | 'outgoing').
+ * @param {Set|null} hiddenHealthCategories - Health categories hidden via the legend.
+ * @param {Set|null} hiddenRouteClasses - Facility classes hidden via the legend.
+ * @param {number|null} selectedYear - Selected network year, null for present.
+ * @returns {Object} The built layers, active-layer status, selection/focus
+ * controls, unfiltered routes, and the insights bundle.
  */
-export function useBuildLayers({ filters, currentTime, activeLayer, showBikeRoutes, usageMode }) {
-    // Fetch and process data
-    const { frameStations, maxUsage, maxDelta, loading: stationLoading, error: stationError, refetch: stationRefetch } = useStationUsageLayer({ filters: filters, currentTime, usageMode })
-    const { selectedStationIds, onStationPick, resetSelectedStationIds } = useTripStationSelection() // Manage station selection state for trip flow layer
-    const [hoveredTripStationId, setHoveredTripStationId] = useState(null)
-    const { trips, maxTripFlow, stations: tripStations, loading: tripLoading, error: tripError, refetch: tripRefetch } = useTripFlowLayer({ filters, selectedStationIds })
-    const { stations, bikeRoutes, loading: availabilityLoading, error: availabilityError, refetch: availabilityRefetch } = useInfrastructureLayer({ showBikeRoutes })
+export function useBuildLayers({ filters, currentTime, activeLayer, showBikeRoutes, usageMode, hiddenHealthCategories, hiddenRouteClasses, selectedYear }) {
+    const { stations: usageStations, frameStations, maxUsage, maxDelta, loading: stationLoading, error: stationError, refetch: stationRefetch } = useStationUsageLayer({ filters: filters, currentTime, usageMode })
+    const { focusedStationId, onStationPick, clearFocus } = useTripStationFocus()
+    const { pinnedCorridorKey, toggleCorridorPin, clearCorridorPin } = useTripCorridorPin({ focusedStationId })
+    const { tripDirection, setTripDirection } = useTripFlowDirection({ focusedStationId })
+    const { trips, maxTripFlow, isFocusView, stations: tripStations, loading: tripLoading, error: tripError, refetch: tripRefetch } = useTripFlowLayer({ filters, focusedStationId, tripDirection })
+    const { stations, bikeRoutes, loading: availabilityLoading, error: availabilityError, refetch: availabilityRefetch, routesLoading, routesError, refetchRoutes } = useInfrastructureLayer({ showBikeRoutes })
     const {
         clearSelectedStations: clearInfrastructureSelection,
         onStationPick: onInfrastructureStationPick,
+        selectStation: selectInfrastructureStation,
         selectedStationIds: selectedInfrastructureStationIds,
         selectedStations: selectedInfrastructureStations,
-    } = useInfrastructureStationSelection(stations)
-    // State for hovered bike route segment
-    const [hoveredrouteID, setHoveredrouteID] = useState(null)
-    const handleRoutePick = (info) => {
-        const route = info?.object
-        setHoveredrouteID(route?.routeID ?? route?.properties?.routeID ?? null)
-    }
-    const handleTripStationHover = (info) => {
-        setHoveredTripStationId(info?.object?.id ?? null)
-    }
+    } = useInfrastructureStationSelection(stations, activeLayer)
+    const {
+        hoveredRouteId,
+        hoveredTripStationId,
+        hoveredInfrastructureStationId,
+        hoveredCorridorKey,
+        handleRoutePick,
+        handleTripStationHover,
+        handleInfrastructureStationHover,
+        handleArcHover,
+        setHoveredCorridor,
+    } = useLayerHoverState()
 
-    // Combine loading and error states for easier handling in the component
+    // Memoized so scrubbing the year slider stays a cheap array pass.
+    const yearFilteredRoutes = useMemo(
+        () => filterRoutesByYear(bikeRoutes, selectedYear),
+        [bikeRoutes, selectedYear],
+    )
+
+    // Emphasize the top-ranked corridors; focus view already uses diverging colors, so it gets no emphasis set.
+    const emphasizedCorridorKeys = useMemo(() => {
+        if (isFocusView || trips.length === 0) return null
+        return new Set(rankCorridors(trips, TRIP_FLOW_LIST_SIZE).map((row) => row.key))
+    }, [trips, isFocusView])
+
+    // hasData comes from the source arrays, not the layer instances, so "waiting on data" differs from "loaded but not built yet".
     const stateLayers = [
-        { layer: 'station_usage', loading: stationLoading, error: stationError, refetch: stationRefetch },
-        { layer: 'trip_flow', loading: tripLoading, error: tripError, refetch: tripRefetch },
-        { layer: 'infrastructure', loading: availabilityLoading, error: availabilityError, refetch: availabilityRefetch }
+        { layer: 'station_usage', loading: stationLoading, error: stationError, refetch: stationRefetch, hasData: frameStations.length > 0 },
+        { layer: 'trip_flow', loading: tripLoading, error: tripError, refetch: tripRefetch, hasData: tripStations.length > 0 },
+        { layer: 'infrastructure', loading: availabilityLoading, error: availabilityError, refetch: availabilityRefetch, hasData: stations.length > 0 }
     ]
 
-    // Build layers based on active layer and data
-    const layers = useMemo(() => {
-        // Base tile layer is always included
-        const base = [createBaseTileLayer(BASE_TILE_URL)]
-        // Push the appropriate layer based on the active layer and data loading/error states
-        if (activeLayer === 'station_usage') {
-            if (!stationLoading && !stationError)
-                base.push(createStationUsageLayer({ frameStations, maxUsage, maxDelta }))
-        } 
-        if (activeLayer === 'trip_flow') {
-            if (!tripLoading && !tripError) {
-                base.push(createTripFlowLayers({
-                    trips,
-                    maxTripCount: maxTripFlow,
-                    stations: tripStations,
-                    selectedStationIds,
-                    hoveredStationId: hoveredTripStationId,
-                    onStationPick,
-                    onStationHover: handleTripStationHover,
-                }))
-            }
-        }
-        if (activeLayer === 'infrastructure') {
-            if (!availabilityLoading && !availabilityError) {
-                if (showBikeRoutes && bikeRoutes.length > 0) {
-                    base.push(createBikeRoutesLayer({ routes: bikeRoutes, hoveredrouteID: hoveredrouteID, onRoutePick: handleRoutePick }))
-                }
-                base.push(createStationAvailabilityLayer({
-                    stations,
-                    selectedStationIds: selectedInfrastructureStationIds,
-                    onStationPick: onInfrastructureStationPick,
-                }))
-            }
-        }
+    const layers = useMemo(() => buildDeckLayers({
+        activeLayer,
+        stationLoading,
+        stationError,
+        frameStations,
+        maxUsage,
+        maxDelta,
+        tripLoading,
+        tripError,
+        trips,
+        maxTripFlow,
+        tripStations,
+        focusedStationId,
+        hoveredTripStationId,
+        hoveredCorridorKey,
+        pinnedCorridorKey,
+        emphasizedCorridorKeys,
+        onTripStationPick: onStationPick,
+        onTripStationHover: handleTripStationHover,
+        onTripArcHover: handleArcHover,
+        availabilityLoading,
+        availabilityError,
+        stations,
+        hiddenHealthCategories,
+        hiddenRouteClasses,
+        yearFilteredRoutes,
+        showBikeRoutes,
+        hoveredRouteId,
+        onRoutePick: handleRoutePick,
+        selectedStationIds: selectedInfrastructureStationIds,
+        hoveredInfrastructureStationId,
+        onInfrastructureStationPick,
+        onInfrastructureStationHover: handleInfrastructureStationHover,
+    }), [frameStations, maxUsage, maxDelta, trips, maxTripFlow, tripStations, focusedStationId, hoveredTripStationId, hoveredCorridorKey, pinnedCorridorKey, emphasizedCorridorKeys, onStationPick, handleTripStationHover, handleArcHover, stations, activeLayer, stationLoading, stationError, tripLoading, tripError, availabilityLoading, availabilityError, yearFilteredRoutes, showBikeRoutes, hoveredRouteId, handleRoutePick, selectedInfrastructureStationIds, hoveredInfrastructureStationId, onInfrastructureStationPick, handleInfrastructureStationHover, hiddenHealthCategories, hiddenRouteClasses])
 
-        return base
-    }, [frameStations, maxUsage, maxDelta, trips, maxTripFlow, tripStations, selectedStationIds, hoveredTripStationId, onStationPick, stations, activeLayer, stationLoading, stationError, tripLoading, tripError, availabilityLoading, availabilityError, bikeRoutes, showBikeRoutes, hoveredrouteID, selectedInfrastructureStationIds, onInfrastructureStationPick])
+    // Station name for the focus-mode chart title.
+    const focusedTripStation = useMemo(
+        () => tripStations.find((station) => station.id === focusedStationId) ?? null,
+        [tripStations, focusedStationId],
+    )
 
-    // Consider the loading and error states of only the active layer for the overall status
-    const loading = stateLayers.find(layer => layer.layer === activeLayer)?.loading || false
-    const error = stateLayers.find(layer => layer.layer === activeLayer)?.error || null
-    const refetch = stateLayers.find(layer => layer.layer === activeLayer)?.refetch ?? (() => {})
-    const hasTripFlowSelection = selectedStationIds.length > 0
+    // Memoized as one stable bundle so its identity doesn't change every render.
+    const insights = useMemo(() => selectMapInsights({
+        usageStations,
+        stationLoading,
+        stationError,
+        stationRefetch,
+        trips,
+        isFocusView,
+        focusedStationName: focusedTripStation?.name ?? null,
+        tripLoading,
+        tripError,
+        tripRefetch,
+        bikeRoutes,
+        yearFilteredRoutes,
+        routesLoading,
+        routesError,
+        refetchRoutes,
+    }), [
+        usageStations, stationLoading, stationError, stationRefetch,
+        trips, isFocusView, focusedTripStation, tripLoading, tripError, tripRefetch,
+        bikeRoutes, yearFilteredRoutes, routesLoading, routesError, refetchRoutes,
+    ])
+
+    // Bundled separately from `insights` so hover changes don't recompute that memo.
+    const tripFlowHover = useMemo(() => ({
+        hoveredCorridorKey,
+        onCorridorHover: setHoveredCorridor,
+    }), [hoveredCorridorKey, setHoveredCorridor])
+
+    const tripFlowPin = useMemo(() => ({
+        pinnedCorridorKey,
+        onCorridorToggle: toggleCorridorPin,
+    }), [pinnedCorridorKey, toggleCorridorPin])
+
+    const activeLayerState = stateLayers.find(layer => layer.layer === activeLayer)
+    const loading = activeLayerState?.loading || false
+    const error = activeLayerState?.error || null
+    const refetch = activeLayerState?.refetch ?? (() => {})
+    const hasData = activeLayerState?.hasData ?? false
+    const hasTripFlowFocus = Boolean(focusedStationId)
+
+    // Reset View and empty-map clicks clear focus and corridor pin together.
+    const clearTripFlowFocus = useCallback(() => {
+        clearFocus()
+        clearCorridorPin()
+    }, [clearFocus, clearCorridorPin])
 
     return {
         layers,
         loading: loading,
         error: error,
+        hasData,
         refetch,
-        resetSelectedStationIds,
-        hasTripFlowSelection,
+        clearTripFlowFocus,
+        hasTripFlowFocus,
+        focusedStationId,
         selectedInfrastructureStations,
         clearInfrastructureSelection,
+        selectInfrastructureStation,
+        bikeRoutes,
+        insights,
+        tripFlowHover,
+        tripFlowPin,
+        clearCorridorPin,
+        tripDirection,
+        setTripDirection,
+        tripLoading,
+        trips,
     }
 }

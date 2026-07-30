@@ -1,0 +1,120 @@
+import CompareFilterDropdown from './CompareFilterDropdown.jsx'
+import { CLASS_FILTER_KEYS } from '../utils/compareLayers.js'
+import { FILTERS } from '@/features/header/utils/filterOptions.js'
+import { TEMPORAL_TEXT } from '../utils/temporalText.js'
+
+/**
+ * The Compare toggle button plus the compare panel shell: filter dropdowns,
+ * the Add Surface button, and the Reset button. The surfaces list is passed
+ * as children so this component stays render-only.
+ * @param {Function} onPendingFilterChange - (key, value) updates a draft filter.
+ * @param {boolean} isAddDisabled - Whether the draft duplicates an existing surface.
+ * @param {{onMouseEnter: Function, onMouseMove: Function, onMouseLeave: Function}} addLayerMouseHandlers - Tooltip tracking for the Add Surface wrapper.
+ * @param {import('react').ReactNode} children - The surfaces list.
+ * @returns The rendered compare button and panel.
+ */
+export default function CompareControlPanel({
+    isOpen,
+    isActive,
+    disabled,
+    pendingLayerFilters,
+    onPendingFilterChange,
+    onAddLayer,
+    isAddDisabled,
+    onResetCompare,
+    canReset,
+    onToggle,
+    onHoverEnter,
+    onHoverLeave,
+    addLayerMouseHandlers,
+    buttonRef,
+    panelRef,
+    addLayerButtonRef,
+    children,
+}) {
+    return (
+        <>
+            <button
+                ref={buttonRef}
+                type="button"
+                className={`surface-compare-btn${isActive ? " is-active" : ""}`}
+                onClick={onToggle}
+                onMouseEnter={onHoverEnter}
+                onMouseLeave={onHoverLeave}
+                disabled={disabled}
+            >
+                <span
+                    className="surface-compare-btn__icon"
+                    aria-hidden="true"
+                >
+                    <i className="fa-solid fa-code-compare" />
+                </span>
+                {TEMPORAL_TEXT.compare.button}
+            </button>
+
+            <div
+                ref={panelRef}
+                className={`surface-compare-panel${isOpen ? " is-open" : ""}`}
+                role="dialog"
+                aria-label="Compare surfaces"
+                onMouseEnter={onHoverEnter}
+                onMouseLeave={onHoverLeave}
+            >
+                <div className="surface-compare-panel__controls">
+                    {CLASS_FILTER_KEYS.map((key) => (
+                        <label
+                            key={key}
+                            className="surface-compare-field"
+                        >
+                            <span>{FILTERS[key].label}</span>
+                            <CompareFilterDropdown
+                                value={pendingLayerFilters[key]}
+                                options={FILTERS[key].options}
+                                onChange={(nextValue) =>
+                                    onPendingFilterChange(key, nextValue)
+                                }
+                            />
+                        </label>
+                    ))}
+                    <div
+                        onMouseEnter={addLayerMouseHandlers.onMouseEnter}
+                        onMouseMove={addLayerMouseHandlers.onMouseMove}
+                        onMouseLeave={addLayerMouseHandlers.onMouseLeave}
+                    >
+                        <button
+                            ref={addLayerButtonRef}
+                            type="button"
+                            className="surface-compare-add"
+                            onClick={onAddLayer}
+                            disabled={isAddDisabled}
+                        >
+                            <span
+                                className="surface-btn-icon"
+                                aria-hidden="true"
+                            >
+                                <i className="fa-solid fa-plus" />
+                            </span>
+                            {TEMPORAL_TEXT.compare.addSurface}
+                        </button>
+                    </div>
+                    <button
+                        type="button"
+                        className="surface-compare-reset"
+                        onClick={onResetCompare}
+                        disabled={!canReset}
+                    >
+                        <span
+                            className="surface-btn-icon"
+                            aria-hidden="true"
+                        >
+                            <i className="fa-solid fa-rotate-left" />
+                        </span>
+                        {TEMPORAL_TEXT.compare.reset}
+                    </button>
+                </div>
+
+                {children}
+            </div>
+        </>
+    )
+}

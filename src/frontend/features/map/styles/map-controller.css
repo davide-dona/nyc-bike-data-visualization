@@ -1,0 +1,24 @@
+/* components/MapController.jsx: layer control cluster overlaid on the map. */
+@layer components {
+  .map-controls {
+    @apply absolute inset-x-0 top-0 z-20 p-4 flex flex-col gap-3 pointer-events-none;
+  }
+
+  .map-controls__secondary {
+    @apply self-end flex items-center gap-2 flex-wrap max-w-full pointer-events-auto
+           text-xs text-ink bg-paper-raised/10 backdrop-blur-md;
+  }
+
+  /* Solid track so the shared segmented control stays legible over the map tiles */
+  .map-controls__secondary .segmented-control {
+    @apply border-ink/20;
+  }
+
+  .map-controls__secondary .segmented-control__btn {
+    @apply bg-paper-raised;
+  }
+
+  .map-controls__secondary .segmented-control__btn.active {
+    @apply bg-ink text-white;
+  }
+}
