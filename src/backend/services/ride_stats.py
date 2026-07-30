@@ -1,12 +1,10 @@
-from datetime import date
 from itertools import product
 
 from src.backend.db import fetch_rows, get_conn
-from src.backend.models.ride import MemberCasual, RideableType
+from src.backend.models.params import DateRange, RideFilters
 from src.backend.models.ride_stats import GroupedStats, Stats, StatsGroupBy, WeatherVariable
 
 from src.backend.services.sql.query_builder import Filters, SpineQueryBuilder
-from src.backend.services.sql.spine import date_range_bounds
 
 # Time dimensions selected by each group_by option. Every dimension exists in the
 # hours spine, so the spine can be built generically.
@@ -20,12 +18,12 @@ _GROUP_DIMS: dict[StatsGroupBy, list[str]] = {
 
 # Bucketing expression over the weather_hourly alias `w`, the output column name,
 # and the source column whose NULLs exclude an hour from the spine and facts.
-# Numeric bins are encoded as their lower edge: temperature in 2 °C steps,
-# precipitation in dry/trace/light/moderate/heavy buckets (mm/h) since uniform
-# bins would put nearly all hours in the dry bucket.
+# Numeric bins are encoded as their lower edge: temperature in whole-degree
+# (1 °C) steps, precipitation in dry/trace/light/moderate/heavy buckets (mm/h)
+# since uniform bins would put nearly all hours in the dry bucket.
 _WEATHER_EXPRS: dict[WeatherVariable, tuple[str, str, str]] = {
     WeatherVariable.WEATHER_CODE: ("w.weather_code", "weather_code", "w.weather_code"),
-    WeatherVariable.TEMPERATURE: ("(floor(w.temperature_2m / 2)::int * 2)", "weather_bin", "w.temperature_2m"),
+    WeatherVariable.TEMPERATURE: ("floor(w.temperature_2m)::int", "weather_bin", "w.temperature_2m"),
     WeatherVariable.PRECIPITATION: (
         "(CASE WHEN w.precipitation <= 0 THEN 0.0"
         " WHEN w.precipitation < 0.5 THEN 0.1"
@@ -35,11 +33,9 @@ _WEATHER_EXPRS: dict[WeatherVariable, tuple[str, str, str]] = {
 }
 
 def get_stats_data(
-    start_date: date,
-    end_date: date,
+    date_range: DateRange,
+    filters: RideFilters,
     group_by: StatsGroupBy = StatsGroupBy.NONE,
-    user_type: MemberCasual | None = None,
-    bike_type: RideableType | None = None,
     weather_var: WeatherVariable | None = None,
 ) -> Stats | list[GroupedStats]:
     """Fetch aggregated stats for rides in the given date range, optionally grouped by time dimensions and/or weather.
@@ -50,16 +46,16 @@ def get_stats_data(
     and the final SELECT groups by the dimensions — which lets it also compute the
     per-hour std aggregates behind the *_std fields.
     """
-    spine_start, spine_end = date_range_bounds(start_date, end_date)
+    spine_start, spine_end = date_range.bounds()
     dims = _GROUP_DIMS[group_by]
 
     f = Filters()
     f.add("sh.date >= %s", spine_start)
     f.add("sh.date < %s", spine_end)
-    if user_type is not None:
-        f.add("sh.user_type = %s", user_type.value)
-    if bike_type is not None:
-        f.add("sh.bike_type = %s", bike_type.value)
+    if filters.user_type is not None:
+        f.add("sh.user_type = %s", filters.user_type.value)
+    if filters.bike_type is not None:
+        f.add("sh.bike_type = %s", filters.bike_type.value)
 
     # The spine always keeps (date, hour) so per-hour ride facts can be joined back;
     # dims that coincide with the join columns must not be selected twice.

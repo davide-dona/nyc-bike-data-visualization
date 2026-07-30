@@ -1,34 +1,35 @@
 from src.backend.db import fetch_rows, get_conn
-from src.backend.models.ride import MemberCasual, RideableType
+from src.backend.models.params import MonthRange, StationFilters
 from src.backend.models.station_stats.flow_counts import GroupedStationFlowCounts, StationFlowCounts
-from src.backend.services.sql.spine import HOURS_CTE, month_range_bounds
+from src.backend.services.sql.query_builder import Filters
+from src.backend.services.sql.spine import HOURS_CTE
+
+# Ceiling applied to citywide (no station_id) requests that omit an explicit
+# limit, so an unbounded query can never dump every pair in the table.
+CITYWIDE_PAIR_CAP = 1000
 
 def get_trips_between_stations_stats(
-    start_year: int,
-    start_month: int,
-    end_year: int,
-    end_month: int,
-    user_type: MemberCasual | None = None,
-    bike_type: RideableType | None = None,
-    station_id: str | None = None,
-    limit: int = 100,
+    month_range: MonthRange,
+    filters: StationFilters,
+    limit: int | None = None,
 ) -> list[StationFlowCounts]:
     """Fetch aggregated counts of trips between station pairs in the given month range,
     following the shared spine pattern: a calendar hours CTE provides hours_count and
-    the top pairs are selected in SQL."""
-    spine_start, spine_end = month_range_bounds(start_year, start_month, end_year, end_month)
+    the top pairs are selected in SQL. A None limit returns every pair for
+    station-scoped requests and falls back to CITYWIDE_PAIR_CAP citywide."""
+    if limit is None and filters.station_id is None:
+        limit = CITYWIDE_PAIR_CAP
+    spine_start, spine_end = month_range.bounds()
 
-    filters = ["(fam.year, fam.month) >= (%s, %s)", "(fam.year, fam.month) <= (%s, %s)"]
-    filter_params: list = [start_year, start_month, end_year, end_month]
-    if station_id is not None:
-        filters.append("(fam.station_a_id = %s OR fam.station_b_id = %s)")
-        filter_params.extend([station_id, station_id])
-    if user_type is not None:
-        filters.append("fam.user_type = %s")
-        filter_params.append(user_type.value)
-    if bike_type is not None:
-        filters.append("fam.bike_type = %s")
-        filter_params.append(bike_type.value)
+    f = Filters()
+    f.add("(fam.year, fam.month) >= (%s, %s)", month_range.start_year, month_range.start_month)
+    f.add("(fam.year, fam.month) <= (%s, %s)", month_range.end_year, month_range.end_month)
+    if filters.station_id is not None:
+        f.add("(fam.station_a_id = %s OR fam.station_b_id = %s)", filters.station_id, filters.station_id)
+    if filters.user_type is not None:
+        f.add("fam.user_type = %s", filters.user_type.value)
+    if filters.bike_type is not None:
+        f.add("fam.bike_type = %s", filters.bike_type.value)
 
     sql = f"""
         WITH {HOURS_CTE},
@@ -50,15 +51,17 @@ def get_trips_between_stations_stats(
         JOIN station_metadata sm_a ON sm_a.station_id = fam.station_a_id
         JOIN station_metadata sm_b ON sm_b.station_id = fam.station_b_id
         CROSS JOIN spine s
-        WHERE {" AND ".join(filters)}
+        WHERE {f.where_sql}
         GROUP BY fam.station_a_id, fam.station_b_id,
                  sm_a.station_name, sm_a.lat, sm_a.lon,
                  sm_b.station_name, sm_b.lat, sm_b.lon,
                  s.hours_count
         ORDER BY total_rides DESC, fam.station_a_id, fam.station_b_id
-        LIMIT %s
+        {"LIMIT %s" if limit is not None else ""}
     """
-    params = (spine_start, spine_end, *filter_params, limit)
+    params = (spine_start, spine_end, *f.params)
+    if limit is not None:
+        params = (*params, limit)
 
     with get_conn() as conn:
         with conn.cursor() as cur:

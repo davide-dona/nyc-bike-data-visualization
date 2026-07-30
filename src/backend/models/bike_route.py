@@ -13,10 +13,10 @@ class BikeSegmentGeometry(BaseModel):
 
 # Define the FacilityClass enum for the different types of bike facilities
 class FacilityClass(str, Enum):
-    I   = "I"     # Off-street path / greenway
-    II  = "II"    # Dedicated painted lane
-    III = "III"   # Signed shared route
-    L   = "L"     # Shared lane marking (sharrow)
+    I   = "I"     # Protected
+    II  = "II"    # Conventional
+    III = "III"   # Shared Lane or Signed Route
+    L   = "L"     # Link
 
 class BikeRoute(BaseModel):
     """A single NYC bike route segment."""

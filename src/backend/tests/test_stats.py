@@ -119,7 +119,7 @@ def test_get_stats_grouped_by_weather():
 
 
 def test_get_stats_by_weather_temperature_bins():
-    """Test that variable=temperature buckets spine hours into 2°C bins."""
+    """Test that variable=temperature buckets spine hours into whole-degree bins."""
     response = requests.get(
         f"{BASE_URL}/stats/stats_by_weather",
         params={**DATE_PARAMS, "variable": "temperature"},
@@ -129,16 +129,17 @@ def test_get_stats_by_weather_temperature_bins():
     payload = response.json()
 
     bins = {row["weather_bin"]: row for row in payload}
-    # Seed temps -1.8..5.2 °C: 5 hours below 0°, 5 in [0,2), 8 in [2,4), 6 in [4,6)
-    assert sorted(bins) == [-2.0, 0.0, 2.0, 4.0]
-    assert [bins[b]["hours_count"] for b in sorted(bins)] == [5, 5, 8, 6]
+    # Seed temps -1.8..5.2 °C floored to whole degrees:
+    # -2:4h, -1:1h, 1:5h, 2:4h, 3:4h, 4:4h, 5:2h (no hour lands in [0,1))
+    assert sorted(bins) == [-2.0, -1.0, 1.0, 2.0, 3.0, 4.0, 5.0]
+    assert [bins[b]["hours_count"] for b in sorted(bins)] == [4, 1, 5, 4, 4, 4, 2]
     assert all(row["weather_code"] is None for row in payload)
-    # Rides at hour 5 (1.3 °C → bin 0) and hour 15 (5.2 °C → bin 4)
-    assert bins[0.0]["total_rides"] == 1
-    assert bins[4.0]["total_rides"] == 1
-    # Bin 0: per-hour counts [1, 0, 0, 0, 0] → sample std sqrt(0.2)
-    assert bins[0.0]["hours_with_rides"] == 1
-    assert abs(bins[0.0]["rides_per_hour_std"] - 0.2 ** 0.5) < 1e-9
+    # Rides at hour 5 (1.3 °C → bin 1) and hour 15 (5.2 °C → bin 5)
+    assert bins[1.0]["total_rides"] == 1
+    assert bins[5.0]["total_rides"] == 1
+    # Bin 1: per-hour counts [1, 0, 0, 0, 0] → sample std sqrt(0.2)
+    assert bins[1.0]["hours_with_rides"] == 1
+    assert abs(bins[1.0]["rides_per_hour_std"] - 0.2 ** 0.5) < 1e-9
 
 
 def test_get_stats_by_weather_precipitation_bins():
@@ -248,6 +249,30 @@ def test_get_trips_between_stations_with_invalid_station_id():
     assert response.status_code == 200
     payload = response.json()
     assert payload == []
+
+def test_get_trips_between_stations_all_partners_without_limit():
+    """Test that /stats/station_flow_counts with station_id and no limit returns every partner pair."""
+    response = requests.get(
+        f"{BASE_URL}/stats/station_flow_counts",
+        params={**YM_PARAMS, "station_id": "6602.05"},
+        timeout=DEFAULT_TIMEOUT,
+    )
+    assert response.status_code == 200
+    payload = response.json()
+    assert len(payload) == 1
+    pair = payload[0]
+    assert {pair["station_a_id"], pair["station_b_id"]} == {"6602.05", "6839.04"}
+
+def test_get_trips_between_stations_respects_explicit_limit():
+    """Test that /stats/station_flow_counts truncates to an explicit limit."""
+    response = requests.get(
+        f"{BASE_URL}/stats/station_flow_counts",
+        params={**YM_PARAMS, "limit": 1},
+        timeout=DEFAULT_TIMEOUT,
+    )
+    assert response.status_code == 200
+    payload = response.json()
+    assert len(payload) == 1
 
 def test_get_station_counts():
     """Test that /stats/station_usage_counts returns expected station counts."""
