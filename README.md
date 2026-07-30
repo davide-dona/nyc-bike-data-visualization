@@ -1,5 +1,5 @@
-[![Backend Tests](https://github.com/446f6e6e79/nyc-bike-data-visualization/actions/workflows/backend-tests.yml/badge.svg?branch=main)](https://github.com/446f6e6e79/nyc-bike-data-visualization/actions/workflows/backend-tests.yml)
-[![Frontend Tests](https://github.com/446f6e6e79/nyc-bike-data-visualization/actions/workflows/frontend-tests.yml/badge.svg)](https://github.com/446f6e6e79/nyc-bike-data-visualization/actions/workflows/frontend-tests.yml)
+[![Backend Tests](https://github.com/davide-dona/nyc-bike-data-visualization/actions/workflows/backend-tests.yml/badge.svg?branch=main)](https://github.com/davide-dona/nyc-bike-data-visualization/actions/workflows/backend-tests.yml)
+[![Frontend Tests](https://github.com/davide-dona/nyc-bike-data-visualization/actions/workflows/frontend-tests.yml/badge.svg)](https://github.com/davide-dona/nyc-bike-data-visualization/actions/workflows/frontend-tests.yml)
 
 <div align="center">
 
@@ -21,7 +21,7 @@ This project focuses on the visualization of bike-sharing data from New York Cit
 
 The fastest way to run the full application is with the **pre-built release images**: a complete, pre-seeded database and ready-to-run backend and frontend. No clone, no build.
 
-**1. Download `docker-compose.release.yml` from the [latest release](https://github.com/446f6e6e79/nyc-bike-data-visualization/releases/latest).**
+**1. Download `docker-compose.release.yml` from the [latest release](https://github.com/davide-dona/nyc-bike-data-visualization/releases/latest).**
 
 **2. Start everything:**
 
@@ -44,6 +44,7 @@ For development, run a pre-seeded database in Docker and start the backend and f
 
 - [Backend](src/backend/README.md): FastAPI server, PostgreSQL setup, running tests, API docs
 - [Frontend](src/frontend/README.md): React + Vite app, development server, running tests
+- [Dataset exploration](src/notebooks/README.md): EDA notebook behind the technical report (dataset description and data-quality analysis)
 
 ## Repository Structure
 
