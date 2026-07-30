@@ -1,0 +1,65 @@
+\section{Bike Lanes Dataset}
+To enrich our station and trip insights, we incorporate New York City's bike-route network, retrieved from the \href{https://data.cityofnewyork.us/Transportation/New-York-City-Bike-Routes/mzxg-pwib}{\underline{NYC OpenData portal}}.
+
+\subsection{Dataset Structure}
+Distributed as a single CSV file, the dataset provides a current snapshot of the bike network alongside a historical record, with the NYC Department of Transportation updating the file on an annual basis.
+
+\subsubsection{Original Structure}
+Each record represents a single segment of a bike facility, with the following fields:
+\begin{itemize}
+    \item \textbf{Geometry}: The set of lines tracing the bike route segment, defined by their coordinates.
+    \item \textbf{Street}: The street the facility runs along.
+    \item \textbf{From Street} and \textbf{To Street}: The cross streets that define the segment's endpoints.
+    \item \textbf{Borough}: Which of the five boroughs the segment lies in.
+    \item \textbf{Facility Class}: The type of facility across four classes:
+    \begin{itemize}
+        \item \textbf{Protected}: Separated from motor traffic by physical barriers (curbs, bollards, greenways).
+        \item \textbf{Conventional}: Marked by painted lanes only, without physical barriers.
+        \item \textbf{Shared / Signed}: Standard travel lanes with signage or sharrows indicating bicycle traffic.
+        \item \textbf{Link}: Non-bikeable connectors (stairs, walkways) bridging gaps in the network.
+    \end{itemize}
+    \item \textbf{Status}: Whether the facility is still in service or has been retired/modified.
+    \item \textbf{Installation Date} and \textbf{Retirement Date}: When the facility opened and, for facilities no longer in service, when it was removed or superseded.
+    \item \textbf{Route ID}: The named route the segment forms part of.
+    \item \textbf{Segment ID}: Which piece of street the record covers. The numbering comes from LION (\emph{Linear Integrated Ordered Network}), the city's official street map, so every facility is pinned to a known piece of road.
+\end{itemize}
+Although finer classifications are recorded for each facility, they are excluded during ingestion.
+Because these sub-types aggregate naturally into four primary classes, omitting them preserves structural simplicity without affecting anything the visualization shows.
+
+\subsection{Analysis and Insights}
+The analysis provides a spatial and temporal perspective on the bike lane network.
+
+\paragraph{Spatial Overview}
+Figure~\ref{fig:bike_lanes_map} shows that the network covers almost the entire city, matching the distribution of demand trip areas shown in Figure~\ref{fig:rides_stations}.
+Comparing the two maps, we see that the densest and most popular areas are also the ones with the highest concentration of protected facilities, while shared and conventional lanes dominate in lower-demand areas.
+This alignment confirms the facility data's reliability, laying a solid foundation for integration with complementary datasets.
+
+\begin{figure}[ptb]
+    \centering
+    \includegraphics[width=0.5\textwidth]{../media/technical/bike_lanes_map.png}
+    \caption{The bike-route network in service, colouring segments by facility class.}
+    \label{fig:bike_lanes_map}
+\end{figure}
+
+\paragraph{Temporal Overview}
+Figure~\ref{fig:bike_lanes_history} illustrates the step-by-step expansion of the cycling network over time.
+Tracking annual installations and retirements reveals a sharp surge in infrastructure over the past decade, capturing a pivotal era in the city's urban transformation.
+Documenting both spatial and temporal dynamics provides key context for how past planning decisions continue to shape modern mobility.
+\begin{figure}[ptb]
+    \centering
+    \includegraphics[width=0.8\textwidth]{../media/technical/bike_lanes_history.png}
+    \caption{Segments installed and removed per year.}
+    \label{fig:bike_lanes_history}
+\end{figure}
+
+\subsection{Data Quality}
+With the exception of the retirement date (which is intentionally left blank for active facilities), all consumed attributes are fully populated, as verified in our \href{https://github.com/davide-dona/nyc-bike-data-visualization/blob/main/src/notebooks/analysis.ipynb}{\underline{analysis notebook}}.
+
+\paragraph{Sentinel Installation Dates}
+Although the installation date field is never null, \texttt{01/01/1900} acts as a floor for dates previous to the 1900s (Figure~\ref{fig:bike_lanes_history}).
+It appears in $244$ segments ($0.8\%$), $196$ of which remain active, concentrated on long-standing park and parkway paths such as Ocean Parkway and Eastern Parkway whose routes predate the city's record-keeping.
+
+\paragraph{Facility Classification Bias}
+Facility class reflects the highest class present along a segment, as reported in the documentation.
+For instance, a street with a protected lane on one side and a shared lane on the other is classified entirely as protected.
+This affects $720$ segments ($2.5\%$): a minor share that barely alters the map's overall coloring, but implies that segment classes represent the best available facility rather than conditions on both sides.

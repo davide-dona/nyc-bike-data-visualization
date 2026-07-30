@@ -1,0 +1,44 @@
+\section{Weather Dataset}
+To enrich the analysis with meteorological data, we incorporate hourly NYC weather data retrieved from the \href{https://open-meteo.com/}{\underline{Open-Meteo archive API}}.
+
+\subsection{Dataset Structure}
+Weather data are queried via the Open-Meteo JSON API by specifying coordinates and date range.
+The API provides hourly data, updated with a few days' delay through an reanalysis model, offering a refined estimate of past conditions rather than keeping a live record of predicted weather.
+
+\subsubsection{Original Structure}
+The dataset includes several attributes. We focused on the following fields, as they are the one that most directly affect ridership:
+\begin{itemize}
+    \item \textbf{Timestamp}: Hourly observation time.
+    \item \textbf{Temperature}: Air temperature in \si{\degreeCelsius}.
+    \item \textbf{Precipitation}: Hourly precipitation in millimetres.
+    \item \textbf{Weather Code}: WMO weather condition code.
+    \item \textbf{Wind Speed}: Wind speed in km/h.
+\end{itemize}
+
+\subsection{Analysis and Insights}
+Weather conditions serve as a key driver of daily bike usage.
+Rather than examining weather in isolation, the following section focuses directly on its relationship with overall ridership patterns.
+
+\paragraph{Ridership vs. Weather}
+Figure~\ref{fig:rides_vs_weather} shows a clear contrast between how precipitation and temperature influence mobility patterns. 
+Precipitation exhibits a strong inverse relationship with usage, where the month's peak precipitation directly coincides with its lowest ridership volume, yielding a Pearson correlation of $r = -0.55$. 
+Conversely, daily temperature demonstrates a solid positive correlation ($r = +0.63$), with trip volumes closely tracking temperature rises. 
+Quantified in our accompanying \href{https://github.com/davide-dona/nyc-bike-data-visualization/blob/main/src/notebooks/analysis.ipynb}{\underline{notebook}}, these relationships confirm that integrating weather data provides essential context for interpreting daily demand fluctuations and supporting operational planning.
+\begin{figure}[ptb]
+    \centering
+    \includegraphics[width=\textwidth]{../media/technical/rides_vs_weather.png}
+    \caption{Daily ridership, mean temperature, and total precipitation over the reference month, plotted on aligned date axes with individual scales. The dashed guide highlights 16 February, the month's wettest day and also its least ridden.}
+    \label{fig:rides_vs_weather}
+\end{figure}
+
+\subsection{Data Quality}
+While the dataset is complete with no missing values across the timeframe, these inherent limitations are still important to note.
+
+\paragraph{Spatial Coverage}
+Weather data is retrieved for a single coordinate centered on Central Park and applied across the entire system. 
+Consequently, localized weather events, such as rainfall isolated to Central Park, are generalized citywide, which can occasionally misrepresent regional ridership patterns. 
+However, while this single-point approach misses local microclimates, introducing higher spatial granularity would add unnecessary complexity for a city-scale analysis.
+
+\paragraph{Timestamp Inconsistencies}
+Aligning weather records with Citi Bike trip timestamps using local time introduces a one-hour shift during Daylight Saving Time (DST) transitions. 
+This temporal mismatch temporarily desynchronizes weather observations from ride logs, introducing localized noise into the weather-ridership correlation.
