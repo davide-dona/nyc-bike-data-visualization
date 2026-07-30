@@ -319,20 +319,23 @@ To prevent analytical ambiguities, comparison mode enforces three key structural
 \end{itemize}
 
 \subsection{Weather}
-This view relates ridership to the meteorological conditions recorded alongside it, progressing from a compact overview of all conditions to their effect on the daily rhythm.
+This view proposes a compact summary of grouped weather conditions to provide detailed insights into daily bike usage patterns.
 
-\paragraph{Condition Scatter}
-The primary visualization is a scatter plot where each point represents a WMO weather code, positioned by average trip speed and rides per hour, and color-coded by condition family (Figure~\ref{fig:viz-weather-scatterplot}). 
-Grouping codes into high-level categories (e.g., rain, snow, thunderstorm) simplifies interpretation: users perceive intuitive color semantics rather than raw numerical codes, allowing conditions with similar behavioral impacts to form distinct visual clusters. 
-
-Interactive controls enable deeper exploration: clicking a legend category isolates a condition family, while hovering over an individual point surfaces a tooltip with extended information about the weather condition and trip statistics. 
-This provides a compact summary of how weather suppresses or sustains global cycling activity, establishing baseline insights that supporting charts subsequently decompose.
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=0.8\textwidth]{../media/report/weather_scatterplot.png}
+    \includegraphics[width=\textwidth]{../media/report/weather_scatterplot.png}
     \caption{Weather view: the condition scatter.}
     \label{fig:viz-weather-scatterplot}
 \end{figure}
+
+\paragraph{Condition Scatter}
+The primary visualization is a scatter plot where each point represents a WMO weather code, positioned by average trip speed and rides per hour.
+Each dot is color-coded by condition family (Figure~\ref{fig:viz-weather-scatterplot}), grouping into high-level categories (e.g., rain, snow, thunderstorm) simplifying interpretation.
+This permits intuitive color semantics rather than raw numerical codes, allowing conditions with similar behavioral impacts to form distinct visual clusters. 
+Then, interactive controls enable deeper data exploration.
+Clicking a legend category isolates a specific condition family, while hovering over any data point surfaces a detailed tooltip with weather conditions and trip statistics.
+This provides a compact summary of how weather suppresses or sustains global cycling activity, establishing baseline insights that supporting charts subsequently decompose.
+
 
 \paragraph{Ridgeline Distributions}
 Beyond reducing total volume, weather fundamentally alters daily usage patterns. 
@@ -341,7 +344,7 @@ Each ridge is independently normalized to its peak, allowing low-frequency event
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=0.8\textwidth]{../media/report/weather_ridgeline.png}
+    \includegraphics[width=\textwidth]{../media/report/weather_ridgeline.png}
     \caption{Weather view: the ridgeline distributions.}
     \label{fig:viz-weather-ridgeline}
 \end{figure}
@@ -355,7 +358,7 @@ Two supplementary plots complement the WMO condition categories by examining con
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=0.8\textwidth]{../media/report/secondary_weather.png}
+    \includegraphics[width=\textwidth]{../media/report/secondary_weather.png}
     \caption{Weather view: supplemental plots.}
     \label{fig:viz-secondary-weather}
 \end{figure}
@@ -366,52 +369,46 @@ Initial attempts (such as plotting total rides against temperature) were dominat
 Conversely, pairing average duration with average distance yielded a highly correlated linear trend without meaningful clustering.
 Normalizing volume to average hourly rides and pairing it with average trip speed resolved these issues.
 
-Although our proposal designated the ridgeline chart as the primary visualization, testing revealed it was less intuitive for first-time readers due to its vertical height and emphasis on temporal shape over absolute magnitude.
-We therefore promoted the scatter plot to the primary position and placed the ridgeline directly below it, preserving its unique capacity to show how conditions redistribute hourly demand.
-
-Normalizing each ridge independently required a deliberate trade-off.
-While a shared scale obscures rare conditions beneath clear-sky totals, scaling ridges to their individual peaks preserves profile comparison at the expense of absolute magnitude. 
+Although our proposal designated the ridgeline chart as the primary visualization, it was less intuitive for first-time readers due to its height and emphasis on temporal shape over absolute rides magnitude.
+We therefore promoted the scatter plot to the primary position and placed the ridgeline directly below it.
+Then, normalizing each ridge independently required a deliberate trade-off: scaling each ridge to its own peak enables shape comparisons at the cost of absolute values.
 Clear chart annotations and surrounding absolute-volume plots counteract this limitation, ensuring readers do not mistake relative temporal curves for absolute demand levels.
 
 \subsection{Footprint}
 The footprint view translates ridden distance into environmental impact using published emission factors and one adjustable assumption: the car-substitution rate.
-A slider lets readers adjust this rate between 5\% and 25\%, the typical range in bike-share studies, that updates the displayed visualizations.
+A slider lets readers adjust this rate between 5\% and 25\%, updating the displayed visualizations.
 
 \paragraph{Tiles and Emission Charts}
-Three headline tiles summarize the selected distance ridden, avoided \textsubscript{CO2}, and car trips replaced (Figure~\ref{fig:viz-footprint}).
+Three headline tiles summarize the selected distance ridden, avoided CO\textsubscript{2}, and car trips replaced (Figure~\ref{fig:viz-footprint}).
 A horizontal bar chart compares the emissions that same distance would generate across different modes, including car, taxi, bus, subway, e-bike, and classic bike, isolating mode efficiency by keeping distance constant.
-Finally, a cumulative chart plots daily avoided \textsubscript{CO2} over time, highlighting the impact of the car-substitution rate selection.
+Finally, a cumulative chart plots daily avoided CO\textsubscript{2} over time, highlighting the impact of the car-substitution rate selection.
 Shaded areas represent the range between the minimum and maximum substitution rates, while a dotted line tracks the current setting.
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=0.8\textwidth]{../media/report/primary_footprint.png}
+    \includegraphics[width=\textwidth]{../media/report/primary_footprint.png}
     \caption{Footprint view: the primary visualization.}
     \label{fig:viz-footprint}
 \end{figure}
 
 \paragraph{Pictogram}
-Because absolute tonnage is hard to visualize, a pictogram translates the figure into familiar benchmarks: urban trees absorbing carbon annually, an average person's yearly emissions, and LED bulbs powered for a year (Figure~\ref{fig:viz-pictogram}).
-To keep captions easy to read, each row targets roughly 24 icons by rounding the value of a single icon to a clean multiple of 1, 2, or 5 times a power of ten.
-Anchor values are fixed at the midpoint substitution rate, meaning slider adjustments change the number of icons shown rather than what each icon represents.
-
+Because absolute tonnage is hard to visualize, a pictogram translates the figures into familiar benchmarks: urban trees absorbing carbon annually, an average person's yearly emissions, and LED bulbs powered for a year (Figure~\ref{fig:viz-pictogram}).
+To maintain readability, each row targets roughly 24 icons by rounding an individual icon's value to a clean multiple of 1, 2, or 5 times a power of ten.
+Slider adjustments change the number of displayed icons without altering their unit value; conversely, adjusting the global date range updates the icon scale to keep the row length normalized.
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=0.8\textwidth]{../media/report/secondary_footprint.png}
+    \includegraphics[width=\textwidth]{../media/report/secondary_footprint.png}
     \caption{Footprint view: pictogram visualization.}
     \label{fig:viz-pictogram}
 \end{figure}
 
 \paragraph{Challenges}
-Unlike other views, this page plots no directly measured values.
-Because the dataset tracks distance instead of emissions, every figure projects published averages onto aggregated totals, making the view reflective rather than strictly analytical.
-This carries an immediate risk: a prominently displayed figure for avoided \textsubscript{CO2} could easily be mistaken for a direct measurement.
-
-To address this, we opted for explicit transparency rather than adjusting the numbers. 
-An assumptions box details every input, including per-kilometer emission factors for each mode, the substitution range with its underlying studies, and deliberate exclusions such as manufacturing, fleet rebalancing, and disposal (Figure~\ref{fig:viz-assumptions}).
-Inline citation links include titles and publication years for direct verification.
+Unlike other views, this page displays modeled estimates rather than directly measured values.
+To prevent users from mistaking avoided CO\textsubscript{2} figures for direct measurements, we prioritized explicit transparency.
+An assumptions box outlines all baseline inputs, including modal emission factors, substitution rates from cited literature, and lifecycle exclusions (Figure~\ref{fig:viz-assumptions}). 
+Inline citations provide direct links for verification.
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=0.8\textwidth]{../media/report/assumption_box.png}
+    \includegraphics[width=\textwidth]{../media/report/assumption_box.png}
     \caption{Footprint view: the assumption box}
     \label{fig:viz-assumptions}
 \end{figure}

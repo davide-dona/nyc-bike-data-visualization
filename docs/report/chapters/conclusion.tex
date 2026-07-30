@@ -1,14 +1,14 @@
 \section{Conclusion}\label{sec:conclusion}
 While technical challenges involved data quality, query latency, and encoding choices, organizational factors shaped the outcome just as strongly.
 
-\subsection{Team Work and Collaboration}
-Building a full-stack project of this scale in a team of three required structured coordination, managed primarily through \emph{GitHub}.
+\subsection{Collaboration}
+Building a full-stack project of this scale required structured coordination, managed primarily through \emph{GitHub}.
 Issues defined project scope, feature branches isolated work, and pull requests served as review gates for the main branch.
-Code reviews caught defects early while ensuring shared code ownership across the team.
+Continuous code reviews and structured change management enabled early defect detection while fostering shared code ownership across the team.
 
 Maintainability was essential, as nearly every view underwent multiple revisions.
-We applied standard software engineering practices throughout: modular design, documented interfaces, and continuous refactoring.
-These conventions kept iteration low-cost, ensuring late-stage changes affected fewer files.
+We applied standard software engineering practices: modular design, documented interfaces, and continuous refactoring.
+These conventions kept iteration low-cost, ensuring practical late-stage changes.
 
 A continuous integration pipeline via \emph{GitHub Actions} automated this discipline.
 On every pull request, the system runs backend integration tests against a disposable \emph{PostgreSQL} instance, executes frontend tests, and compiles the LaTeX documents.
@@ -30,6 +30,7 @@ However, as our temporal and weather views demonstrate, ridership responds predi
 Adding a forecasting model to these features would predict station-level demand, elevating the tool from retrospective analysis to operational planning.
 
 \subsection{Final Considerations}
-The project achieved its primary goal: an interactive dashboard that makes a complex mobility dataset intuitive and explorable.
-Every planned view was delivered, with most expanding beyond their original designs.
-All trade-offs are fully documented, and remaining limitations are stated explicitly, yielding a robust and transparent final result.
+The project achieved its primary goal: an interactive dashboard that renders a complex mobility dataset intuitive and explorable. 
+Beyond the engineering metrics, the interface makes key system behaviors immediately legible, including weekday commuting patterns, the sensitivity of demand to rainfall, and the distinct usage habits between members and casual riders. 
+Across both the data pipeline and the user interface, we consistently prioritized the efficient mechanism that satisfied each requirement, in order to achieve a system that is easier to reason about, maintain, and extend. 
+With all trade-offs and revisions fully documented, and remaining limitations stated explicitly, the resulting system provides a robust and transparent analytical tool.
