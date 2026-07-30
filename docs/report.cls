@@ -26,6 +26,9 @@
 \RequirePackage{parskip}
 \RequirePackage{emptypage}
 \RequirePackage{svg}
+\RequirePackage{siunitx}
+\RequirePackage{fnpct}
+\RequirePackage{subcaption}
 
 % Command to get the current month name
 \newcommand{\MonthName}{
@@ -46,6 +49,14 @@
   numbersep=-5pt, % Distance between line numbers and code
   tabsize=2, % Tab size
   captionpos=b, % Position of the caption
+}
+
+\RequirePackage{geometry}
+\geometry{
+    left=3.5cm,
+    right=3.5cm,
+    top=2.5cm,
+    bottom=2.5cm
 }
 
 % Header configuration
@@ -101,7 +112,7 @@
 
 \newcommand{\authors}[1]{\begin{tabular}{@{}ll@{}}Davide Donà &\quad \texttt{264467}\\Andrea Blushi&\quad \texttt{264468}\\Lorenzo Di Berardino&\quad \texttt{265984}\end{tabular}}
 
-\newcommand{\maketitlepage}{
+\newcommand{\maketitlepage}[1]{
   \begin{titlepage}
     \begin{center}
       \Large University of Trento\\[-3pt]
@@ -112,7 +123,7 @@
       \includesvg[width=0.7\textwidth]{../media/logo.svg}
 
       \vspace{1cm}
-      \HHUGE\textbf{Data Visualization Proposal}
+      \HHUGE\textbf{#1}
 
       \vspace{0.5cm}
 
