@@ -1,5 +1,5 @@
 from src.backend.db import fetch_rows, get_conn
-from src.backend.models.ride import MemberCasual, RideableType
+from src.backend.models.params import MonthRange, StationFilters
 from src.backend.models.station_stats.ride_counts import GroupedStationRideCount, StationRideGroupBy, StationRideCounts
 from src.backend.services.sql.query_builder import (
     Filters,
@@ -7,16 +7,10 @@ from src.backend.services.sql.query_builder import (
     dims_join_condition,
     spine_cte_sql,
 )
-from src.backend.services.sql.spine import month_range_bounds
 
 def get_station_ride_counts_stats(
-    start_year: int,
-    start_month: int,
-    end_year: int,
-    end_month: int,
-    user_type: MemberCasual | None = None,
-    bike_type: RideableType | None = None,
-    station_id: str | None = None,
+    month_range: MonthRange,
+    filters: StationFilters,
     day_of_week: int | None = None,
     group_by: StationRideGroupBy = StationRideGroupBy.NONE,
     limit: int = 100,
@@ -24,7 +18,7 @@ def get_station_ride_counts_stats(
     """Fetch per-station ride counts, following the shared spine pattern: a calendar
     hours CTE provides hours_count per bucket, ride aggregates are computed per
     station and bucket, and the top stations are selected in SQL."""
-    spine_start, spine_end = month_range_bounds(start_year, start_month, end_year, end_month)
+    spine_start, spine_end = month_range.bounds()
 
     # Pick the smallest pre-aggregated table that satisfies the query shape, the
     # time dimensions to bucket by, and whether the table has a day_of_week column.
@@ -47,14 +41,14 @@ def get_station_ride_counts_stats(
 
     # Fact-table filters, shared by the top-station selection and the bucketed select.
     f = Filters()
-    f.add("(sah.year, sah.month) >= (%s, %s)", start_year, start_month)
-    f.add("(sah.year, sah.month) <= (%s, %s)", end_year, end_month)
-    if station_id is not None:
-        f.add("sah.station_id = %s", station_id)
-    if user_type is not None:
-        f.add("sah.user_type = %s", user_type.value)
-    if bike_type is not None:
-        f.add("sah.bike_type = %s", bike_type.value)
+    f.add("(sah.year, sah.month) >= (%s, %s)", month_range.start_year, month_range.start_month)
+    f.add("(sah.year, sah.month) <= (%s, %s)", month_range.end_year, month_range.end_month)
+    if filters.station_id is not None:
+        f.add("sah.station_id = %s", filters.station_id)
+    if filters.user_type is not None:
+        f.add("sah.user_type = %s", filters.user_type.value)
+    if filters.bike_type is not None:
+        f.add("sah.bike_type = %s", filters.bike_type.value)
     if day_of_week is not None and has_dow_col:
         f.add("sah.day_of_week = %s", day_of_week)
 

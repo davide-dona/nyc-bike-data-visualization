@@ -230,9 +230,28 @@ def _iter_month_frames(zip_path: Path) -> Iterator[pl.DataFrame]:
                 return
             yield pl.concat(frames, how="diagonal_relaxed")
 
+def _haversine_km_expr() -> pl.Expr:
+    """Great-circle distance (km) between the start and end coordinates, circuity-scaled."""
+    lat1, lon1 = pl.col("start_lat").radians(), pl.col("start_lng").radians()
+    lat2, lon2 = pl.col("end_lat").radians(), pl.col("end_lng").radians()
+    a = ((lat2 - lat1) / 2).sin() ** 2 + lat1.cos() * lat2.cos() * ((lon2 - lon1) / 2).sin() ** 2
+    return settings.earth_radius_km * 2 * a.sqrt().arcsin() * settings.street_circuity_factor
+
+
+def _upper_outlier_cutoff(df: pl.DataFrame, column: str) -> float | None:
+    """Return the upper 95% z-score cutoff, or None when variation is unavailable."""
+    stats = df.select(
+        pl.col(column).mean().alias("mean"),
+        pl.col(column).std(ddof=1).alias("std"),
+    ).row(0, named=True)
+    mean, std = stats["mean"], stats["std"]
+    if mean is None or std is None or std <= 0:
+        return None
+    return float(mean + settings.upper_outlier_z_score * std)
+
 def _clean_rides_data(df: pl.DataFrame) -> pl.DataFrame:
-    """Drop rows missing required fields, parse timestamps, drop bad intervals."""
-    return (
+    """Clean rides and exclude independent upper-tail duration/distance outliers."""
+    valid = (
         df.drop_nulls(subset=_REQUIRED_RIDE_COLS)
         .with_columns(
             pl.col("started_at").str.to_datetime(format="%Y-%m-%d %H:%M:%S%.f", strict=True),
@@ -240,7 +259,26 @@ def _clean_rides_data(df: pl.DataFrame) -> pl.DataFrame:
         )
         .drop_nulls(subset=["started_at", "ended_at"])
         .filter(pl.col("ended_at") >= pl.col("started_at"))
+        # Drop round trips (same start and end station): their straight-line distance is 0.
+        .filter(pl.col("start_station_id") != pl.col("end_station_id"))
+        .with_columns(
+            (pl.col("ended_at") - pl.col("started_at"))
+            .dt.total_seconds()
+            .alias("_trip_duration_seconds"),
+            _haversine_km_expr().alias("_distance_km"),
+        )
     )
+
+    duration_cutoff = _upper_outlier_cutoff(valid, "_trip_duration_seconds")
+    distance_cutoff = _upper_outlier_cutoff(valid, "_distance_km")
+    filters = []
+    if duration_cutoff is not None:
+        filters.append(pl.col("_trip_duration_seconds") <= duration_cutoff)
+    if distance_cutoff is not None:
+        filters.append(pl.col("_distance_km") <= distance_cutoff)
+    if filters:
+        valid = valid.filter(pl.all_horizontal(filters))
+    return valid.drop(["_trip_duration_seconds", "_distance_km"])
 
 def _add_partition_columns(df: pl.DataFrame) -> pl.DataFrame:
     """Add date/year/month/hour/day_of_week/duration columns derived from ended_at.

@@ -39,8 +39,14 @@ def _get_date_range(min_date: str, max_date: str) -> tuple[date, date]:
     end = min(_yyyymm_to_last_of_month(range_end_yyyymm), date.today())
     return start, end
 
-def _create_weather_dataframe(weather_json: dict) -> pl.DataFrame:
-    """Convert the Open-Meteo hourly payload into a parquet-ready DataFrame."""
+def _create_weather_dataframe(weather_json: dict, start: date, end: date) -> pl.DataFrame:
+    """Convert the Open-Meteo hourly payload into a parquet-ready DataFrame.
+
+    Timestamps arrive in UTC and are localised here rather than by the API: the
+    archive applies a single fixed offset to a whole request (whichever one the
+    location is on today), so asking it for local time mislabels by an hour every
+    date sitting on the other side of a DST boundary.
+    """
     hourly = weather_json.get("hourly", {})
     if not hourly or not hourly.get("time"):
         raise ValueError("Weather API response did not include hourly data")
@@ -48,8 +54,15 @@ def _create_weather_dataframe(weather_json: dict) -> pl.DataFrame:
     return (
         pl.DataFrame(hourly)
         .with_columns(
-            pl.col("time").str.strptime(pl.Datetime, format="%Y-%m-%dT%H:%M").alias("datetime"),
+            pl.col("time")
+            .str.strptime(pl.Datetime, format="%Y-%m-%dT%H:%M")
+            .dt.replace_time_zone("UTC")
+            .dt.convert_time_zone(settings.weather_timezone)
+            .dt.replace_time_zone(None)
+            .alias("datetime"),
         )
+        # The UTC window is padded by a day on each side, so trim back to the days asked for.
+        .filter(pl.col("datetime").dt.date().is_between(start, end))
         .with_columns(
             # Year column drives the parquet partitioning
             pl.col("datetime").dt.year().alias("year"),
@@ -66,23 +79,25 @@ def download_weather_data(min_date: str, max_date: str, force_download: bool = F
     start_date, end_date = _get_date_range(min_date, max_date)
 
     log.info(f"[DOWNLOAD] Downloading weather {start_date.isoformat()} -> {end_date.isoformat()}...")
+    # Pad the requested window by a day on each side so that shifting UTC back to
+    # local time still covers both endpoints (the archive stops at today).
     response = requests.get(
         settings.weather_api_url,
         params={
             "latitude":        settings.nyc_coords[0],
             "longitude":       settings.nyc_coords[1],
-            "start_date":      start_date.isoformat(),
-            "end_date":        end_date.isoformat(),
+            "start_date":      (start_date - timedelta(days=1)).isoformat(),
+            "end_date":        min(end_date + timedelta(days=1), date.today()).isoformat(),
             # Hourly granularity is the smallest resolution available across the full historical range
             "hourly":          "temperature_2m,precipitation,weather_code,wind_speed_10m",
-            "timezone":        settings.weather_timezone,
+            "timezone":        "UTC",
             "wind_speed_unit": "kmh",
         },
         timeout=(5, 120),
     )
     response.raise_for_status()
 
-    weather_data = _create_weather_dataframe(response.json())
+    weather_data = _create_weather_dataframe(response.json(), start_date, end_date)
     weather_data.write_parquet(
         settings.weather_data_dir,
         row_group_size=100_000,
