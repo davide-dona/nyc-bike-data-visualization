@@ -9,11 +9,13 @@ import polars as pl
 import psycopg2
 
 from src.ingestion.db.loader import init_db
+from src.ingestion.db.loaders.bike_routes import upsert_bike_routes
 from src.ingestion.db.loaders.hourly_stats import insert_stats_hourly
 from src.ingestion.db.loaders.station_activity import insert_station_activity_hourly, insert_station_activity_preagg
 from src.ingestion.db.loaders.flow_activity_monthly import insert_flow_activity_monthly
 from src.ingestion.db.loaders.station_metadata import upsert_station_metadata
 from src.ingestion.db.loaders.weather_hourly import upsert_weather_hourly
+from src.ingestion.sources.bike_routes import clean_bike_data
 from src.backend.config import settings
 
 def _build_rides(trips_path: Path, distances_path: Path) -> pl.DataFrame:
@@ -77,6 +79,10 @@ def main() -> None:
 
         weather_df = pl.read_csv(settings.test_data_dir / "weather.csv", try_parse_dates=True)
         upsert_weather_hourly(conn, weather_df)
+        conn.commit()
+
+        routes_df = clean_bike_data(pl.read_csv(settings.test_data_dir / "bike_routes.csv"))
+        upsert_bike_routes(conn, routes_df)
         conn.commit()
 
         with conn.cursor() as cur:

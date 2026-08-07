@@ -38,7 +38,7 @@ def _fetch_bike_routes_csv() -> pl.DataFrame:
 
     return pl.read_csv(io.BytesIO(response.content))
 
-def _clean_bike_data(df: pl.DataFrame) -> pl.DataFrame:
+def clean_bike_data(df: pl.DataFrame) -> pl.DataFrame:
     """Drop unused columns and replace numeric boro codes with their names."""
     return (
         df
@@ -55,7 +55,7 @@ def download_bike_routes(force_download: bool = False) -> pl.DataFrame:
         log.info(f"[DOWNLOAD] Bike routes already fresh at {settings.bike_routes_path}, skipping")
         return pl.read_parquet(settings.bike_routes_path)
 
-    df = _clean_bike_data(_fetch_bike_routes_csv())
+    df = clean_bike_data(_fetch_bike_routes_csv())
     df.write_parquet(
         settings.bike_routes_path,
         row_group_size=100_000,
