@@ -29,28 +29,22 @@ jobs:
 
       - name: Compile proposal document
         uses: xu-cheng/latex-action@v3
-        env:
-          SOURCE_DATE_EPOCH: 1704067200
-          FORCE_SOURCE_DATE: 1
         with:
+          pre_compile: export SOURCE_DATE_EPOCH=1704067200 FORCE_SOURCE_DATE=1
           root_file: proposal.tex
           working_directory: docs/proposal
 
       - name: Compile report document
         uses: xu-cheng/latex-action@v3
-        env:
-          SOURCE_DATE_EPOCH: 1704067200
-          FORCE_SOURCE_DATE: 1
         with:
+          pre_compile: export SOURCE_DATE_EPOCH=1704067200 FORCE_SOURCE_DATE=1
           root_file: report.tex
           working_directory: docs/report
 
       - name: Compile technical report document
         uses: xu-cheng/latex-action@v3
-        env:
-          SOURCE_DATE_EPOCH: 1704067200
-          FORCE_SOURCE_DATE: 1
         with:
+          pre_compile: export SOURCE_DATE_EPOCH=1704067200 FORCE_SOURCE_DATE=1
           root_file: technical-report.tex
           working_directory: docs/technical-report
 
