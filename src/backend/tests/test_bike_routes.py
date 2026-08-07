@@ -10,6 +10,7 @@ def test_routes():
     assert response.status_code == 200
     data = response.json()
     assert isinstance(data, list)
+    assert data, "no bike routes returned — the test database is not seeded"
     for bike_route in data:
         assert isinstance(bike_route, dict)
         geometry = bike_route.get("geometry")
@@ -23,8 +24,8 @@ def test_routes():
         # basic fields
         assert isinstance(bike_route.get("routeID"), int)
         assert isinstance(bike_route.get("streetName"), str)
-        assert isinstance(bike_route.get("fromStreet"), str)
-        assert isinstance(bike_route.get("toStreet"), str)
+        assert isinstance(bike_route.get("fromStreet"), (str, type(None)))
+        assert isinstance(bike_route.get("toStreet"), (str, type(None)))
 
         # facility class and installation date
         assert isinstance(bike_route.get("facilityClass"), str)

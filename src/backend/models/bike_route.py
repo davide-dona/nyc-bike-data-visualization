@@ -23,8 +23,8 @@ class BikeRoute(BaseModel):
     geometry: BikeSegmentGeometry
     routeID: int
     streetName: str
-    fromStreet: str
-    toStreet: str
+    fromStreet: str | None
+    toStreet: str | None
     facilityClass: FacilityClass
     instDate: date
     retiredDate: date | None

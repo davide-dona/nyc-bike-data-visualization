@@ -85,8 +85,9 @@ export function bikeRouteTooltip(object) {
     if (!object) return ''
     const { streetName, facilityClass, fromStreet, toStreet } = object
     const classLabel = FACILITY_LABELS[facilityClass] ?? 'Unknown'
+    const segmentLine = fromStreet && toStreet ? ` - Segment: ${fromStreet} → ${toStreet}\n` : ''
 
-    return `Bike Route\n${streetName}\n\n - Segment: ${fromStreet} → ${toStreet}\n - Facility Class: ${classLabel}`
+    return `Bike Route\n${streetName}\n\n${segmentLine} - Facility Class: ${classLabel}`
 }
 
 /**
