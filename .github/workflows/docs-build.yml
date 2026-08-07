@@ -1,14 +1,8 @@
 name: Docs Build
-# This workflow compiles the LaTeX documents in the docs directory whenever changes
-#are pushed to the main branch or when a pull request is opened targeting the main branch
-#but only if the changes affect files in the docs directory or this workflow file itself.
+# This workflow compiles the LaTeX documents in the docs directory whenever a pull
+#request targeting the main branch changes files in the docs directory or this
+#workflow file itself, and commits the refreshed PDFs onto the pull request branch.
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - "docs/**"
-      - ".github/workflows/docs-build.yml"
   pull_request:
     branches:
       - main
@@ -19,7 +13,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: docs-build-${{ github.event.pull_request.number || github.ref }}
+  group: docs-build-${{ github.event.pull_request.number }}
   cancel-in-progress: true
 
 jobs:
@@ -74,7 +68,7 @@ jobs:
           retention-days: 30
 
       - name: Commit PDFs to the pull request branch
-        if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+        if: github.event.pull_request.head.repo.full_name == github.repository
         run: |
           git config user.name "GitHub Actions"
           git config user.email "github-actions[bot]@users.noreply.github.com"
