@@ -3,15 +3,15 @@ Each view that follows answers a different question about the \href{https://www.
 This section presents them in turn, describing the encodings each one relies on, the interactions it supports, and the design decisions that produced it.
 
 \subsection{Overview}
-The application is structured as a multi-view dashboard, as introduced in Section~\ref{sec:introduction}.
-The global header hosts primary exploratory controls, while each view operates as a self-contained module with specialized visual representations.
-We enriched the \href{https://github.com/davide-dona/nyc-bike-data-visualization/blob/main/docs/proposal.pdf}{\underline{proposal}} with secondary plots that supplement these primary insights to offer broader analytical context.
+The spatial map serves as the default view, offering an immediate and impactful geographic overview.
+Every view shares a standardized layout skeleton: a descriptive header, a primary display, secondary plots, and the collapsible reading guide.
+The secondary plots go beyond the \href{https://github.com/davide-dona/nyc-bike-data-visualization/blob/main/docs/proposal.pdf}{\underline{proposal}}, adding context around each view's main insight.
 
-To prioritize data legibility over decorative ornamentation, the design adopts a restrained aesthetic:
+To prioritize data clarity over decorative clutter, the interface uses a clean design:
 \begin{itemize}
-    \item Neutral tones structure the interface, reserving vibrant color encodings strictly for semantic data attributes.
-    \item Clean typography maximizes legibility, being consistent across all views and responsive to screen size.
-    \item Minimal animation enriches the interface without distracting from the data.
+    \item \textbf{Color Usage:} Neutral tones for the layout, reserving bright colors strictly to highlight inside charts.
+    \item \textbf{Typography:} Clear, readable fonts applied consistently across all views.
+    \item \textbf{Animation:} Minimal motion to enhance the user experience without adding distraction.
 \end{itemize}
 
 \begin{figure}[htbp]
@@ -25,21 +25,25 @@ To prioritize data legibility over decorative ornamentation, the design adopts a
 The frontend is a \emph{React} application built with \emph{Vite} and routed via \emph{React Router}.
 Layout and visual design tokens are managed through a unified \emph{Tailwind CSS} module, ensuring consistent styling across interface components, charts, and maps.
 
-Each view employs a rendering library tailored to its specific data structures:
+Each view employs a library tailored to its specific data structures:
 \begin{itemize}
-    \item \emph{deck.gl} renders \emph{WebGL} map layers, maintaining interactive performance across thousands of stations and arcs.
-    \item \emph{Plotly} generates three-dimensional surfaces and filled bands.
-    \item \emph{Chart.js} and custom canvas routines handle two-dimensional categorical charts.
+    \item \textbf{deck.gl} renders \emph{WebGL} map layers, maintaining interactive performance across thousands of stations and arcs.
+    \item \textbf{Plotly} generates three-dimensional surfaces and distribution plots.
+    \item \textbf{Chart.js} and custom canvas to draw simple 2D charts.
 \end{itemize}
 
-Although the original \href{https://github.com/davide-dona/nyc-bike-data-visualization/blob/main/docs/proposal.pdf}{\underline{proposal}} specified \emph{D3.js} for non-map visualizations, adopting \emph{Plotly} and \emph{Chart.js} for standard visual controls freed development effort to focus on domain-specific encodings.
+Although the original \href{https://github.com/davide-dona/nyc-bike-data-visualization/blob/main/docs/proposal.pdf}{\underline{proposal}} specified \emph{D3.js} for non-map charts,
+using \emph{Plotly} and \emph{Chart.js} for standard visuals saved development time.
+\emph{D3.js} provides no ready-made charts, so every axis, scale, and update animation has to be written by hand.
+Both libraries animate data changes on their own, and a single duration and easing setting keeps motion consistent across every chart.
 
 \subsubsection{User Experience}
-To balance immediate legibility with analytical depth, the interface implements a three-part interaction model:
+Because the dashboard is exploratory, ensuring immediate clarity without enforcing a narrative was a primary design concern.
+To keep the interface intuitive without sacrificing depth, we adopted a three-part interaction model:
 \begin{itemize}
-    \item \textbf{Onboarding Guidance:} Each view features a collapsible ``How To Read It'' panel (Figure~\ref{fig:viz-guide}) with three practical interaction hints, lowering the entry cognitive load without restricting open-ended exploration.
-    \item \textbf{Contextual Microcopy:} Embedded hints and hover-triggered tooltips surface exact values and fine-grained details on demand.
-    \item \textbf{Progressive Disclosure:} Sensible default states offer immediate macro-level insights, while interactive filters, toggles, and linked selections enable deeper inspection.
+    \item \textbf{Guide:} Each view has a collapsible ``How To Read It'' panel (Figure~\ref{fig:viz-guide}) with three practical hints, giving users a clear starting point for exploration.
+    \item \textbf{Tooltips:} Embedded hints and hover-triggered tooltips surface exact values and fine-grained details on demand, permitting to have a complete overview without overwhelming.
+    \item \textbf{Defaults:} Sensible default states offer immediate global insights, while interactive filters, toggles, and linked selections enable deeper inspection on demand.
 \end{itemize}
 
 \begin{figure}[htbp]
@@ -49,19 +53,24 @@ To balance immediate legibility with analytical depth, the interface implements 
     \label{fig:viz-guide}
 \end{figure}
 
-Regarding \textbf{page hierarchy}, the spatial map serves as the default view, offering an immediate and impactful geographic overview.
-Then, every view shares a standardized layout skeleton: a descriptive header, a primary display, secondary plots, and the collapsible reading guide.
-
 %-----------
 
 \subsection{Header}
 The global header incorporates two primary filter controls (Figure~\ref{fig:viz-filters}):
 \begin{itemize}
-    \item \textbf{Date Range Picker:} A calendar selector defining the temporal analysis window. Operating at a monthly granularity, it enforces a $12$-month maximum range to prevent excessive backend query latency.
+    \item \textbf{Date Range Picker:} A monthly calendar selector with a 12-month maximum range.
+    Maximum ranges too short would limit trend visibility, while ranges too long would slow down performance.
     \item \textbf{User and Bike Type Selectors:} A pair of selectors filtering data by membership status (member or casual) and bike type (classic, electric, or both).
 \end{itemize}
+Changing any global filter automatically reloads the charts while keeping selections active across pages.
+This initially caused performance delays due to data volume, causing excessive waiting times for users for a single filter change.
+Every backend optimization described in Section~\ref{sec:data-pipeline} permitted to avoid this issue.
 
-Modifying any selection in the global header triggers a background data refetch to update the active plots, while preserving the filter state seamlessly across page transitions.
+\paragraph{Cross-filtering}
+These global filters narrowed the cross-filtering planned in our \href{https://github.com/davide-dona/nyc-bike-data-visualization/blob/main/docs/proposal.pdf}{\underline{proposal}}.
+For example, comparing multiple populations was difficult because it required constantly switching between selections.
+To address this, we added view-specific filters that operate independently of the header.
+Additionally, filters that were only relevant to specific views were removed from the global header and relocated to those views.
 
 \begin{figure}[htbp]
     \centering
@@ -69,17 +78,6 @@ Modifying any selection in the global header triggers a background data refetch 
     \caption{Dashboard: the global header.}
     \label{fig:viz-filters}
 \end{figure}
-
-\paragraph{Challenges}
-Managing global filter states introduced notable engineering trade-offs.
-Synchronizing parameters across views required a centralized state architecture.
-While this initially caused response latency challenges, backend optimizations successfully resolved them.
-
-Beyond backend performance, this global constraint demanded resilient design.
-Each view was engineered to remain expressive under any valid filter combination, preventing sparse queries from yielding empty or misleading visualizations.
-
-Centralizing the filters also narrowed the cross-filtering sketched in our \href{https://github.com/davide-dona/nyc-bike-data-visualization/blob/main/docs/proposal.pdf}{\underline{proposal}}.
-Under this updated architecture, view-specific filters operate independently and do not affect other views.
 
 \subsection{Map}
 To avoid visual clutter and cognitive overload, we separated the spatial analysis of \href{https://www.citibikenyc.com/system-data}{\underline{Citi Bike}} usage into three focused map layers rather than combining them into one view.
