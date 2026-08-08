@@ -87,7 +87,10 @@ As shown in Figure~\ref{fig:viz-overview}, users can easily navigate between the
 
 \subsubsection{Station Usage}
 This layer establishes where demand concentrates across the network, summarizing station activity into a form that remains legible at city scale.
-
+\begin{comment}
+    #TODO: missing comment about the fact that this also shows the spatial distribution in correlation with the hour of the day,
+    allowing to show where are the hotspots of activity at different times of the day.
+\end{comment}
 \paragraph{Hexagon Heatmap}
 Figure~\ref{fig:viz-station-usage} displays a three-dimensional heatmap of extruded hexagons, where height encodes absolute usage and color encodes a station's deviation from its mean activity.
 This dual encoding provides an immediate, high-impact method to identify anomalies in both absolute and relative terms, especially in spatial perspectives.
@@ -196,6 +199,9 @@ Although bike-lane data was initially deferred in our \href{https://github.com/d
 \paragraph{Station Status and Bike Routes}
 The default view renders station locations by real-time operational status (Figure~\ref{fig:viz-infrastructure}), highlighting stations that are nearly empty or full so users can assess capacity risks without inspecting individual nodes.
 Additionally, an interactive toggle overlays NYC bike routes categorized by facility class (Figure~\ref{fig:viz-infrastructure-bike-routes}).
+\begin{comment}
+    #TODO: both figures should probably be done without sidebar?
+\end{comment}
 
 \paragraph{Station Sidebar}
 Selecting a station opens a contextual sidebar merging real-time and historical metrics:
@@ -282,12 +288,20 @@ Each surface maintains its own color gradient, with upper layers rendered semi-t
 \end{figure}
 
 \paragraph{Histograms}
+\begin{comment}
+    #TODO: missing the why this was implemented: the 3D surface is very good at showing the overall trends,
+    but make it impossible to see the details of the distribution of the data, which is why we added the histograms.
+\end{comment}
 Two marginal histograms accompany the surface plot, aggregating data by weekday and hour (Figure~\ref{fig:viz-temporal-hist}).
 To clarify cross-chart relationships, all three views are interactively linked: hovering over a surface cell highlights the corresponding bars in both histograms, while clicking a bar pins a specific day or hour.
 Selecting a bar projects its distribution onto the opposite histogram and overlays a cross-sectional trace across the 3D surface.
 In comparison mode, the histograms display colored bars for each active surface (Figure~\ref{fig:viz-temporal-hist-compare}).
 
 \paragraph{Line Chart}
+\begin{comment}
+    #TODO: same here, could be good to write the actual example that lead to this decision! 
+    This is what i interpret as the history they were asking for!
+\end{comment}
 Because grid-level averages tend to mask single-day anomalies like holidays or severe weather, a supplementary line chart plots individual dates continuously.
 This restores fine-grained detail and highlights temporal outliers that would otherwise remain hidden.
 
@@ -339,6 +353,11 @@ Clicking a legend category isolates a specific condition family, while hovering 
 This provides a compact summary of how weather suppresses or sustains global cycling activity, establishing baseline insights that supporting charts subsequently decompose.
 
 \paragraph{Ridgeline Distributions}
+\begin{comment}
+    #TODO: I think that a stronger point, which was the one that actually led to the introduction of the current
+    ridgeline chart, is that the scatterplot is very good at showing the overall trends, but it does not show
+    if temporal patterns (commuting peaks, weekend vs weekday, etc.) are affected by the weather.
+\end{comment}
 Beyond reducing total volume, weather fundamentally alters daily usage patterns.
 To capture these temporal shifts, a ridgeline chart renders individual density curves per WMO weather code across either $24$ hours or $7$ weekdays, toggled via an interactive control (Figure~\ref{fig:viz-weather-ridgeline}).
 Each ridge is independently normalized to its peak, allowing low-frequency events (such as thunderstorms) to be directly compared against baseline conditions like clear skies.
@@ -351,6 +370,9 @@ Each ridge is independently normalized to its peak, allowing low-frequency event
 \end{figure}
 
 \paragraph{Temperature and Rain Response}
+\begin{comment}
+    # TODO: actually, there is no point in showing different response for different user types (there is already a filter for that in the global header)
+\end{comment}
 Two supplementary plots complement the WMO condition categories by examining continuous weather variables directly (Figure~\ref{fig:viz-secondary-weather}):
 \begin{itemize}
     \item \textbf{Temperature Response:} A line chart plotting average hourly rides across one-degree temperature bins, disaggregated by user type to contrast subscriber behavior against casual ridership.

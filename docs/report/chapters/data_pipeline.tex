@@ -11,17 +11,14 @@ Our pipeline addresses these challenges, enabling us to fulfill the core objecti
 In this section, we summarize the most significant data quality issues identified in our \href{https://github.com/davide-dona/nyc-bike-data-visualization/blob/main/docs/technical-report.pdf}{\underline{technical report}} and describe how we addressed them.
 
 \paragraph{Missing Values}
-Each source is parsed to extract only the required fields, and any records with missing station, timestamp, user, or bike type data are dropped rather than generated.
+Each source is parsed to extract only the required fields. Any records missing station, timestamp, user, or bike type data are immediately discarded.
 Because the affected volume is negligible, discarding these rows preserves data integrity without sacrificing visible detail.
 
 \paragraph{Legacy Schema Reformatting}
 \href{https://www.citibikenyc.com/system-data}{\underline{Citi Bike}} archives arrive in two packaging formats: yearly bundles containing monthly archives (legacy), and flat monthly files (modern).
 The pipeline automatically handles both structures, emitting a single data frame per month.
 
-Within each month, schema variations across files are reconciled by taking their union, then retaining only the core fields shared across all releases.
-Era-specific attributes, such as physical bike IDs, are dropped since no downstream views require them.
-
-Finally, station identifiers are cast to text at parse time to resolve type mismatches between integer and string representations.
+We reconcile these schema variations by retaining only the intersection of columns, discarding any fields not present across all years.
 
 \paragraph{Trip Outliers}
 Three independent filters prevent extreme or invalid records from distorting duration and distance metrics:
@@ -120,3 +117,6 @@ The intermediate \emph{Parquet} files are pruned post-ingestion, leaving \emph{P
 Live station availability is the sole exception, fetched from the feed per request behind a short-lived cache rather than read from the database.
 
 In line with our \href{https://github.com/davide-dona/nyc-bike-data-visualization/blob/main/docs/proposal.pdf}{\underline{project proposal}}, a \emph{GitHub Action} executes this complete sequence monthly and \textbf{publishes} the updated \emph{Docker} image to a public repository, keeping the dashboard continuously up to date.
+\begin{comment}
+    #TODO: Add a figure showing the pipeline stages and their dependencies.
+\end{comment}
