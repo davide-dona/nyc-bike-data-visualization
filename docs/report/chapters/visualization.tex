@@ -70,7 +70,7 @@ Every backend optimization described in Section~\ref{sec:data-pipeline} permitte
 These global filters narrowed the cross-filtering planned in our \href{https://github.com/davide-dona/nyc-bike-data-visualization/blob/main/docs/proposal.pdf}{\underline{proposal}}.
 For example, comparing multiple populations was difficult because it required constantly switching between selections.
 To address this, we added view-specific filters that operate independently of the header.
-Additionally, filters that were only relevant to specific views were removed from the global header and relocated to those views.
+Additionally, filters that were only relevant to specific views were removed from the global header and relocated.
 
 \begin{figure}[htbp]
     \centering
@@ -80,24 +80,30 @@ Additionally, filters that were only relevant to specific views were removed fro
 \end{figure}
 
 \subsection{Map}
-To avoid visual clutter and cognitive overload, we separated the spatial analysis of \href{https://www.citibikenyc.com/system-data}{\underline{Citi Bike}} usage into three focused map layers rather than combining them into one view.
-As shown in Figure~\ref{fig:viz-overview}, users can easily navigate between these views using a basic selector.
+Multiple relevant spatial insights can be extracted from the \href{https://www.citibikenyc.com/system-data}{\underline{Citi Bike}} dataset, including station usage, trip flow, and infrastructure.
+We chose to break down the analysis into three focused map layers rather than combining them into one view, as shown in Figure~\ref{fig:viz-overview}
 
 \subsubsection{Station Usage}
-This layer establishes where demand concentrates across the network, summarizing station activity into a form that remains legible at city scale.
-\begin{comment}
-    #TODO: missing comment about the fact that this also shows the spatial distribution in correlation with the hour of the day,
-    allowing to show where are the hotspots of activity at different times of the day.
-\end{comment}
+This layer establishes where demand concentrates across the network, summarizing station activity into a form that remains clear at city scale.
+
 \paragraph{Hexagon Heatmap}
-Figure~\ref{fig:viz-station-usage} displays a three-dimensional heatmap of extruded hexagons, where height encodes absolute usage and color encodes a station's deviation from its mean activity.
-This dual encoding provides an immediate, high-impact method to identify anomalies in both absolute and relative terms, especially in spatial perspectives.
-In addition, the hexagonal binning approach aggregates stations, reducing visual clutter and enhancing the legibility of the spatial distribution of trips.
+By aggregating individual stations into hourly bins, we visualize the overall activity distribution across space and time of day.
+Figure~\ref{fig:viz-station-usage} presents a 3D heatmap of elevated hexagons, where height encodes absolute usage and color highlights deviation from mean activity.
+This dual encoding makes it easy to spot spatial anomalies in both absolute and relative terms.
+
+Other visualizations were considered, including choropleth maps and 2D heatmaps.
+However, displaying thousands of stations and millions of rides often led to overcrowded, unreadable views.
+For instance, a 2D heatmap resulted in heavy overlap, turning the whole city red without any specific zoom.
+In contrast, our 3D encoding overcomes this issue by using multiple visual channels.
 
 \paragraph{Map Controls}
-Driven by precomputed hourly trip counts (Section~\ref{sec:data-pipeline}), the layer includes a mode selector to isolate incoming, outgoing, or all trips.
-Temporal navigation is controlled via an interactive time wheel and play controls (equipped with speed and pause settings) to animate the daily average and reveal temporal usage patterns.
-Map navigation is fully interactive, allowing users to pan and zoom across the city thanks to \emph{deck.gl}.
+While effective for overall spatial trends, the 3D hexagon heatmap alone abstracts away time and other key filters.
+To restore this depth, the layer uses precomputed hourly trip counts (Section~\ref{sec:data-pipeline}) and includes a mode selector to isolate incoming, outgoing, or total trips.
+This lets users explore the network from different angles, revealing both heavy-traffic stations and top destinations.
+
+Temporal navigation is managed through an interactive time wheel with play controls to animate daily average usage.
+Because the hourly raw data created a inconsistent transition, the time wheel linearly interpolates between adjacent hourly averages.
+This design trade-off provides a continuous, fluid animation at the expense of showing synthesized intermediate values rather than raw measurements.
 
 \begin{figure}[htbp]
     \centering
@@ -109,8 +115,10 @@ Map navigation is fully interactive, allowing users to pan and zoom across the c
 \paragraph{Peak Hour and Station Rankings}
 To complement the spatial view, two auxiliary plots provide targeted insights (Figure~\ref{fig:viz-secondary-station-usage}):
 \begin{itemize}
-    \item \textbf{Station Usage by Peak Hour:} A bar chart showing the number of stations reaching peak volume at each hour. By abstracting fine-grained spatial details, it immediately highlights the network's peak stress hours.
-    \item \textbf{Busiest Stations:} A ranked bar chart of the top stations by average daily trip volume. This addresses spatial occlusion and crowding in the main map, making top-performing stations easy to identify individually.
+    \item \textbf{Station Usage by Peak Hour:} A bar chart showing how many stations reach peak activity during each hour of the day. 
+    Because selecting a single hour on the 3D map masks city-wide patterns, this view offers an immediate, high-level summary of peak activity distribution across the network.
+    \item \textbf{Busiest Stations:} A ranked bar chart highlighting the top stations by average daily trip volume. 
+    This complements the main map by eliminating 3D spatial occlusion and visual clutter, allowing users to instantly identify top-performing locations.
 \end{itemize}
 
 \begin{figure}[htbp]
@@ -120,33 +128,30 @@ To complement the spatial view, two auxiliary plots provide targeted insights (F
     \label{fig:viz-secondary-station-usage}
 \end{figure}
 
-\paragraph{Challenges}
-Encoding thousands of stations and millions of rides on a single canvas created severe visual clutter and spatial occlusion, obscuring key usage patterns.
-The design choices detailed above were specifically chosen to mitigate these visual artifacts.
-
-Conversely, time granularity presented a lower-bound constraint, as the precomputed tables are aggregated by the hour.
-To enable smooth temporal navigation, the time wheel interpolates linearly between adjacent hourly averages.
-This trade-off yields a continuous, fluid animation at the expense of rendering synthesized intermediate values rather than raw measurements.
-
 \subsubsection{Trip Flow}\label{sec:viz-trip-flow}
-While the previous layer quantifies activity at individual stations, this one examines the connections between them.
+While the previous layer quantifies activity at individual stations, this one examines the qualitative connections between them.
 
 \paragraph{Corridor Arcs}
-This layer renders origin-destination arcs representing trips between stations.
-Arc width encodes trip volume, dynamically scaled against the busiest corridor in the current view.
-Arc height and curvature carry no quantitative data, as they serve exclusively to disentangle overlapping paths and maintain visual readability across dense networks.
-Stations are rendered as background points that recede behind the primary flow network until explicitly selected.
-All flow metrics are derived from the precomputed station-pair aggregations (Section~\ref{sec:data-pipeline}) and normalized to daily ride averages to ensure comparability across varying observation periods.
+This layer renders origin-destination arcs representing trips between stations, normalized to daily averages for easy comparison across different time periods (Section~\ref{sec:data-pipeline}).
+Arc width, together with hue, encodes trip volume, dynamically scaled against the busiest corridor in the current view.
+Arc height and curvature carry no quantitative data, as they serve exclusively to disentangle overlapping paths and maintain visual clarity across dense networks.
 
 \paragraph{Citywide Overview}
+The initial implementation rendered the entire network simultaneously, producing extreme visual clutter that obscured individual flows.
+To resolve this, the second prototype hid all connections by default, revealing top corridors only upon station selection.
+While this restored clarity, it completely erased the broader overview and discarded secondary routes.
+
+The final design reconciles both perspectives by rebalancing visual encoding rather than truncating underlying data.
 Initial loading presents a citywide overview of the primary transit corridors (Figure~\ref{fig:viz-trip-flow-overview}), providing an immediate macroscopic view of high-volume routes prior to user interaction.
-To maximize visual reinforcement, a single-hue color ramp mirrors arc width, encoding volume across two perceptual channels.
 
 \paragraph{Station Focus}
-Selecting an individual station isolates its connected corridors and automatically re-frames the camera view around its dominant links (Figure~\ref{fig:viz-trip-flow-single-station}).
-Upon selection, color semantics shift from absolute volume to directional flow asymmetry, categorizing linked stations as predominantly inbound, outbound, or balanced.
-This state enables a directional filter to isolate one-way traffic flows, while re-selecting the origin station or executing a reset command restores the global overview.
+Selecting an individual station isolates its connected corridors and automatically re-frames the camera view around it (Figure~\ref{fig:viz-trip-flow-single-station}).
+Upon selection, color semantics shift from absolute volume to directional flow asymmetry, categorizing links as predominantly inbound, outbound, or balanced.
+To avoid misinterpreting minor fluctuations, routes are classified as directional only when traffic strongly favors one side, and as balanced otherwise.
 
+To achieve this, we encountered a major data limitation.
+Since database rows store station pairs in a canonical order, raw data would randomly assign inbound or outbound labels. 
+We resolve this by dynamically reorienting data relative to the selected station. 
 \begin{figure}[htbp]
     \centering
     \begin{minipage}[t]{0.49\textwidth}
@@ -168,7 +173,10 @@ This state enables a directional filter to isolate one-way traffic flows, while 
 Two secondary analytical panels complement the spatial view (Figure~\ref{fig:viz-secondary-trip-flow}):
 \begin{itemize}
     \item \textbf{Summary Cards:} Display high-level aggregates for the active context, including total daily rides, active corridor counts, flow-weighted median trip distance, and net directional shares for selected stations.
-    \item \textbf{Ranked Corridor List:} A bar chart illustrating the top twelve corridors of the current selection. Interactive hovering highlights the corresponding spatial arc, while clicking a bar isolates that specific corridor by hiding all remaining network links.
+    This permits users to quickly assess the overall network state without inspecting individual arcs.
+    \item \textbf{Ranked Corridor List:} A bar chart illustrating the top twelve corridors of the current selection.
+    Interactive hovering highlights the corresponding spatial arc, while clicking a bar isolates that specific corridor by hiding all remaining network links.
+    In this way, we overcome to the clutter limitation of the main map providing a clear, focused view of the busiest routes.
 \end{itemize}
 
 \begin{figure}[htbp]
@@ -178,21 +186,9 @@ Two secondary analytical panels complement the spatial view (Figure~\ref{fig:viz
     \label{fig:viz-secondary-trip-flow}
 \end{figure}
 
-\paragraph{Challenges}
-Designing the origin-destination view required three major iterations.
-The initial implementation rendered the entire network simultaneously, producing extreme visual clutter that obscured individual flows.
-To resolve this, the second prototype hid all connections by default, revealing top corridors only upon station selection.
-While this restored readability, it completely erased the macroscopic overview and discarded secondary routes.
-The final design reconciles both perspectives by rebalancing visual encoding rather than truncating underlying data.
-
-Additionally, visualizing directional flow introduced a distinct challenge, as geographic corridors carry no intrinsic orientation.
-Because station pairs are stored in a canonical order, raw rendering would arbitrarily label flows as inbound or outbound based solely on database sorting.
-To fix this, data rows are dynamically reoriented relative to the active station upon selection.
-Furthermore, corridors are classified as directional only when traffic strongly favors one side.
-Otherwise, they are categorized as balanced to prevent minor fluctuations from reading as directional.
-
 \subsubsection{Infrastructure}
-Although bike-lane data was initially deferred in our \href{https://github.com/davide-dona/nyc-bike-data-visualization/blob/main/docs/proposal.pdf}{\underline{project proposal}}, preliminary visual analysis revealed that infrastructure provides critical context for bike-share usage, leading us to promote it to a dedicated map layer.
+Although bike-lane data was initially deferred in our \href{https://github.com/davide-dona/nyc-bike-data-visualization/blob/main/docs/proposal.pdf}{\underline{project proposal}}, initial analysis promoted it.
+Since we already had station locations and trip corridors, adding bike lanes provided a complete view of the system's physical infrastructure, useful for both operators and users.
 
 \paragraph{Station Status and Bike Routes}
 The default view renders station locations by real-time operational status (Figure~\ref{fig:viz-infrastructure}), highlighting stations that are nearly empty or full so users can assess capacity risks without inspecting individual nodes.
